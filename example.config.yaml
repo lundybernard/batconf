@@ -1,0 +1,7 @@
+
+default: example
+
+example:
+    remote_host:
+        api_key: example_api_key
+        url: https://api-example.host.io/
