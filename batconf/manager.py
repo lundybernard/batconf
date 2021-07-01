@@ -42,7 +42,6 @@ class Configuration:
         return self._get_config_opt(name, self._mod_)
 
     def _get_config_opt(self, key, path=None):
-        print(f'_get_config_opt({key}, {path})')
         if value := self._config_sources.get(key, path=path):
             return value
 

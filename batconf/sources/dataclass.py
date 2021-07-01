@@ -35,8 +35,6 @@ class DataclassConfig(SourceInterface):
         else:
             path = key.split('.')
 
-        print(f'ConfigDefault.get: path={path}')
-        print(f'    from self._data={self._data}')
         conf = self._data
         for k in path:
             if not (conf := conf.get(k)):

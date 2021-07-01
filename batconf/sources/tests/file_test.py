@@ -126,7 +126,8 @@ class Test_load_config_file(TestCase):
         t.assertEqual(conf, EXAMPLE_CONFIG_DICT)
 
     def test_config_default_config_env(t):
-        conf = load_config_file('./example.config.yaml')
+        with patch('builtins.open', t.m_open):
+            conf = load_config_file('./example.config.yaml')
 
         t.assertEqual(conf['default'], 'example')
 
