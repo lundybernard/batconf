@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "batconf"
-version = "0.1.0"
+version = "0.1.2"
 description = "Application configuration tool from the BAT project"
 authors = ["Lundy Bernard <lundy.bernard@gmail.com>"]
 license = "MIT"
