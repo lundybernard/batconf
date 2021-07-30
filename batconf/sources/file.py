@@ -48,12 +48,7 @@ def load_config_file(config_file=None):
     elif (conf_path := Path(os.getcwd() + '/config.yaml')).is_file():
         CONF_PATH = conf_path  # dont leave a dirty CONF_PATH variable
     else:
-        log.warn(
-            "Config File not specified:"
-            " create config.yaml,"
-            " set environment variable PROJECT_CONFIG to config file path,"
-            " or speicfy a config file."
-        )
+        log.warn(_missing_config_warning)
         return {'default': 'none', 'none': 'empty'}
 
     with open(CONF_PATH) as env_file:
@@ -65,6 +60,6 @@ def load_config_file(config_file=None):
 _missing_config_warning = (
     "Config File not specified:"
     " create config.yaml,"
-    " set environment variable PROJECT_CONFIG to config file path,"
+    " set environment variable BAT_CONFIG_FILE to config file path,"
     " or speicfy a config file."
 )

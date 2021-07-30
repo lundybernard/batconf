@@ -1,6 +1,12 @@
-from dataclasses import dataclass, fields, is_dataclass
+from dataclasses import fields, is_dataclass
+import typing
 
 from .source import SourceList
+
+
+class ConfigProtocol(typing.Protocol):
+    __dataclass_fields__: dict
+    __module__: str
 
 
 class Configuration:
@@ -26,7 +32,7 @@ class Configuration:
     def __init__(
         self,
         source_list: SourceList,
-        config_class: dataclass,
+        config_class: ConfigProtocol,
     ):
         self._config_sources = source_list
         self._config_class = config_class
@@ -35,7 +41,7 @@ class Configuration:
             if is_dataclass(f.type):
                 setattr(self, f.name, Configuration(
                     source_list=source_list,
-                    config_class=f.type,
+                    config_class=typing.cast(ConfigProtocol, f.type),
                 ))
 
     def __getattr__(self, name):
