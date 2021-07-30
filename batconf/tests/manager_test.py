@@ -6,7 +6,7 @@ from ..source import SourceInterface, SourceList
 from ..manager import Configuration
 
 
-SRC = 'bat.configuration.manager'
+SRC = 'batconf.configuration.manager'
 
 
 class Source(SourceInterface):
@@ -28,16 +28,16 @@ class TestConfiguration(TestCase):
             'bat.AModule.arg_1': 's1_a_arg_1',
             'bat.AModule.s1_unique': 's1_a_unique',
             'bat.AModule.SubModule.arg_1': 's1_a_sub_1',
-            'bat.BModule.arg_1': 's1_b_arg_1',
-            'bat.BModule.s1_unique': 's1_b_unique'
+            'bat.b_module.arg_1': 's1_b_arg_1',
+            'bat.b_module.s1_unique': 's1_b_unique'
         })
         t.source_2 = Source({
             'bat.AModule.arg_1': 's2_a_arg_1',
             'bat.AModule.arg_2': 's2_a_arg_2',
             'bat.AModule.s2_unique': 's2_a_unique',
             'bat.AModule.SubModule.arg_1': 's2_a_sub_1',
-            'bat.BModule.arg_1': 's2_b_arg_1',
-            'bat.BModule.s2_unique': 's2_b_unique'
+            'bat.b_module.arg_1': 's2_b_arg_1',
+            'bat.b_module.s2_unique': 's2_b_unique'
         })
         t.source_list = SourceList([t.source_1, t.source_2])
 
@@ -61,12 +61,12 @@ class TestConfiguration(TestCase):
         @dataclass
         class GlobalConfig:
             AModule: ConfA
-            BModule: ConfB
+            b_module: ConfB
 
         #  As if imported from a module
         GlobalConfig.__module__ = 'bat'
         ConfA.__module__ = 'bat.AModule'
-        ConfB.__module__ = 'bat.BModule'
+        ConfB.__module__ = 'bat.b_module'
         ConfSubModule.__module__ = 'bat.AModule.SubModule'
 
         t.GlobalConfig = GlobalConfig
@@ -76,17 +76,17 @@ class TestConfiguration(TestCase):
     def test_from_sources(t):
         with t.subTest('get value from first source'):
             t.assertEqual(t.conf.AModule.s1_unique, 's1_a_unique')
-            t.assertEqual(t.conf.BModule.s1_unique, 's1_b_unique')
+            t.assertEqual(t.conf.b_module.s1_unique, 's1_b_unique')
 
         with t.subTest('get value from n+1 source'):
             t.assertEqual(t.conf.AModule.s2_unique, 's2_a_unique')
-            t.assertEqual(t.conf.BModule.s2_unique, 's2_b_unique')
+            t.assertEqual(t.conf.b_module.s2_unique, 's2_b_unique')
 
     def test_configuration_priority(t):
         with t.subTest('first source is top priority'):
             t.assertEqual(t.conf.AModule.arg_1, 's1_a_arg_1')
 
-        with t.subTest('source n+1 is nexttop priority'):
+        with t.subTest('source n+1 is next top priority'):
             t.assertEqual(t.conf.AModule.arg_2, 's2_a_arg_2')
 
         with t.subTest('defaults from Config classes are not available'):
