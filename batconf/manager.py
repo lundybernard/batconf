@@ -4,6 +4,7 @@ import typing
 from .source import SourceList
 
 
+@typing.runtime_checkable
 class ConfigProtocol(typing.Protocol):
     __dataclass_fields__: dict
     __module__: str

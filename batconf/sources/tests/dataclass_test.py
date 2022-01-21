@@ -1,6 +1,7 @@
 from unittest import TestCase
+from dataclasses import dataclass
 
-from ..dataclass import DataclassConfig, dataclass
+from ..dataclass import DataclassConfig
 
 
 class TestDataclassConfig(TestCase):
