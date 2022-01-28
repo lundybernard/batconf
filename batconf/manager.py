@@ -6,7 +6,7 @@ from .source import SourceList
 
 @typing.runtime_checkable
 class ConfigProtocol(typing.Protocol):
-    __dataclass_fields__: dict
+    __dataclass_fields__: dict[str, typing.Any]
     __module__: str
 
 
@@ -45,10 +45,10 @@ class Configuration:
                     config_class=typing.cast(ConfigProtocol, f.type),
                 ))
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> str:
         return self._get_config_opt(name, self._mod_)
 
-    def _get_config_opt(self, key, path=None):
+    def _get_config_opt(self, key: str, path: str = None) -> str:
         if value := self._config_sources.get(key, path=path):
             return value
 
@@ -63,5 +63,5 @@ class Configuration:
         )
 
     @property
-    def _mod_(self):
+    def _mod_(self) -> str:
         return self._config_class.__module__

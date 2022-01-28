@@ -1,18 +1,28 @@
 from abc import ABCMeta, abstractmethod
 
+from typing import Optional, Protocol
 
-class SourceInterface(metaclass=ABCMeta):
+
+Ostr = Optional[str]
+
+
+class SourceInterfaceProto(Protocol):
+    def get(self, key: str, path: Ostr) -> Ostr:
+        pass
+
+
+class SourceInterface(SourceInterfaceProto, metaclass=ABCMeta):
     @abstractmethod
-    def get(self, key: str, path: str = None):
+    def get(self, key: str, path: Ostr = None) -> Ostr:
         pass
 
 
 class SourceList:
 
-    def __init__(self, sources: 'list[SourceInterface]'):
-        self._sources = list(filter(None, sources))
+    def __init__(self, sources: list[SourceInterface]) -> None:
+        self._sources: list[SourceInterface] = list(filter(None, sources))
 
-    def get(self, key: str, path: str = None):
+    def get(self, key: str, path: Ostr = None) -> Ostr:
         for source in self._sources:
             if value := source.get(key, path):
                 return value

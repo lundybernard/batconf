@@ -3,7 +3,7 @@ from dataclasses import (
     _MISSING_TYPE,
 )
 
-from typing import Any
+from typing import Optional, Any
 
 from ..source import SourceInterface
 from ..manager import ConfigProtocol
