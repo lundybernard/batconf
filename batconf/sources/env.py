@@ -4,15 +4,18 @@ from typing import Optional
 from ..source import SourceInterface
 
 
+Ostr = Optional[str]
+
+
 class EnvConfig(SourceInterface):
 
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
-    def get(self, key: str, module: str = None) -> Optional[str]:
+    def get(self, key: str, module: Ostr = None) -> Ostr:
         return os.getenv(self.env_name(key, module))
 
-    def env_name(self, key: str, module: str = None) -> str:
+    def env_name(self, key: str, module: Ostr = None) -> str:
         if module:
             path = module.split('.') + key.split('.')
         else:
