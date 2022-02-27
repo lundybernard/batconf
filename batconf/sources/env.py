@@ -1,10 +1,6 @@
 import os
-from typing import Optional
 
-from ..source import SourceInterface
-
-
-Ostr = Optional[str]
+from ..source import SourceInterface, Ostr
 
 
 class EnvConfig(SourceInterface):

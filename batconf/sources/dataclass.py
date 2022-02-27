@@ -3,9 +3,7 @@ from dataclasses import (
     _MISSING_TYPE,
 )
 
-from typing import Optional, Any
-
-from ..source import SourceInterface
+from ..source import SourceInterface, Ostr
 from ..manager import ConfigProtocol
 
 
@@ -16,7 +14,7 @@ class DataclassConfig(SourceInterface):
         Properties without defaults are set to None
         '''
         self._root = ConfigClass.__module__
-        self._data: dict = dict()
+        self._data: dict = {}
 
         for field in fields(ConfigClass):
             if isinstance(field.type, ConfigProtocol):
@@ -26,7 +24,7 @@ class DataclassConfig(SourceInterface):
             else:
                 self._data[field.name] = field.default
 
-    def get(self, key: str, module: str = None):
+    def get(self, key: str, module: Ostr = None) -> Ostr:
         if module:
             path = module.split('.') + key.split('.')
             # remove the root module
@@ -36,8 +34,9 @@ class DataclassConfig(SourceInterface):
         else:
             path = key.split('.')
 
-        conf: Any = self._data
+        # Ignore type-hinting in recursion
+        conf = self._data
         for k in path:
-            if not (conf := conf.get(k)):
+            if (conf := conf.get(k)) is None:  # type: ignore
                 return conf
-        return conf
+        return conf  # type: ignore

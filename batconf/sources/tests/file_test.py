@@ -46,7 +46,7 @@ class TestFileConfig(TestCase):
         t.Path.is_file.return_value = True
         t.m_open = mock_open(read_data=EXAMPLE_CONFIG_YAML)
 
-    def test_get(t):
+    def test_get(t) -> None:
         with patch('builtins.open', t.m_open):
             conf = FileConfig()
 
