@@ -4,6 +4,9 @@ import typing
 from .source import SourceList
 
 
+Ostr = typing.Optional[str]
+
+
 @typing.runtime_checkable
 class ConfigProtocol(typing.Protocol):
     __dataclass_fields__: dict[str, typing.Any]
@@ -48,7 +51,7 @@ class Configuration:
     def __getattr__(self, name: str) -> str:
         return self._get_config_opt(name, self._mod_)
 
-    def _get_config_opt(self, key: str, path: str = None) -> str:
+    def _get_config_opt(self, key: str, path: Ostr = None) -> str:
         if value := self._config_sources.get(key, path=path):
             return value
 
