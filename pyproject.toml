@@ -2,7 +2,7 @@
 name = "batconf"
 version = "0.1.3-dev"
 description = "Application configuration tool from the BAT project"
-authors = ["Lundy Bernard <lundy.bernard@gmail.com>"]
+authors = ["Lundy Bernard <lundy.bernard@gmail.com>", "Lauren Moore"]
 license = "MIT"
 
 [tool.poetry.dependencies]
