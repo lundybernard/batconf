@@ -91,6 +91,16 @@ class TestFileConfig(TestCase):
             config_file.get('key', module='bat.module'), 'alt_value'
         )
 
+    @patch.dict(f'{SRC}.os.environ', {}, clear=True)
+    @patch(f'{SRC}.log', autospec=True)
+    def test_missing_file(t, log):
+        '''No file found
+        '''
+        t.Path.return_value.is_file.return_value = False
+        conf = FileConfig()
+        log.warning.assert_called_with(_missing_config_warning)
+        t.assertEqual(conf.get('_sir_not_appearing_in_this_film'), None)
+
     def test__getitem__(t):
         with patch('builtins.open', t.m_open):
             config_file = FileConfig()
@@ -185,5 +195,5 @@ class Test_load_config_file(TestCase):
         '''
         path_is_file.return_value = False
         conf = load_config_file()
-        log.warn.assert_called_with(_missing_config_warning)
+        log.warning.assert_called_with(_missing_config_warning)
         t.assertEqual(conf['default'], 'none')

@@ -53,8 +53,8 @@ def load_config_file(config_file: Union[Path, str, None] = None) -> dict:
     elif (_conf_path := Path(os.getcwd() + '/config.yaml')).is_file():
         conf_path = _conf_path  # dont leave a dirty conf_path variable
     else:
-        log.warn(_missing_config_warning)
-        return {'default': 'none', 'none': 'empty'}
+        log.warning(_missing_config_warning)
+        return {'default': 'none', 'none': {}}
 
     with open(conf_path) as env_file:
         conf = yaml.load(env_file, Loader=yaml.BaseLoader)
