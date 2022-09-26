@@ -3,7 +3,7 @@ import logging as log
 import os
 import yaml
 from pathlib import Path
-from typing import Union
+from typing import Union, List
 
 from ..source import SourceInterface, Ostr
 
@@ -27,7 +27,7 @@ class FileConfig(SourceInterface):
             conf = conf[k]
         return conf
 
-    def keys(self) -> list[str]:
+    def keys(self) -> List[str]:
         return self._data.keys()
 
     def get(self, key: str, module: Ostr = None) -> Ostr:

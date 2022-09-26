@@ -1,16 +1,26 @@
-from dataclasses import fields, is_dataclass
-import typing
+from dataclasses import fields, Field
+from typing import Optional, Union, Protocol, Dict, runtime_checkable
 
 from .source import SourceList
 
+OpStr = Optional[str]
+ConfigValue = Union['ConfigProtocol', str]
 
-Ostr = typing.Optional[str]
+
+class FieldProtocol(Protocol):
+    type: ConfigValue
+    name: str
 
 
-@typing.runtime_checkable
-class ConfigProtocol(typing.Protocol):
-    __dataclass_fields__: dict[str, typing.Any]
-    __module__: str
+@runtime_checkable
+class ConfigProtocol(Protocol):
+    # proper type, not yet recognized by mypy
+    # __dataclass_fields__: Dict[str, FieldProtocol]
+    # __dataclass_fields__: Dict[str, Field[FieldProtocol]]
+    __dataclass_fields__: Dict[str, Field]
+
+
+ConfigRet = Union['Configuration', str]
 
 
 class Configuration:
@@ -42,16 +52,16 @@ class Configuration:
         self._config_class = config_class
 
         for f in fields(self._config_class):
-            if is_dataclass(f.type):
+            if isinstance(f.type, ConfigProtocol):
                 setattr(self, f.name, Configuration(
                     source_list=source_list,
-                    config_class=typing.cast(ConfigProtocol, f.type),
+                    config_class=f.type
                 ))
 
-    def __getattr__(self, name: str) -> str:
+    def __getattr__(self, name: str):
         return self._get_config_opt(name, self._mod_)
 
-    def _get_config_opt(self, key: str, path: Ostr = None) -> str:
+    def _get_config_opt(self, key: str, path: OpStr = None) -> ConfigRet:
         if value := self._config_sources.get(key, path=path):
             return value
 

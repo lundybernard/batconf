@@ -6,7 +6,7 @@ from ..dataclass import DataclassConfig
 
 class TestDataclassConfig(TestCase):
 
-    def test_get(t):
+    def test_get(t) -> None:
         @dataclass
         class SubConfig:
             key: str = 'sub_v_1'
