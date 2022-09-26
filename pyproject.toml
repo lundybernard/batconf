@@ -1,3 +1,7 @@
+[build-system]
+requires = ["poetry-core>=1.1.13"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.poetry]
 name = "batconf"
 version = "0.1.5-dev"
@@ -13,7 +17,3 @@ PyYAML = "^5.4.1"
 pytest = "*"
 mypy = "*"
 types-PyYAML = "*"
-
-[build-system]
-requires = ["poetry-core>=1.1.13"]
-build-backend = "poetry.core.masonry.api"
