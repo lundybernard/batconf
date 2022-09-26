@@ -1,6 +1,7 @@
 from unittest import TestCase
 
 from dataclasses import dataclass
+from typing import Dict, Optional
 
 from ..source import SourceInterface, SourceList
 from ..manager import Configuration
@@ -10,10 +11,10 @@ SRC = 'batconf.configuration.manager'
 
 
 class Source(SourceInterface):
-    def __init__(self, data):
+    def __init__(self, data: Dict[str, str]):
         self._data = data
 
-    def get(self, key: str, path: str = None):
+    def get(self, key: str, path: str = None) -> Optional[str]:
         if v := self._data.get(f'{path}.{key}'):
             return v
         return None
@@ -21,7 +22,7 @@ class Source(SourceInterface):
 
 class TestConfiguration(TestCase):
 
-    def setUp(t):
+    def setUp(t) -> None:
         '''Values are looked up exclusively from the Source List
         '''
         t.source_1 = Source({
@@ -73,7 +74,7 @@ class TestConfiguration(TestCase):
 
         t.conf = Configuration(t.source_list, t.GlobalConfig)
 
-    def test_from_sources(t):
+    def test_from_sources(t) -> None:
         with t.subTest('get value from first source'):
             t.assertEqual(t.conf.AModule.s1_unique, 's1_a_unique')
             t.assertEqual(t.conf.b_module.s1_unique, 's1_b_unique')
@@ -82,7 +83,7 @@ class TestConfiguration(TestCase):
             t.assertEqual(t.conf.AModule.s2_unique, 's2_a_unique')
             t.assertEqual(t.conf.b_module.s2_unique, 's2_b_unique')
 
-    def test_configuration_priority(t):
+    def test_configuration_priority(t) -> None:
         with t.subTest('first source is top priority'):
             t.assertEqual(t.conf.AModule.arg_1, 's1_a_arg_1')
 
@@ -93,7 +94,7 @@ class TestConfiguration(TestCase):
             with t.assertRaises(AttributeError):
                 t.conf.AModule.default_arg
 
-    def test___getattr__(t):
+    def test___getattr__(t) -> None:
 
         with t.subTest('module lookup'):
             t.assertEqual(t.conf.AModule.s1_unique, 's1_a_unique')

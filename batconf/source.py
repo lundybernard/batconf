@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
-from typing import Optional, Protocol, Sequence
+from typing import Optional, Protocol, Sequence, List
 
 
 Ostr = Optional[str]
@@ -20,7 +20,7 @@ class SourceInterface(SourceInterfaceProto, metaclass=ABCMeta):
 class SourceList(SourceInterface):
 
     def __init__(self, sources: Sequence[Optional[SourceInterface]]) -> None:
-        self._sources: list[SourceInterface] = list(filter(None, sources))
+        self._sources: List[SourceInterface] = list(filter(None, sources))
 
     def get(self, key: str, path: Ostr = None) -> Ostr:
         for source in self._sources:
