@@ -3,7 +3,7 @@ from unittest import TestCase
 from dataclasses import dataclass
 from typing import Dict, Optional
 
-from ..source import SourceInterface, SourceList
+from ..source import SourceInterface, SourceList, Ostr
 from ..manager import Configuration
 
 
@@ -14,7 +14,7 @@ class Source(SourceInterface):
     def __init__(self, data: Dict[str, str]):
         self._data = data
 
-    def get(self, key: str, path: str = None) -> Optional[str]:
+    def get(self, key: str, path: Ostr = None) -> Optional[str]:
         if v := self._data.get(f'{path}.{key}'):
             return v
         return None
@@ -30,7 +30,9 @@ class TestConfiguration(TestCase):
             'bat.AModule.s1_unique': 's1_a_unique',
             'bat.AModule.SubModule.arg_1': 's1_a_sub_1',
             'bat.b_module.arg_1': 's1_b_arg_1',
-            'bat.b_module.s1_unique': 's1_b_unique'
+            'bat.b_module.s1_unique': 's1_b_unique',
+            'bat.AModule.false': False,
+            'bat.AModule.none': None,
         })
         t.source_2 = Source({
             'bat.AModule.arg_1': 's2_a_arg_1',
@@ -38,7 +40,9 @@ class TestConfiguration(TestCase):
             'bat.AModule.s2_unique': 's2_a_unique',
             'bat.AModule.SubModule.arg_1': 's2_a_sub_1',
             'bat.b_module.arg_1': 's2_b_arg_1',
-            'bat.b_module.s2_unique': 's2_b_unique'
+            'bat.b_module.s2_unique': 's2_b_unique',
+            'bat.AModule.false': 'Missed False override',
+            'bat.AModule.none': 'Missed None override',
         })
         t.source_list = SourceList([t.source_1, t.source_2])
 
@@ -105,3 +109,10 @@ class TestConfiguration(TestCase):
         with t.subTest('__getattr__ missing'):
             with t.assertRaises(AttributeError):
                 t.conf._sir_not_appearing_in_this_film
+
+    def test_falsy_values(t) -> None:
+        with t.subTest('False value'):
+            t.assertEqual(t.conf.AModule.false, False)
+
+        with t.subTest('None value'):
+            t.assertEqual(t.conf.AModule.none, None)

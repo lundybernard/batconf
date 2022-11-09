@@ -15,6 +15,8 @@ class TestEnvConfig(TestCase):
             'BAT_CONFIG_FILE': 'example.config.yaml',
             'BAT_MODULE_KEY': 'value',
             'BAT_MODULE_PATH_TO_KEY': 'value2',
+            'BAT_FALSE': 'False',
+            'BAT_NONE': 'None',
         }
     )
     def test_get(t):
@@ -34,6 +36,12 @@ class TestEnvConfig(TestCase):
                 conf.get('to.key', module='bat.module.path'),
                 'value2'
             )
+
+        with t.subTest('False value'):
+            t.assertEqual(False, conf.get('false'))
+
+        with t.subTest('None value'):
+            t.assertEqual(None, conf.get('none'))
 
     def test_env_name(t):
         conf = EnvConfig()

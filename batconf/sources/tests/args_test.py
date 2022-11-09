@@ -33,3 +33,9 @@ class TestCliArgsConfig(TestCase):
                 conf.get('to.key', module='bat.module.path'),
                 'value'
             )
+
+        with t.subTest('False value'):
+            t.assertEqual(conf.get('false'), False)
+
+        with t.subTest('None value'):
+            t.assertEqual(conf.get('none'), None)

@@ -34,9 +34,13 @@ class Source(SourceInterface):
 class TestSourceList(TestCase):
 
     def setUp(t):
-        t.source_1 = Source({'p1.key1': 'value1'})
+        t.source_1 = Source(
+            {'p1.key1': 'value1', 'false': False, 'none': None}
+        )
         t.source_2 = Source({'p2.key2': 'value2'})
-        t.source_3 = Source({'p1.key1': 'value3'})
+        t.source_3 = Source(
+            {'p1.key1': 'value3', 'false': True, 'none': 'Not None'}
+        )
 
     def test_get(t):
         sl = SourceList([t.source_1, t.source_2])
@@ -49,6 +53,12 @@ class TestSourceList(TestCase):
 
         with t.subTest('missing attribute returns None'):
             t.assertEqual(sl.get('DNE'), None)
+
+        with t.subTest('False value'):
+            t.assertEqual(sl.get('false'), False)
+
+        with t.subTest('None value'):
+            t.assertEqual(sl.get('none'), None)
 
     def test_none_values_in_args(t):
         '''Given None values in the initial sources list,

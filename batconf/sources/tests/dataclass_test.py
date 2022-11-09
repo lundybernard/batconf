@@ -57,3 +57,9 @@ class TestDataclassConfig(TestCase):
 
         with t.subTest('missing default value'):
             t.assertEqual(conf.get('TestModule.remote_host'), None)
+
+        with t.subTest('False value'):
+            t.assertEqual(conf.get('false'), False)
+
+        with t.subTest('None value'):
+            t.assertEqual(conf.get('none'), None)

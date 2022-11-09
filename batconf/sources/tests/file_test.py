@@ -24,6 +24,10 @@ example:
         remote_host:
             api_key: example_api_key
             url: https://api-example.host.io/
+            
+        falsy:
+            false: False
+            none: None
 
 alt:
     bat:
@@ -63,6 +67,12 @@ class TestFileConfig(TestCase):
             )
         with t.subTest('missing item'):
             t.assertEqual(conf.get('_sir_not_appearing_in_this_film'), None)
+
+        with t.subTest('returns False values'):
+            t.assertEqual(False, conf.get('bat.falsy.false'))
+
+        with t.subTest('returns None values'):
+            t.assertEqual(None, conf.get('bat.falsy.none'))
 
     def test_default_file(t):
         DEFAULT_FILE = '/config.yaml'
