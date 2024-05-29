@@ -27,8 +27,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 pytest mypy types-PyYAML
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install .['test']
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
@@ -37,8 +36,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        pytest
-    # Disabled pending https://github.com/python/mypy/pull/13721
-    #- name: Type checking with mypy
-    #  run: |
-    #    mypy batconf
+        pytest batconf
+    - name: Type checking with mypy
+      run: |
+        mypy batconf
