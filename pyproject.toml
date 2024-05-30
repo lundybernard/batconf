@@ -17,8 +17,11 @@ pyyaml = "*"
 pytest = "*"
 mypy = "*"
 types-PyYAML = "*"
+flake8 = "*"
+black = "*"
 
-[project.optional-dependencies]
+
+[tool.poetry.extras]
 test = [
     "pytest",
     "mypy",
@@ -27,4 +30,9 @@ test = [
 ]
 dev = [
     "black",
+    # + test deps
+    "pytest",
+    "mypy",
+    "types-PyYAML",
+    "flake8",
 ]
