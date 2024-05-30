@@ -17,3 +17,14 @@ pyyaml = "*"
 pytest = "*"
 mypy = "*"
 types-PyYAML = "*"
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "mypy",
+    "types-PyYAML",
+    "flake8",
+]
+dev = [
+    "black",
+]
