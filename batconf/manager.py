@@ -11,6 +11,7 @@ from typing import (
 
 from .source import SourceList
 
+
 OpStr = Optional[str]
 ConfigValue = Union["ConfigProtocol", Type[str]]
 
@@ -61,7 +62,7 @@ class Configuration:
     def __init__(
         self,
         source_list: SourceList,
-        config_class: ConfigProtocol | Any,
+        config_class: Union[ConfigProtocol, Any],
     ):
         self._config_sources = source_list
         self._config_class = config_class
@@ -71,7 +72,10 @@ class Configuration:
                 setattr(
                     self,
                     f.name,
-                    Configuration(source_list=source_list, config_class=f.type),
+                    Configuration(
+                        source_list=source_list,
+                        config_class=f.type
+                        ),
                 )
 
     def __getattr__(self, name: str) -> Any:
