@@ -19,20 +19,3 @@ mypy = "*"
 types-PyYAML = "*"
 flake8 = "*"
 black = "*"
-
-
-[tool.poetry.extras]
-test = [
-    "pytest",
-    "mypy",
-    "types-PyYAML",
-    "flake8",
-]
-dev = [
-    "black",
-    # + test deps
-    "pytest",
-    "mypy",
-    "types-PyYAML",
-    "flake8",
-]
