@@ -5,23 +5,21 @@ import yaml
 from pathlib import Path
 from typing import Union, List
 
-from ..source import SourceInterface, Ostr
+from ..source import SourceInterface, OpStr
 
 
 class FileConfig(SourceInterface):
 
-    def __init__(
-        self, config_file_name: Ostr = None, config_env: Ostr = None
-    ) -> None:
+    def __init__(self, config_file_name: OpStr = None, config_env: OpStr = None) -> None:
         config = load_config_file(config_file_name)
 
         if not config_env:
-            config_env = config['default']
+            config_env = config["default"]
 
         self._data = config[config_env]
 
     def __getitem__(self, key: str) -> Union[SourceInterface, str]:
-        path = key.split('.')
+        path = key.split(".")
         conf = self._data
         for k in path:
             conf = conf[k]
@@ -30,11 +28,11 @@ class FileConfig(SourceInterface):
     def keys(self) -> List[str]:
         return self._data.keys()
 
-    def get(self, key: str, module: Ostr = None) -> Ostr:
+    def get(self, key: str, module: OpStr = None) -> OpStr:
         if module:
-            path = module.split('.') + key.split('.')
+            path = module.split(".") + key.split(".")
         else:
-            path = key.split('.')
+            path = key.split(".")
 
         conf = self._data
         for k in path:
@@ -47,14 +45,14 @@ def load_config_file(config_file: Union[Path, str, None] = None) -> dict:
     if conf_path := config_file:
         pass
     elif conf_path := os.environ.get(
-        'BAT_CONFIG_FILE', default=None  # type: ignore
-    ):
+        "BAT_CONFIG_FILE", default=None
+    ):  #  # type: ignore
         pass
-    elif (_conf_path := Path(os.getcwd() + '/config.yaml')).is_file():
+    elif (_conf_path := Path(os.getcwd() + "/config.yaml")).is_file():
         conf_path = _conf_path  # dont leave a dirty conf_path variable
     else:
         log.warning(_missing_config_warning)
-        return {'default': 'none', 'none': {}}
+        return {"default": "none", "none": {}}
 
     with open(conf_path) as env_file:
         conf = yaml.load(env_file, Loader=yaml.BaseLoader)

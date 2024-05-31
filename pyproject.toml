@@ -19,3 +19,10 @@ mypy = "*"
 types-PyYAML = "*"
 flake8 = "*"
 black = "*"
+
+# === Linters === #
+[tool.flake8]
+max-line-length = "79"
+
+[tool.black]
+line-length = 79
