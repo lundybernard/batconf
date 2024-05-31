@@ -1,4 +1,12 @@
-from typing import Type, Union, Iterable, Protocol, runtime_checkable, Any
+from typing import (
+    Type,
+    Union,
+    Iterable,
+    Protocol,
+    runtime_checkable,
+    Any,
+    Dict,
+)
 
 from dataclasses import (
     _MISSING_TYPE,
@@ -19,7 +27,7 @@ class ConfigProtocol(Protocol):
     In most cases this should be a dataclass,
     However, any object that provides `__dataclass_fields__` will work
     """
-    __dataclass_fields__: dict[str, FieldProtocol]
+    __dataclass_fields__: Dict[str, FieldProtocol]
 
 
 class DataclassConfig(SourceInterface):
