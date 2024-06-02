@@ -1,10 +1,85 @@
-# batconf
-Application configuration tool from the BAT project
+# BatConf: configuratoin framework for python projects
+[![Stable Version](https://img.shields.io/pypi/v/batconf?color=blue)](https://pypi.org/project/batconf/)
+[![Downloads](https://img.shields.io/pypi/dm/batconf)](https://pypistats.org/packages/batconf)
+[![Build Status](https://github.com/lundybernard/batconf/actions/workflows/tests.yml/badge.svg)](https://github.com/lundybernard/batconf/actions)
 
-NOTE:
-In the near future this config library will be a separate python module,
-as it is shared by multiple CLI tools.  for now the source folder can be
-copied into projects that use it.
+
+![Python 3.8](https://img.shields.io/badge/Python-3.8-blue)
+![Python 3.9](https://img.shields.io/badge/Python-3.9-blue)
+![Python 3.10](https://img.shields.io/badge/Python-3.10-blue)
+![Python 3.11](https://img.shields.io/badge/Python-3.11-blue)
+![Python 3.12](https://img.shields.io/badge/Python-3.12-blue)
+
+Designed to provide 12-factor compliant configuration management
+for python microservices, applications, and automation tools.
+
+Provides builtin support for hierarchical configuration via:
+* CLI args
+* Environment Variables
+* Config File (yaml)
+* Config classes with default values
+
+Users can create their own config sources
+by creating classes that satisfy `batconf.source.SourceInterfaceProto`
+(or subclass `batconf.source.SourceInterface`)
+
+The config lookup order is determined by the `SourceList` instance,
+which can be adjusted to suit your needs.
+
+## [Example Configuration](https://github.com/lundybernard/project_template/blob/main/bat/conf.py)
+Most projects can copy this example without modification.
+
+```python
+from bat import GlobalConfig
+
+from batconf.manager import Configuration, ConfigProtocol
+
+from batconf.source import SourceList
+from batconf.sources.args import CliArgsConfig, Namespace
+from batconf.sources.env import EnvConfig
+from batconf.sources.file import FileConfig
+from batconf.sources.dataclass import DataclassConfig
+
+
+def get_config(
+    # Known issue: https://github.com/python/mypy/issues/4536
+    config_class: ConfigProtocol = GlobalConfig,  # type: ignore
+    cli_args: Namespace = None,
+    config_file: FileConfig = None,
+    config_file_name: str = None,
+    config_env: str = None,
+) -> Configuration:
+
+    # Build a prioritized config source list
+    config_sources = [
+        CliArgsConfig(cli_args) if cli_args else None,
+        EnvConfig(),
+        config_file if config_file else FileConfig(
+            config_file_name, config_env=config_env
+        ),
+        DataclassConfig(config_class),
+    ]
+
+    source_list = SourceList(config_sources)
+
+    return Configuration(source_list, config_class)
+```
+### GlobalConfig and Config classes
+the `GlobalConfig` class is a python `dataclass`, used for namespacing,
+and providing a structured configuration tree.
+Its attributes should be other Config dataclasses for sub-modules.
+
+```python
+from dataclasses import dataclass
+from .example import Config
+
+
+@dataclass
+class GlobalConfig:
+    # example module with configuration dataclass
+    example: Config
+```
+
 
 ## Install Instructions
 `pip install .`
