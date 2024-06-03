@@ -26,8 +26,12 @@ by creating classes that satisfy `batconf.source.SourceInterfaceProto`
 The config lookup order is determined by the `SourceList` instance,
 which can be adjusted to suit your needs.
 
-## [Example Configuration](https://github.com/lundybernard/project_template/blob/main/bat/conf.py)
-Most projects can copy this example without modification.
+## [Example Configuration](tests/example/)
+* REF: [template project example](https://github.com/lundybernard/project_template/blob/main/bat/conf.py)
+* [tests/example/](/tests/example) contains an example project and tests
+with documentation.
+
+Most projects can copy this example with minimal modification.
 
 ```python
 from bat import GlobalConfig

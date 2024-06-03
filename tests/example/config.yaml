@@ -1,0 +1,7 @@
+default: test
+
+test:
+  project:
+    submodule:
+      sub:
+        key1: "Config.yaml: test.project.submodule.sub.key1"
