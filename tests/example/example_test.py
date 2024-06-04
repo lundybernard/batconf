@@ -10,8 +10,8 @@ from contextlib import contextmanager
 
 
 # Get the absolute path to the test config.yaml file
-current_dir = path.dirname(path.realpath(__file__))
-config_file_name = path.join(current_dir, "config.yaml")
+example_dir = path.dirname(path.realpath(__file__))
+config_file_name = path.join(example_dir, "config.yaml")
 
 
 class GetConfigFunctionTests(TestCase):

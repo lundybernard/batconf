@@ -1,23 +1,28 @@
-from dataclasses import fields, Field
-from typing import Optional, Union, Protocol, Dict, runtime_checkable
+from typing import (
+    Optional,
+    Union,
+    Protocol,
+    Dict,
+    runtime_checkable,
+    Type,
+    Any,
+    Iterable,
+)
 
 from .source import SourceList
 
+
 OpStr = Optional[str]
-ConfigValue = Union['ConfigProtocol', str]
 
 
 class FieldProtocol(Protocol):
-    type: ConfigValue
+    type: Union['ConfigProtocol', Type[str]]
     name: str
 
 
 @runtime_checkable
 class ConfigProtocol(Protocol):
-    # proper type, not yet recognized by mypy
-    # __dataclass_fields__: Dict[str, FieldProtocol]
-    # __dataclass_fields__: Dict[str, Field[FieldProtocol]]
-    __dataclass_fields__: Dict[str, Field]
+    __dataclass_fields__: Dict[str, FieldProtocol]
 
 
 ConfigRet = Union['Configuration', str]
@@ -46,17 +51,18 @@ class Configuration:
     def __init__(
         self,
         source_list: SourceList,
-        config_class: ConfigProtocol,
+        config_class: Union[ConfigProtocol, Any],
     ):
         self._config_sources = source_list
         self._config_class = config_class
 
-        for f in fields(self._config_class):
+        for f in _fields(self._config_class):
             if isinstance(f.type, ConfigProtocol):
-                setattr(self, f.name, Configuration(
-                    source_list=source_list,
-                    config_class=f.type
-                ))
+                setattr(
+                    self,
+                    f.name,
+                    Configuration(source_list=source_list, config_class=f.type),
+                )
 
     def __getattr__(self, name: str):
         return self._get_config_opt(name, self._mod_)
@@ -78,3 +84,9 @@ class Configuration:
     @property
     def _mod_(self) -> str:
         return self._config_class.__module__
+
+
+# Replacement for dataclasses.fields, typed for ConfigProtocol
+def _fields(dataclass: ConfigProtocol) -> Iterable[FieldProtocol]:
+    for _, v in dataclass.__dataclass_fields__.items():
+        yield v

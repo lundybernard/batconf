@@ -5,13 +5,13 @@ import yaml
 from pathlib import Path
 from typing import Union, List
 
-from ..source import SourceInterface, Ostr
+from ..source import SourceInterface, OpStr
 
 
 class FileConfig(SourceInterface):
 
     def __init__(
-        self, config_file_name: Ostr = None, config_env: Ostr = None
+        self, config_file_name: OpStr = None, config_env: OpStr = None
     ) -> None:
         config = load_config_file(config_file_name)
 
@@ -30,7 +30,7 @@ class FileConfig(SourceInterface):
     def keys(self) -> List[str]:
         return self._data.keys()
 
-    def get(self, key: str, module: Ostr = None) -> Ostr:
+    def get(self, key: str, module: OpStr = None) -> OpStr:
         if module:
             path = module.split('.') + key.split('.')
         else:
@@ -46,9 +46,7 @@ class FileConfig(SourceInterface):
 def load_config_file(config_file: Union[Path, str, None] = None) -> dict:
     if conf_path := config_file:
         pass
-    elif conf_path := os.environ.get(
-        'BAT_CONFIG_FILE', default=None  # type: ignore
-    ):
+    elif conf_path := os.environ.get('BAT_CONFIG_FILE', default=None):  # type: ignore
         pass
     elif (_conf_path := Path(os.getcwd() + '/config.yaml')).is_file():
         conf_path = _conf_path  # dont leave a dirty conf_path variable

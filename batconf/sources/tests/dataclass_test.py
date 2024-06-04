@@ -36,20 +36,31 @@ class TestDataclassConfig(TestCase):
         with t.subTest('module value'):
             t.assertEqual(
                 conf.get('key', module=ConfigClass.__module__),
-                'v_1'
+                'v_1',
             )
 
         with t.subTest('key paths'):
-            t.assertEqual(conf.get('TestModule.key',), 'v_1')
-            t.assertEqual(conf.get('TestModule.SubModule.key',), 'sub_v_1')
+            t.assertEqual(
+                conf.get(
+                    'TestModule.key',
+                ),
+                'v_1',
+            )
+            t.assertEqual(
+                conf.get(
+                    'TestModule.SubModule.key',
+                ),
+                'sub_v_1',
+            )
 
         with t.subTest('module and key paths'):
             t.assertEqual(
-                conf.get('key', module=SubConfig.__module__), 'sub_v_1'
+                conf.get('key', module=SubConfig.__module__),
+                'sub_v_1',
             )
             t.assertEqual(
                 conf.get('SubModule.key', module=ConfigClass.__module__),
-                'sub_v_1'
+                'sub_v_1',
             )
 
         with t.subTest('missing value'):
@@ -57,3 +68,7 @@ class TestDataclassConfig(TestCase):
 
         with t.subTest('missing default value'):
             t.assertEqual(conf.get('TestModule.remote_host'), None)
+
+        with t.subTest('get sub-config returns a DataclassConfig object'):
+            # TODO: This may be a bug, and needs to be investigated further
+            t.assertIsInstance(conf.get('TestModule'), DataclassConfig)
