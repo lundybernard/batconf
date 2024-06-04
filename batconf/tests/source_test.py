@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from ..source import (
     SourceList,
     SourceInterface,
+    OpStr,
 )
 
 
@@ -25,7 +26,7 @@ class Source(SourceInterface):
     def __init__(self, data):
         self._data = data
 
-    def get(self, key: str, path: str = None):
+    def get(self, key: str, path: OpStr = None):
         if v := self._data.get(f'{path}.{key}'):
             return v
         return None

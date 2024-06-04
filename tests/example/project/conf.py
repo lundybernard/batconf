@@ -1,3 +1,5 @@
+from typing import Any, Union, Optional
+
 from . import ProjectConfig
 
 from batconf.manager import Configuration, ConfigProtocol
@@ -10,20 +12,22 @@ from batconf.sources.dataclass import DataclassConfig
 
 
 def get_config(
-    config_class: ConfigProtocol = ProjectConfig,
-    cli_args: Namespace = None,
-    config_file: FileConfig = None,
-    config_file_name: str = None,
-    config_env: str = None,
+    config_class: Union[ConfigProtocol, Any] = ProjectConfig,
+    cli_args: Optional[Namespace] = None,
+    config_file: Optional[FileConfig] = None,
+    config_file_name: Optional[str] = None,
+    config_env: Optional[str] = None,
 ) -> Configuration:
     """Example get_config function
 
     This function builds a :class:`SouceList`, which defines the configuration
     sources and lookup order.
 
-    :param config_class:  python builtin dataclass
-    of type dataclass[dataclass | str]
-    :param cli_args:  :class:`Namespace` provided by python's builtin argparse
+    :param config_class: python builtin dataclass
+    of type dataclass[dataclass | str].
+    Type-hint includes :class:`Any` because mypy does not currently recognize
+    the dataclass produced by @dataclass as satisfying the ConfigProtocol.
+    :param cli_args: :class:`Namespace` provided by python's builtin argparse
     :param config_file:
     :param config_file_name:
     :param config_env: Environment id string, ex: 'dev', 'staging', 'yourname'
