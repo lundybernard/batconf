@@ -88,8 +88,6 @@ class GlobalConfig:
 ## Install Instructions
 `pip install .`
 
-### Dev Environment
-
 #### Install with Poetry
 install poetry >= 1.1.13
 
@@ -97,3 +95,16 @@ install poetry >= 1.1.13
 
 #### Manual install
 install the dev dependencies listed in pyproject.toml
+
+
+## Dev Guide
+
+## Design Principles
+* **Non-Intrusive Integration**: BatConf can be seamlessly incorporated 
+  into existing projects with minimal code modifications.
+  * imports from batconf can be isolated to a single source file
+  * Config classes utilize stdlib dataclasses
+* **Portability and Modularity**: Modules (sub-modules or entire projects) that use batconf configuration
+  should be easy to compose and refactor.
+  * modules can be easily plugged in to other modules.
+  * modules can be easily factored out (into new projects).
