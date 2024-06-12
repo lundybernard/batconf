@@ -27,3 +27,11 @@ class SourceList(SourceInterface):
             if value := source.get(key, path):
                 return value
         return None
+
+    def __str__(self) -> str:
+        srs = (f'{src},' for src in self._sources)
+        srs_strs = '\n    '.join(srs)
+        return f'SourceList=[\n    {srs_strs}\n]'
+
+    def __repr__(self) -> str:
+        return f'SourceList(sources={self._sources})'

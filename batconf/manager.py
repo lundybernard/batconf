@@ -3,6 +3,7 @@ from typing import (
     Union,
     Protocol,
     Dict,
+    List,
     runtime_checkable,
     Type,
     Any,
@@ -85,8 +86,47 @@ class Configuration:
     def _mod_(self) -> str:
         return self._config_class.__module__
 
+    def __str__(self) -> str:
+        repr_str = [f'Root {self._config_class}:']
+        repr_str += _configuration_repr(configuration=self, level=1)
+        repr_str.append(str(self._config_sources))
+        return '\n'.join(repr_str)
+
+    def __repr__(self) -> str:
+        return (
+            f'{self.__class__.__name__}('
+            f'source_list={repr(self._config_sources)}, '
+            f'config_class={repr(self._config_class)})'
+        )
+
 
 # Replacement for dataclasses.fields, typed for ConfigProtocol
 def _fields(dataclass: ConfigProtocol) -> Iterable[FieldProtocol]:
     for _, v in dataclass.__dataclass_fields__.items():
         yield v
+
+
+def _configuration_repr(
+    configuration: Configuration,
+    level: int,
+) -> List[str]:
+    attrs = []
+    children = []
+
+    for field in _fields(configuration._config_class):
+        if isinstance(field.type, ConfigProtocol):
+            children.append(
+                ''.join(('    |' * level, f'- {field.name} {field.type}:'))
+            )
+            children += _configuration_repr(
+                getattr(configuration, field.name),
+                level + 1,
+            )
+        else:
+            attrs.append(''.join((
+                '    |' * level,
+                f'- {field.name}: ',
+                f'"{getattr(configuration, field.name, "MISSING_VALUE")}"'
+            )))
+
+    return attrs + children
