@@ -46,7 +46,7 @@ class FileConfig(SourceInterface):
 def load_config_file(config_file: Union[Path, str, None] = None) -> dict:
     if conf_path := config_file:
         pass
-    elif conf_path := os.environ.get('BAT_CONFIG_FILE', default=None):  # type: ignore
+    elif conf_path := os.environ.get('BAT_CONFIG_FILE', default=None):
         pass
     elif (_conf_path := Path(os.getcwd() + '/config.yaml')).is_file():
         conf_path = _conf_path  # dont leave a dirty conf_path variable
