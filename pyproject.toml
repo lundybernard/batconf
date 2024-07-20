@@ -16,6 +16,7 @@ pyyaml = "*"
 # optional dev dependencies
 # ref: https://python-poetry.org/docs/pyproject/#extras
 coverage = { version='*', optional=true}
+flake8 = { version='*', optional=true}
 mypy = { version='*', optional=true}
 pytest = { version='*', optional=true }
 pytest-cov = { version='*', optional=true }
@@ -24,6 +25,7 @@ types-PyYAML = { version='*', optional=true }
 [tool.poetry.extras]
 dev = [
     "coverage",
+    "flake8",
     "mypy",
     "pytest",
     "pytest-cov",
@@ -37,3 +39,9 @@ log_level = "INFO"
 addopts = "--cov=batconf --cov-report=term --cov-report=xml"
 python_classes = '*Tests'
 python_files = ["*_test.py", "*_pytest.py"]
+
+
+# === Formatting === #
+[tool.flake8]
+max-line-length = "79"
+max-complexity = 10

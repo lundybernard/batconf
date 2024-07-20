@@ -62,7 +62,9 @@ class Configuration:
                 setattr(
                     self,
                     f.name,
-                    Configuration(source_list=source_list, config_class=f.type),
+                    Configuration(
+                        source_list=source_list, config_class=f.type
+                    ),
                 )
 
     def __getattr__(self, name: str):
