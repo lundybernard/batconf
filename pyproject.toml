@@ -13,7 +13,27 @@ license = "MIT"
 python = "^3.8"
 pyyaml = "*"
 
-[tool.poetry.dev-dependencies]
-pytest = "*"
-mypy = "*"
-types-PyYAML = "*"
+# optional dev dependencies
+# ref: https://python-poetry.org/docs/pyproject/#extras
+coverage = { version='*', optional=true}
+mypy = { version='*', optional=true}
+pytest = { version='*', optional=true }
+pytest-cov = { version='*', optional=true }
+types-PyYAML = { version='*', optional=true }
+
+[tool.poetry.extras]
+dev = [
+    "coverage",
+    "mypy",
+    "pytest",
+    "pytest-cov",
+    "types-PyYAML",
+]
+
+
+# === Testing === #
+[tool.pytest.ini_options]
+log_level = "INFO"
+addopts = "--cov=batconf --cov-report=term --cov-report=xml"
+python_classes = '*Tests'
+python_files = ["*_test.py", "*_pytest.py"]

@@ -98,6 +98,11 @@ install the dev dependencies listed in pyproject.toml
 
 
 ## Dev Guide
+### Install dev dependencies (pytest, mypy, etc)
+`pip install -e .[dev]`
+
+### macos/zsh:
+`pip install -e ".[dev]"`
 
 ## Design Principles
 * **Non-Intrusive Integration**: BatConf can be seamlessly incorporated 
