@@ -67,3 +67,23 @@ class TestSourceList(TestCase):
 
         sl = SourceList([t.source_3, t.source_1])
         t.assertEqual(sl.get('key1', 'p1'), 'value3')
+
+    def test___str__(t):
+        ret = str(SourceList([t.source_1, t.source_2]))
+        t.assertRegex(
+            ret,
+            'SourceList=\\[\n'
+            r'    <batconf.tests.source_test.Source object at 0x.+>,\n'
+            r'    <batconf.tests.source_test.Source object at 0x.+>,\n'
+            '\\]',
+        )
+
+    def test___repr__(t):
+        ret = repr(SourceList([t.source_1, t.source_2]))
+        t.assertRegex(
+            ret,
+            "SourceList\\(sources=\\["
+            r"<batconf.tests.source_test.Source object at 0x.+>, "
+            r"<batconf.tests.source_test.Source object at 0x.+>"
+            "\\]\\)"
+        )

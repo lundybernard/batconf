@@ -7,8 +7,7 @@ OpStr = Optional[str]
 
 
 class SourceInterfaceProto(Protocol):
-    def get(self, key: str, path: OpStr) -> OpStr:
-        pass
+    def get(self, key: str, path: OpStr) -> OpStr: ...
 
 
 class SourceInterface(SourceInterfaceProto, metaclass=ABCMeta):
