@@ -51,7 +51,7 @@ jobs:
 
     - name: Integratoin Tests
       run: |
-        pytest tests
+        pytest --no-cov tests
 
     - name: Type checking with mypy
       run: |
