@@ -21,6 +21,12 @@ mypy = { version='*', optional=true}
 pytest = { version='*', optional=true }
 pytest-cov = { version='*', optional=true }
 types-PyYAML = { version='*', optional=true }
+# optional documentation dependencies
+sphinx = { version='*', optional=true}
+sphinx-rtd-theme = { version='*', optional=true}
+myst_parser = { version='*', optional=true}
+sphinx_autodoc_typehints = { version='*', optional=true}
+
 
 [tool.poetry.extras]
 dev = [
@@ -30,6 +36,12 @@ dev = [
     "pytest",
     "pytest-cov",
     "types-PyYAML",
+]
+docs = [
+    "sphinx",
+    "sphinx-rtd-theme",
+    "myst_parser",
+    "sphinx_autodoc_typehints",
 ]
 
 
