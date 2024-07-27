@@ -48,6 +48,7 @@ autodoc_default_options = {
 
 # sphinx-autodoc-typehints options
 set_type_checking_flag = True
+always_document_param_types = True
 
 
 # -- Options for HTML output -------------------------------------------------
