@@ -23,10 +23,13 @@ pytest = { version='*', optional=true }
 pytest-cov = { version='*', optional=true }
 types-PyYAML = { version='*', optional=true }
 # optional documentation dependencies
-sphinx = { version='*', optional=true}
-sphinx-rtd-theme = { version='*', optional=true}
-myst_parser = { version='*', optional=true}
-sphinx_autodoc_typehints = { version='*', optional=true}
+myst_parser = {version='*', optional=true}
+sphinx = {version='*', optional=true}
+sphinx_autodoc_typehints = {version='*', optional=true}
+sphinxext-opengraph = {version='*', optional=true}
+sphinx_design = {version='*', optional=true}
+sphinx-rtd-theme = {version='*', optional=true}
+matplotlib = {version='*', optional=true}  # for social preview cards
 
 
 [tool.poetry.extras]
@@ -40,9 +43,12 @@ dev = [
 ]
 docs = [
     "sphinx",
-    "sphinx-rtd-theme",
-    "myst_parser",
     "sphinx_autodoc_typehints",
+    "sphinx_design",
+    "sphinxext-opengraph",
+    "sphinx-rtd-theme",
+    "matplotlib", # for social preview cards
+    "myst_parser",
 ]
 
 
