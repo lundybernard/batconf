@@ -1,3 +1,7 @@
+---
+file_format: mystnb
+---
+
 % batconf documentation entrypoint
 
 ```{currentmodule} batconf
@@ -22,19 +26,15 @@ Dev Guide <devguide>
 API <reference/modules>
 ```
 
-# BatConf
+# Welcome to BatConf
 
-> *Configuration Management for Python projects, modules, applications, 
-> and microservices*
+Configuration Management for Python projects, modules, applications, 
+and microservices.
 
-[![Stable Version](https://img.shields.io/pypi/v/batconf?color=blue)](https://pypi.org/project/batconf/)
-[![Build Status](https://github.com/lundybernard/batconf/actions/workflows/tests.yml/badge.svg)](https://github.com/lundybernard/batconf/actions)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/batconf)
-[![Downloads](https://img.shields.io/pypi/dm/batconf)](https://pypistats.org/packages/batconf)
-
-Unify your python application and module configuration.
+Compose structured hierarchical configurations from multiple sources.
+Enable your code to adapt seemlessly to the current context.
 Allow users in different contexts to use the config source that works best for
-them.  Set reasonable defaults, and override them as needed. 
+them.
 
 * Hierarchical priority: CLI > Environment > config file > module defaults
 * Provides builtin support for common config sources:
@@ -43,7 +43,14 @@ them.  Set reasonable defaults, and override them as needed.
   * Config File (yaml)
   * Config classes with default values
 * Easily extendable, add new sources to serve your needs.
+* Set reasonable defaults, and override them as needed.
 * Designed for 12-factor applications (config via Environment Variables)
+
+
+[![Stable Version](https://img.shields.io/pypi/v/batconf?color=blue)](https://pypi.org/project/batconf/)
+[![Build Status](https://github.com/lundybernard/batconf/actions/workflows/tests.yml/badge.svg)](https://github.com/lundybernard/batconf/actions)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/batconf)
+[![Downloads](https://img.shields.io/pypi/dm/batconf)](https://pypistats.org/packages/batconf)
 
 
 ## Contributing

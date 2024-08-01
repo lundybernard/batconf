@@ -6,7 +6,7 @@
 import sys
 import os
 
-sys.path.insert(0, os.path.abspath('../../batconf/'))
+sys.path.insert(0, os.path.abspath('..'))
 
 
 # -- Project information -----------------------------------------------------
@@ -27,8 +27,10 @@ html_favicon = '_static/batconf-favicon.png'
 
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinxext.opengraph',
     'sphinx_autodoc_typehints',
     'myst_parser',
+    'sphinx_design',
 ]
 
 templates_path = ['_templates']
@@ -59,3 +61,9 @@ always_document_param_types = True
 
 html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
+
+
+# -- Options for OGP social preview ------------------------------------------
+if rtd_canon_url := os.getenv('READTHEDOCS_CANONICAL_URL', False):
+    print(f'rtd_canon_url={rtd_canon_url}')
+    ogp_site_url = rtd_canon_url
