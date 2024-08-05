@@ -21,6 +21,9 @@ release = '0.1.8'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 master_doc = 'index'
+html_logo = '_static/batconf-logo.png'
+html_favicon = '_static/batconf-favicon.png'
+
 
 extensions = [
     'sphinx.ext.autodoc',
