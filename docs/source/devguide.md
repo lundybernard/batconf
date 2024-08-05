@@ -18,6 +18,5 @@ Information to assist developers working to maintain and improve BatConf
 
 ## Build the documentation:
 ```bash
-> cd docs/
 > make docs
 ```
