@@ -4,11 +4,15 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "batconf"
-version = "0.1.8-dev"
+version = "0.1.8.dev2"
 description = "Application configuration tool from the BAT project"
 authors = ["Lundy Bernard <lundy.bernard@gmail.com>", "Lauren Moore"]
 license = "MIT"
 readme = "README.md"
+
+[tool.poetry.urls]
+"Documentation" = "https://batconf.readthedocs.io/en/latest/"
+"Source Code" = "https://github.com/lundybernard/batconf/"
 
 [tool.poetry.dependencies]
 python = "^3.8"
