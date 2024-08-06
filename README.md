@@ -125,3 +125,9 @@ install the dev dependencies listed in pyproject.toml
   should be easy to compose and refactor.
   * modules can be easily plugged in to other modules.
   * modules can be easily factored out (into new projects).
+
+
+## Security contact information
+To report a security vulnerability, please use the
+[Tidelift security contact](https://tidelift.com/security).
+Tidelift will coordinate the fix and disclosure.
