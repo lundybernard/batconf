@@ -1,8 +1,13 @@
-# BatConf: configuratoin framework for python projects
+![Logo](https://github.com/lundybernard/batconf/blob/feature/docs/docs/source/_static/batconf-logo.png?raw=true)
+
+
+# BatConf
+Configuration Management for Python projects, modules, applications, 
+and microservices.
+
 [![Stable Version](https://img.shields.io/pypi/v/batconf?color=blue)](https://pypi.org/project/batconf/)
 [![Downloads](https://img.shields.io/pypi/dm/batconf)](https://pypistats.org/packages/batconf)
 [![Build Status](https://github.com/lundybernard/batconf/actions/workflows/tests.yml/badge.svg)](https://github.com/lundybernard/batconf/actions)
-
 
 ![Python 3.8](https://img.shields.io/badge/Python-3.8-blue)
 ![Python 3.9](https://img.shields.io/badge/Python-3.9-blue)
@@ -10,14 +15,20 @@
 ![Python 3.11](https://img.shields.io/badge/Python-3.11-blue)
 ![Python 3.12](https://img.shields.io/badge/Python-3.12-blue)
 
-Designed to provide 12-factor compliant configuration management
-for python microservices, applications, and automation tools.
+Compose structured hierarchical configurations from multiple sources.
+Enable your code to adapt seemlessly to the current context.
+Allow users in different contexts to use the config source that works best for
+them.
 
-Provides builtin support for hierarchical configuration via:
-* CLI args
-* Environment Variables
-* Config File (yaml)
-* Config classes with default values
+* Hierarchical priority: CLI > Environment > config file > module defaults
+* Provides builtin support for common config sources:
+  * CLI args
+  * Environment Variables
+  * Config File (yaml)
+  * Config classes with default values
+* Easily extendable, add new sources to serve your needs.
+* Set reasonable defaults, and override them as needed.
+* Designed for 12-factor applications (config via Environment Variables)
 
 Users can create their own config sources
 by creating classes that satisfy `batconf.source.SourceInterfaceProto`
@@ -25,6 +36,7 @@ by creating classes that satisfy `batconf.source.SourceInterfaceProto`
 
 The config lookup order is determined by the `SourceList` instance,
 which can be adjusted to suit your needs.
+
 
 ## [Example Configuration](tests/example/)
 * REF: [template project example](https://github.com/lundybernard/project_template/blob/main/bat/conf.py)
