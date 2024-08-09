@@ -23,6 +23,7 @@ Dev Guide <devguide>
 :hidden: true
 :maxdepth: 6
 
+Changelog <changelog>
 API <reference/modules>
 ```
 

@@ -27,6 +27,7 @@ html_favicon = '_static/batconf-favicon.png'
 
 extensions = [
     'sphinx.ext.autodoc',
+    "sphinx.ext.extlinks",
     'sphinxext.opengraph',
     'sphinx_autodoc_typehints',
     'myst_parser',
@@ -54,6 +55,20 @@ autodoc_default_options = {
 # sphinx-autodoc-typehints options
 set_type_checking_flag = True
 always_document_param_types = True
+
+# This config value must be a dictionary of external sites, mapping unique
+# short alias names to a base URL and a prefix.
+# See http://sphinx-doc.org/ext/extlinks.html
+_repo = "https://github.com/lundybernard/batconf/"
+extlinks = {
+    "commit": (_repo + "commit/%s", "commit %s"),
+    "gh-file": (_repo + "blob/master/%s", "%s"),
+    "gh-link": (_repo + "%s", "%s"),
+    "issue": (_repo + "issues/%s", "issue #%s"),
+    "pull": (_repo + "pull/%s", "pull request #%s"),
+    "pypi": ("https://pypi.org/project/%s/", "%s"),
+    "wikipedia": ("https://en.wikipedia.org/wiki/%s", "%s"),
+}
 
 
 # -- Options for HTML output -------------------------------------------------
