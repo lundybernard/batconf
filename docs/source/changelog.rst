@@ -19,6 +19,23 @@ BatConf 0.x
 
     .. include:: ../RELEASE.rst
 
+.. _v0.1.8:
+
+--------------------
+0.1.8 - 2024-08-09
+--------------------
+
+Observability improvements
+
+* Add expressive repr to Configuration class
+
+Project maintenance
+
+* Improve documentation
+* Add security policy
+* Add project logo
+* Add optional extras for dev and docs
+
 .. _v0.1.7:
 
 --------------------
