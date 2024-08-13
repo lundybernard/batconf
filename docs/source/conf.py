@@ -52,6 +52,11 @@ autodoc_default_options = {
     "undoc-members": False,
 }
 
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.md': 'markdown',
+}
+
 # sphinx-autodoc-typehints options
 set_type_checking_flag = True
 always_document_param_types = True
@@ -62,7 +67,7 @@ always_document_param_types = True
 _repo = "https://github.com/lundybernard/batconf/"
 extlinks = {
     "commit": (_repo + "commit/%s", "commit %s"),
-    "gh-file": (_repo + "blob/master/%s", "%s"),
+    "gh-file": (_repo + "blob/main/%s", "%s"),
     "gh-link": (_repo + "%s", "%s"),
     "issue": (_repo + "issues/%s", "issue #%s"),
     "pull": (_repo + "pull/%s", "pull request #%s"),
