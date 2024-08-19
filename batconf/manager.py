@@ -19,6 +19,7 @@ OpStr = Optional[str]
 class FieldProtocol(Protocol):
     type: Union['ConfigProtocol', Type[str]]
     name: str
+    default: str
 
 
 @runtime_checkable
@@ -69,13 +70,22 @@ class Configuration:
             if isinstance(f.type, ConfigProtocol)
         }
 
+        self._default_values: Dict[str, str] = {
+            f.name: f.default
+            for f in _fields(self._config_class)
+            if isinstance(f.default, str)
+        }
+
     def __getattr__(self, name: str):  # -> Union[str, 'Configuration']:
         if cfg := self._sub_configs.get(name, None):
             return cfg
-        return self._get_config_opt(name, self._path)
+        return self._get_config_opt(name)
 
-    def _get_config_opt(self, key: str, path: OpStr = None) -> str:
-        if value := self._config_sources.get(key, path=path):
+    def _get_config_opt(self, key: str) -> str:
+        if value := self._config_sources.get(key, path=self._path):
+            return value
+
+        if value := self._default_values.get(key, None):
             return value
 
         raise AttributeError(
@@ -90,10 +100,10 @@ class Configuration:
 
     @property
     def _path(self) -> str:
-        return self.__path if self.__path else self._mod_
+        return self.__path if self.__path else self._module
 
     @property
-    def _mod_(self) -> str:
+    def _module(self) -> str:
         return self._config_class.__module__
 
     def __str__(self) -> str:
