@@ -96,7 +96,6 @@ from batconf.source import SourceList
 from batconf.sources.args import CliArgsConfig, Namespace
 from batconf.sources.env import EnvConfig
 from batconf.sources.file import FileConfig
-from batconf.sources.dataclass import DataclassConfig
 
 
 def get_config(
@@ -115,7 +114,6 @@ def get_config(
         config_file if config_file else FileConfig(
             config_file_name, config_env=config_env
         ),
-        DataclassConfig(config_class),
     ]
 
     source_list = SourceList(config_sources)
@@ -150,11 +148,6 @@ cfg = get_config(ClientConfig)
 print(cfg.username)
 ```
 
-*Gotcha*: the `DataclassConfig` source is currently linked to the `__module__`
-Namespace of the Config classes.  For now, we recommend that Config class 
-structure mirrors your module names.  We are working on a fix to make this 
-more flexible.
-
 
 ## Usage
 
@@ -171,7 +164,6 @@ Root <class 'bat.GlobalConfig'>:
 SourceList=[
     <batconf.sources.env.EnvConfig object at 0x7faf102ed4f0>,
     <batconf.sources.file.FileConfig object at 0x7faf102e7440>,
-    <batconf.sources.dataclass.DataclassConfig object at 0x7faf102e7740>,
 ]
 
 In [3]: cfg.server.host
