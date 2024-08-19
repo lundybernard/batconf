@@ -3,7 +3,6 @@ from unittest import TestCase
 from dataclasses import dataclass
 
 from batconf.manager import Configuration, SourceList
-from batconf.sources.dataclass import DataclassConfig
 
 
 class FreeFormConfigTreeTests(TestCase):
@@ -32,24 +31,28 @@ class FreeFormConfigTreeTests(TestCase):
         class RootConfig:
             l1a: Level1ConfigA
             l1b: Level1ConfigB
+            nodefault: str
             value: str = 'root config value'
 
         cfg = Configuration(
-            source_list=SourceList(
-                [
-                    DataclassConfig(RootConfig, path='root'),
-                ]
-            ),
+            source_list=SourceList([]),
             config_class=RootConfig,
             path='root',
         )
 
+        t.assertIsInstance(cfg, Configuration)
         t.assertEqual(cfg.value, 'root config value')
+        t.assertIsInstance(cfg.l1a, Configuration)
         t.assertEqual(cfg.l1a.value, 'level 1 config A value')
+        t.assertIsInstance(cfg.l1a.l2a, Configuration)
         t.assertEqual(cfg.l1a.l2a.value, 'level 2 config A value')
+        t.assertIsInstance(cfg.l1a.l2a, Configuration)
         t.assertEqual(cfg.l1b.l2b.value, 'level 2 config B value')
 
         t.assertIsInstance(cfg.l1a.l2a, Configuration)
         t.assertEqual(cfg.l1b.value, 'level 1 config B value')
         t.assertEqual(cfg.l1b.l2a.value, 'level 2 config A value')
         t.assertEqual(cfg.l1b.l2b.value, 'level 2 config B value')
+
+        with t.assertRaises(AttributeError):
+            cfg.nodefault
