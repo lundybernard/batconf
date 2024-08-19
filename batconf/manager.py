@@ -53,24 +53,28 @@ class Configuration:
         self,
         source_list: SourceList,
         config_class: Union[ConfigProtocol, Any],
+        path: OpStr = None,
     ):
         self._config_sources = source_list
         self._config_class = config_class
+        self.__path = path
 
-        for f in _fields(self._config_class):
-            if isinstance(f.type, ConfigProtocol):
-                setattr(
-                    self,
-                    f.name,
-                    Configuration(
-                        source_list=source_list, config_class=f.type
-                    ),
-                )
+        self._sub_configs: Dict[str, Configuration] = {
+            f.name: Configuration(
+                source_list=source_list,
+                config_class=f.type,
+                path=f'{self._path}.{f.name}',
+            )
+            for f in _fields(self._config_class)
+            if isinstance(f.type, ConfigProtocol)
+        }
 
-    def __getattr__(self, name: str):
-        return self._get_config_opt(name, self._mod_)
+    def __getattr__(self, name: str):  # -> Union[str, 'Configuration']:
+        if cfg := self._sub_configs.get(name, None):
+            return cfg
+        return self._get_config_opt(name, self._path)
 
-    def _get_config_opt(self, key: str, path: OpStr = None) -> ConfigRet:
+    def _get_config_opt(self, key: str, path: OpStr = None) -> str:
         if value := self._config_sources.get(key, path=path):
             return value
 
@@ -78,11 +82,15 @@ class Configuration:
             'required configuration value not found.\n'
             f' please provide {key}'
             ' as a commandline argument\n'
-            f' or add {self._config_class.__module__}.{key}'
+            f' or add {self._path}.{key}'
             ' to your config file\n'
-            f' or add {self._mod_.replace(".", "_").upper()}_{key.upper()}'
+            f' or add {self._path.replace(".", "_").upper()}_{key.upper()}'
             ' to your Environment'
         )
+
+    @property
+    def _path(self) -> str:
+        return self.__path if self.__path else self._mod_
 
     @property
     def _mod_(self) -> str:
@@ -91,6 +99,7 @@ class Configuration:
     def __str__(self) -> str:
         repr_str = [f'Root {self._config_class}:']
         repr_str += _configuration_repr(configuration=self, level=1)
+        repr_str += [f'path={self._path}']
         repr_str.append(str(self._config_sources))
         return '\n'.join(repr_str)
 
