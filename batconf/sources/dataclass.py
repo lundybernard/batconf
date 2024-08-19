@@ -39,13 +39,15 @@ _DATA_DICT_TYPE = Dict[str, _VALUES]
 
 
 class DataclassConfig(SourceInterface):
-    def __init__(self, ConfigClass: Union[ConfigProtocol, Any]):
+    def __init__(
+        self, ConfigClass: Union[ConfigProtocol, Any], path: OpStr = None
+    ):
         """Extract default values from the Config dataclass.
         Properties without defaults are set to None.
 
         :param ConfigClass: a Config dataclass or :class:`ConfigProtocol` obj
         """
-        self._root = ConfigClass.__module__
+        self._root = path if path else ConfigClass.__module__
         self._data: _DATA_DICT_TYPE = {}
 
         for field in _fields(ConfigClass):

@@ -110,9 +110,11 @@ class LibTests(TestCase):
         t.assertEqual('Hello World!', ret)
 
     def test_get_config_str(t):
+        print(get_config_str())
+
         t.assertRegex(
             get_config_str(),
-            r"^Root <class 'legacy.ProjectConfig'>:\n"
+            r"^legacy <class 'legacy.ProjectConfig'>:\n"
             r"    \|- submodule <class 'legacy\.submodule\.SubmoduleConfig'>:"
             r'\n'
             r'    \|    \|- sub <class'
