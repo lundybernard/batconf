@@ -112,7 +112,7 @@ class LibTests(TestCase):
     def test_get_config_str(t):
         t.assertRegex(
             get_config_str(),
-            r"^Root <class 'legacy.ProjectConfig'>:\n"
+            r"^legacy <class 'legacy.ProjectConfig'>:\n"
             r"    \|- submodule <class 'legacy\.submodule\.SubmoduleConfig'>:"
             r'\n'
             r'    \|    \|- sub <class'
