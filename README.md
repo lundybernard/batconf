@@ -1,3 +1,4 @@
+
 ![Logo](https://github.com/lundybernard/batconf/blob/main/docs/source/_static/batconf-logo.png?raw=true)
 
 
@@ -36,6 +37,20 @@ by creating classes that satisfy `batconf.source.SourceInterfaceProto`
 
 The config lookup order is determined by the `SourceList` instance,
 which can be adjusted to suit your needs.
+
+
+## Professional Support
+![Tidelift Logo](docs/source/_static/Tidelift_Logos_RGB_Tidelift_Mark_On-White.png)
+Professionally supported BatConf is now available.
+
+Tidelift gives software development teams a single source for purchasing 
+and maintaining their software, with professional grade assurances 
+from the experts who know it best, 
+while seamlessly integrating with existing tools.
+
+[Get supported BatConf with the Tidelift subscription](
+https://tidelift.com/subscription/pkg/pypi-batconf?utm_source=pypi-batconf&utm_medium=readme
+)
 
 
 ## [Example Configuration](tests/example/)

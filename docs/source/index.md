@@ -54,6 +54,21 @@ them.
 [![Downloads](https://img.shields.io/pypi/dm/batconf)](https://pypistats.org/packages/batconf)
 
 
+## Professional Support
+![Tidelift Logo](_static/Tidelift_Logos_RGB_Tidelift_Mark_On-White.png)
+
+Professionally supported BatConf is now available.
+
+Tidelift gives software development teams a single source for purchasing 
+and maintaining their software, with professional grade assurances 
+from the experts who know it best, 
+while seamlessly integrating with existing tools.
+
+[Get supported BatConf with the Tidelift subscription](
+https://tidelift.com/subscription/pkg/pypi-batconf?utm_source=pypi-batconf&utm_medium=readme
+)
+
+
 ## Contributing
 
 All contributions, bug reports, bug fixes, documentation improvements,
