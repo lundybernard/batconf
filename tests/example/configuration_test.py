@@ -57,3 +57,38 @@ class FreeFormConfigTreeTests(TestCase):
 
         with t.assertRaises(AttributeError):
             cfg.nodefault
+
+
+    def test_root_config_values(t) -> None:
+        from os import path
+        # Get the absolute path to the test config.yaml file
+        example_dir = path.dirname(path.realpath(__file__))
+        config_file_name = path.join(example_dir, "config.yaml")
+
+        from batconf.sources.file import  FileConfig
+        source_list = SourceList([
+            FileConfig(
+                config_file_name=config_file_name,
+                config_env='flatfile',
+            )
+        ])
+
+        @dataclass
+        class FlatConfig:
+            opt2: str
+            opt3: str = 'opt3 default'
+
+        cfg = Configuration(
+            source_list=source_list,
+            config_class=FlatConfig,
+            path='application',
+        )
+
+        # LB: without specifying a path, the root path is 'configuration_test'
+        # print(f'{cfg._path=}')
+
+        t.assertEqual(cfg.opt1, 'flat file option 1')
+        with t.assertRaises(AttributeError):
+            t.assertEqual(cfg.opt2, 'sir not appearing in this film')
+
+        t.assertEqual(cfg.opt3, 'opt3 default')
