@@ -10,3 +10,7 @@ production:
   doc: "Options for the production environment"
   project:
     doc: "Python module specific options"
+
+flatfile:
+  application:
+    opt1: 'flat file option 1'
