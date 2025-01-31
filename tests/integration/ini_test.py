@@ -35,7 +35,10 @@ class IniConfigIntegrationTests(TestCase):
         ic = IniConfig(file_path=t.config_file_path, file_format='sections')
 
         # Sections allow values to be nested* by their path
-        t.assertEqual('s0s0v0', ic.get('sec0.sub0.value0'))
+        t.assertEqual(
+            ic.get('sec0.sub0.value0'),
+            'sections.config.ini :: sec0.sub0 :: value0',
+        )
         # Section files require a section be specified for every get request
         t.assertIsNone(ic.get('a_root_value'))
         # getting a section returns None
