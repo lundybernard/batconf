@@ -112,6 +112,12 @@ class TestConfiguration(TestCase):
             with t.assertRaises(AttributeError):
                 t.conf._sir_not_appearing_in_this_film
 
+        with t.subTest(
+            'options with no value and no default raise AttributeError'
+        ):
+            with t.assertRaises(AttributeError):
+                t.conf.AModule.no_default_arg
+
     def test___str__(t):
         t.assertRegex(
             str(t.conf),
