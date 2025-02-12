@@ -20,7 +20,9 @@ release = '0.1.8'
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-master_doc = 'index'
+master_doc = 'index'  # The master toctree document.
+html_baseurl = '/projects/batconf/docs/_build/html/'
+html_index =  'welcome'
 html_logo = '_static/batconf-logo.png'
 html_favicon = '_static/batconf-favicon.png'
 
