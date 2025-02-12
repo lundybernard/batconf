@@ -6,7 +6,7 @@ Here, you'll find development updates,
 tips, and other insights related to BatConf.
 
 
-.. _02x_upcoming_changes:
+.. _upcoming_changes_in_02x:
 
 Big changes coming in 0.2.x
 ---------------------------
