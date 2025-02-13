@@ -5,9 +5,10 @@
 
 import sys
 import os
+import subprocess
 
 sys.path.insert(0, os.path.abspath('..'))
-
+sys.path.insert(0, os.path.abspath("../batconf"))
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -88,3 +89,23 @@ html_css_files = ['custom.css']
 if rtd_canon_url := os.getenv('READTHEDOCS_CANONICAL_URL', False):
     print(f'rtd_canon_url={rtd_canon_url}')
     ogp_site_url = rtd_canon_url
+
+
+def run_apidoc(app):
+    source_dir = os.path.abspath(os.path.dirname(__file__))
+    package_dir = os.path.join(source_dir, "../../batconf")
+    output_dir = os.path.join(
+        source_dir,
+        "reference"
+    )  # Reference within "source"
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    subprocess.check_call(
+        [
+            "sphinx-apidoc", "--output-dir", output_dir, package_dir
+        ]
+    )
+
+
+def setup(app):
+    app.connect('builder-inited', run_apidoc)
