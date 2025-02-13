@@ -30,6 +30,16 @@ that works best for them.
    :target: https://pypistats.org/packages/batconf
 
 
+New Dev Blog!
+-------------
+
+Check out the :ref:`upcoming_changes_in_02x`
+
+- Optional pyyaml dependency
+- More flexible config structures
+- New config file sources (.ini, .toml)
+
+
 Professional Support
 ---------------------
 
