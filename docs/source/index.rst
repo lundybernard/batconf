@@ -12,6 +12,7 @@ that works best for them.
 
 * Hierarchical priority: CLI > Environment > config file > module defaults
 * Provides builtin support for common config sources:
+
   * CLI args
   * Environment Variables
   * Config File (yaml)
@@ -60,12 +61,12 @@ Contributing
 -------------
 
 All contributions, bug reports, bug fixes, documentation improvements,
-enhancements and ideas are welcome.
+enhancements, and ideas are welcome.
 
 Check out one of these good first issues to help with:
 
 * `Cleanup Sphinx documentation <https://github.com/lundybernard/batconf/issues/32>`__
-
+* `Add support for Python 3.13 <https://github.com/lundybernard/batconf/issues/53>`__
 
 Issues
 ------
