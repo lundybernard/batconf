@@ -1,7 +1,7 @@
-Developers Blog
-===============
+Developers' Blog
+================
 
-Welcome to the BatConf Developers Blog!
+Welcome to the BatConf Developers' Blog!
 Here you'll find development updates,
 tips, and other insights related to BatConf.
 
