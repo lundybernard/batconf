@@ -9,7 +9,5 @@
 ### build the document files
 ```bash
 cd docs/
-make clean
-sphinx-apidoc ./source ../batconf
-make html
+make docs
 ```
