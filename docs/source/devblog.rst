@@ -1,8 +1,8 @@
 Developers Blog
 ===============
 
-Welcome to the BatConf Developer Blog!
-Here, you'll find development updates,
+Welcome to the BatConf Developers Blog!
+Here you'll find development updates,
 tips, and other insights related to BatConf.
 
 
@@ -11,13 +11,13 @@ tips, and other insights related to BatConf.
 Big changes coming in 0.2.x
 ---------------------------
 
-**Possible breaking changes, and new features**
+**Possible breaking changes and new features**
 
-- **Optional Yaml dependency**:
+- **Optional Yaml dependency**
 
   - Yaml has been a hard-coded dependency, after 0.2.0 is released it will
     become an optional extra.
-  - We are adding more supported for more config file types (.ini, and .toml)
+  - We are adding more support for more config file types (.ini and .toml)
   - Projects which currently utilize .yaml/.yml config files will need to update
     their dependencies
     ex: in your pyproject.toml file:
@@ -32,11 +32,11 @@ Big changes coming in 0.2.x
             "batconf[yaml]"
         ]
 
-- **More Flexible Configuration Structure**:
+- **More Flexible Configuration Structure**
 
   - Originally, batconf required the config structure to match the project's module structure.
     This worked in the context of the original Basic Automation Tool project,
-    but its limits have apparent.
+    but its limits have become apparent.
   - We are still working out the details, more to come as we approach the relase day.
   - Objectives:
 
