@@ -102,6 +102,13 @@ Indices and tables
 
 .. toctree::
    :hidden:
+   :caption: News and Announcements
+   :maxdepth: 2
+
+   devblog
+
+.. toctree::
+   :hidden:
    :caption: Reference
    :maxdepth: 2
 
