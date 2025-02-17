@@ -5,3 +5,8 @@ test:
     submodule:
       sub:
         key1: "Config.yaml: test.project.submodule.sub.key1"
+
+
+flatfile:
+  application:
+    opt1: 'flat file option 1'
