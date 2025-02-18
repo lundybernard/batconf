@@ -9,6 +9,7 @@ and microservices.
 [![Stable Version](https://img.shields.io/pypi/v/batconf?color=blue)](https://pypi.org/project/batconf/)
 [![Downloads](https://img.shields.io/pypi/dm/batconf)](https://pypistats.org/packages/batconf)
 [![Build Status](https://github.com/lundybernard/batconf/actions/workflows/tests.yml/badge.svg)](https://github.com/lundybernard/batconf/actions)
+[![Documentation Status](https://readthedocs.org/projects/batconf/badge/?version=latest)](https://batconf.readthedocs.io/en/latest/)
 
 ![Python 3.8](https://img.shields.io/badge/Python-3.8-blue)
 ![Python 3.9](https://img.shields.io/badge/Python-3.9-blue)
