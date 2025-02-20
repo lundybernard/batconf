@@ -11,14 +11,6 @@ All previous releases should still be available
 BatConf 0.x
 ==============
 
-.. only:: has_release_file
-
-    --------------------
-    Current pull request
-    --------------------
-
-    .. include:: ../RELEASE.rst
-
 .. _v0.1.8:
 
 --------------------
