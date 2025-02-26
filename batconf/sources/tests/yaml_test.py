@@ -1,17 +1,17 @@
 from unittest import TestCase
 from unittest.mock import patch, mock_open, Mock, MagicMock, PropertyMock
 
-import os
 from pathlib import Path as _PathClass
 
-from mypy.types import names
-
-from ..file import load_config_file
 from ..yaml import (
     YamlConfig,
     get_file_path,
+    _load_yaml,
+    _load_yaml_file_warn_when_mising,
+    _load_yaml_file_ignore_when_missing,
     _load_yaml_file,
     _missing_config_warning,
+    _YAML_IMPORT_ERROR_MSG
 )
 
 import yaml
@@ -47,44 +47,52 @@ EXAMPLE_CONFIG_WITHOUT_ENV_DICT = yaml.load(
     Loader=yaml.BaseLoader,
 )
 
+DEFAULT_EMPTY_CONFIGFILE_DICT = {'default': 'none', 'none': {}}
+
 
 class YamlConfigTests(TestCase):
     get_file_path: Mock
-    _load_yaml_file: Mock
+    _load_yaml: Mock
 
     def setUp(t):
-        patches = ['get_file_path', '_load_yaml_file', ]
+        patches = ['get_file_path', '_load_yaml', ]
         for target in patches:
             patcher = patch(f'{SRC}.{target}', autospec=True)
             setattr(t, target, patcher.start())
             t.addCleanup(patcher.stop)
 
-        t._load_yaml_file.return_value = EXAMPLE_CONFIG_DICT
+        t._load_yaml.return_value = EXAMPLE_CONFIG_DICT
 
         t.config_file_name = 'example.config.yaml'
+        t.default_missing_file_option = 'warn'
 
     def test___init__(t):
         yc = YamlConfig(config_file_name=t.config_file_name)
 
-        t.assertEqual(yc._missing_file_option, 'warn')
+        t.assertEqual(yc._missing_file_option, t.default_missing_file_option)
         t.get_file_path.assert_called_with(
             file_name=t.config_file_name,
-            when_missing='warn',
+            when_missing=t.default_missing_file_option,
+        )
+        t._load_yaml.assert_called_with(
+            file_path=yc._config_file_path,
+            when_missing=t.default_missing_file_option,
+        )
+        t.assertEqual(
+            EXAMPLE_CONFIG_DICT['example']['bat']['key'],
+            yc.get('bat.key'),
         )
         # When no env is specified, select the default from the config file
         t.assertEqual(EXAMPLE_CONFIG_DICT['default'], yc._config_env)
         # Enable multi-environment support by default
         t.assertEqual(True, yc._enable_config_environments)
 
-
-
-
     def test_disable_config_environments(t):
         """The default behavior for the configuration file allows it to
         contain separate configurations for different environments.
         This behavior may be disabled if desired.
         """
-        t._load_yaml_file.return_value = EXAMPLE_CONFIG_WITHOUT_ENV_DICT
+        t._load_yaml.return_value = EXAMPLE_CONFIG_WITHOUT_ENV_DICT
 
         yc = YamlConfig(
             config_file_name=t.config_file_name,
@@ -97,7 +105,6 @@ class YamlConfigTests(TestCase):
         )
 
     def test_get(t) -> None:
-        #with patch('builtins.open', t.m_open):
         conf = YamlConfig(config_file_name=t.config_file_name)
 
         with t.subTest('single key'):
@@ -123,15 +130,18 @@ class YamlConfigTests(TestCase):
         ) as _data_prop:
             yc = YamlConfig(config_file_name=filename)
             # The loaded data is sent to the _data property setter
-            _data_prop.assert_called_with(t._load_yaml_file.return_value)
+            _data_prop.assert_called_with(t._load_yaml.return_value)
 
         t.get_file_path.assert_called_with(
             file_name=filename,
             when_missing='warn',
         )
         pth = t.get_file_path.return_value
-        t._load_yaml_file.assert_called_with(file_path=pth)
-        yc._data = t._load_yaml_file.return_value
+        t._load_yaml.assert_called_with(
+            file_path=pth,
+            when_missing=t.default_missing_file_option,
+        )
+        yc._data = t._load_yaml.return_value
 
     def test_config_env_argument(t):
         yc = YamlConfig(
@@ -142,15 +152,23 @@ class YamlConfigTests(TestCase):
             yc.get('key', module='bat.module'),
         )
 
-    def test_missing_file_allowed(t):
+    def test_missing_file_warning(t):
         '''Default behavior.
         Missing config files result in a warning.
         '''
-        t._load_yaml_file.side_effect = FileNotFoundError
+        t._load_yaml.return_value = DEFAULT_EMPTY_CONFIGFILE_DICT
 
-        yc = YamlConfig(config_file_name=t.config_file_name)
+        yc = YamlConfig(
+            config_file_name=t.config_file_name,
+            missing_file_option='warn'
+        )
 
-        t.assertEqual(yc.get('bat.key'), None)
+        t._load_yaml.assert_called_with(
+            file_path=yc._config_file_path,
+            when_missing='warn',
+        )
+        t.assertDictEqual({}, yc._data)
+        t.assertEqual(None, yc.get('bat.key'))
 
     def test__getitem__(t):
         yc = YamlConfig(config_file_name=t.config_file_name)
@@ -251,26 +269,83 @@ class FileCheckerTests(TestCase):
         t.assertIs(pth, t.relative_path)
 
 
-class YamlLoaderTests(TestCase):
+class YamlLoaderFunctionsTests(TestCase):
     def setUp(t):
         t.m_open = mock_open(read_data=EXAMPLE_CONFIG_YAML)
 
         open_patcher = patch('builtins.open', t.m_open)
-        open_patcher.start()
+        t.open = open_patcher.start()
         t.addCleanup(open_patcher.stop)
 
         t.file_path = _PathClass('./example.config.yaml')
+        t.empy_config_dict = {'default': 'none', 'none': {}}
+
+    def test__load_yaml(t):
+        ret = _load_yaml(file_path=t.file_path, when_missing='error')
+        t.assertEqual(ret, EXAMPLE_CONFIG_DICT)
+
+    def test__load_yaml_ignore(t):
+        t.open.side_effect = FileNotFoundError  # this error will be ignored
+        ret = _load_yaml(file_path=t.file_path, when_missing='ignore')
+        t.assertEqual(ret, t.empy_config_dict)
+
+    @patch(f'{SRC}._load_yaml_file_warn_when_mising', autospec=True)
+    def test__load_yaml_warn(t, _load_yaml_file_warn_when_mising: Mock):
+        ret = _load_yaml(file_path=t.file_path, when_missing='warn')
+        _load_yaml_file_warn_when_mising.assert_called_with(
+            file_path=t.file_path,
+        )
+        t.assertIs(_load_yaml_file_warn_when_mising.return_value, ret)
+
+    @patch(f'{SRC}._load_yaml_file', autospec=True)
+    def test__load_yaml_error(t, _load_yaml_file: Mock):
+        ret = _load_yaml(file_path=t.file_path, when_missing='error')
+        _load_yaml_file.assert_called_with(file_path=t.file_path)
+        t.assertIs(_load_yaml_file.return_value, ret)
+
+    @patch(f'{SRC}.log', autospec=True)
+    def test__load_yaml_file_warn_when_mising(t, log: Mock):
+        '''Logs a warning if the file is missing
+        '''
+        with t.subTest('file found'):
+            ret = _load_yaml_file_warn_when_mising(file_path=t.file_path)
+            t.assertEqual(ret, EXAMPLE_CONFIG_DICT)
+
+        with t.subTest('file not found'):
+            t.open.side_effect = FileNotFoundError
+
+            ret = _load_yaml_file_warn_when_mising(file_path=t.file_path)
+
+            t.open.assert_called_with(t.file_path)
+            log.warning.assert_called_with(_missing_config_warning)
+            t.assertEqual(ret, t.empy_config_dict)
+
+    @patch(f'{SRC}.log', autospec=True)
+    def test__load_yaml_file_ignore_when_missing(t, log):
+        '''Logs a warning if the file is missing
+        '''
+        with t.subTest('file found'):
+            ret = _load_yaml_file_ignore_when_missing(file_path=t.file_path)
+            t.assertEqual(ret, EXAMPLE_CONFIG_DICT)
+
+        with t.subTest('file not found'):
+            t.open.side_effect = FileNotFoundError
+
+            ret = _load_yaml_file_ignore_when_missing(file_path=t.file_path)
+
+            t.open.assert_called_with(t.file_path)
+            log.warning.assert_not_called()
+            t.assertEqual(ret, t.empy_config_dict)
 
     # patch out the pyyaml module, as if it is not installed.
     @patch.dict('sys.modules', {'yaml': None})
-    def test_missing_pyyaml_module(t):
+    def test__load_yaml_file_missing_pyyaml_module(t):
         """The pyyaml module is an optional extra,
          not requeired to use this package.
          Using the module without pyyaml should not raise any Errors,
          But attempting to use YamlConfig when it is not installed
          will raise an ImprortError.
          """
-
         with t.subTest('pyyaml behaves as if it is not installed'):
             with t.assertRaises(ImportError):
                 import yaml
@@ -278,4 +353,16 @@ class YamlLoaderTests(TestCase):
         with t.subTest('Instantiating YamlConfig raises ImportError'):
             with t.assertRaises(ImportError) as err:
                 _ = _load_yaml_file(file_path=t.file_path)
-                t.assertEqual(err.msg, "wark")
+
+            t.assertEqual(err.exception.msg, _YAML_IMPORT_ERROR_MSG)
+
+    def test__load_yaml_file(t):
+        with t.subTest('file found'):
+            ret = _load_yaml_file(file_path=t.file_path)
+            t.assertEqual(ret, EXAMPLE_CONFIG_DICT)
+            t.open.assert_called_with(t.file_path)
+
+        with t.subTest('missing file'):
+            t.open.side_effect = FileNotFoundError
+            with t.assertRaises(FileNotFoundError):
+                _ = _load_yaml_file(file_path=t.file_path)
