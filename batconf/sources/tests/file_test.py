@@ -1,5 +1,5 @@
 from unittest import TestCase
-from unittest.mock import patch, mock_open, create_autospec
+from unittest.mock import patch, mock_open, create_autospec, Mock
 
 
 from ..file import (
@@ -9,6 +9,7 @@ from ..file import (
     os,
     Path,
     _missing_config_warning,
+    _DEPRECATION_WARNING,
 )
 
 
@@ -35,6 +36,7 @@ EXAMPLE_CONFIG_DICT = yaml.load(EXAMPLE_CONFIG_YAML, Loader=yaml.BaseLoader)
 
 
 class TestFileConfig(TestCase):
+    Path: Mock
 
     def setUp(t):
         patches = ['Path', ]
@@ -45,6 +47,12 @@ class TestFileConfig(TestCase):
 
         t.Path.is_file.return_value = True
         t.m_open = mock_open(read_data=EXAMPLE_CONFIG_YAML)
+
+    @patch(f'{SRC}.warn', autospec=True)
+    def test_deprecation_warning(t, warn: Mock):
+        with patch('builtins.open', t.m_open):
+            _ = FileConfig()
+        warn.assert_called_with(_DEPRECATION_WARNING)
 
     def test_get(t) -> None:
         with patch('builtins.open', t.m_open):
