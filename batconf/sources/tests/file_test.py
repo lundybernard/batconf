@@ -1,11 +1,10 @@
-from unittest import TestCase
+from unittest import TestCase, skipIf
 from unittest.mock import patch, mock_open, create_autospec, Mock
 
 
 from ..file import (
     FileConfig,
     load_config_file,
-    yaml,
     os,
     Path,
     _missing_config_warning,
@@ -32,31 +31,41 @@ alt:
             key: alt_value
 '''
 
-EXAMPLE_CONFIG_DICT = yaml.load(EXAMPLE_CONFIG_YAML, Loader=yaml.BaseLoader)
+
+EXAMPLE_CONFIG_DICT: dict = {
+    'default': 'example',
+    'example': {
+        'bat': {
+            'key': 'value',
+            'remote_host': {
+                'api_key': 'example_api_key',
+                'url': 'https://api-example.host.io/'
+    },},},
+    'alt': {'bat': {'module': {'key': 'alt_value'}}},
+}
 
 
 class TestFileConfig(TestCase):
     Path: Mock
+    _load_yaml_file: Mock
 
     def setUp(t):
-        patches = ['Path', ]
+        patches = ['Path', '_load_yaml_file',]
         for target in patches:
             patcher = patch(f'{SRC}.{target}', autospec=True)
             setattr(t, target, patcher.start())
             t.addCleanup(patcher.stop)
 
         t.Path.is_file.return_value = True
-        t.m_open = mock_open(read_data=EXAMPLE_CONFIG_YAML)
+        t._load_yaml_file.return_value = EXAMPLE_CONFIG_DICT
 
     @patch(f'{SRC}.warn', autospec=True)
     def test_deprecation_warning(t, warn: Mock):
-        with patch('builtins.open', t.m_open):
-            _ = FileConfig()
+        _ = FileConfig()
         warn.assert_called_with(_DEPRECATION_WARNING)
 
     def test_get(t) -> None:
-        with patch('builtins.open', t.m_open):
-            conf = FileConfig()
+        conf = FileConfig()
 
         with t.subTest('single key'):
             t.assertEqual(
@@ -75,26 +84,28 @@ class TestFileConfig(TestCase):
     def test_default_file(t):
         DEFAULT_FILE = '/config.yaml'
 
-        with patch('builtins.open', t.m_open):
-            FileConfig()
+        _ = FileConfig()
 
-        t.m_open.assert_called_with(
-            t.Path(os.getcwd() + DEFAULT_FILE)
+        t._load_yaml_file.assert_called_with(
+            file_path=t.Path(os.getcwd() + DEFAULT_FILE)
         )
 
     def test_loads_given_config_file(t):
-        with patch('builtins.open', t.m_open):
-            FileConfig(
-                './test_example.config.yaml', config_env='example'
-            )
-        t.m_open.assert_called_with('./test_example.config.yaml')
+        _ = FileConfig(
+            './test_example.config.yaml',
+            config_env='example'
+        )
+        t._load_yaml_file.assert_called_with(t.Path.return_value)
+        t.Path.assert_called_with('./test_example.config.yaml')
+
 
     def test_config_env_argument(t):
-        with patch('builtins.open', t.m_open):
-            config_file = FileConfig(
-                './example.config.yaml', config_env='alt'
-            )
-        t.m_open.assert_called_with('./example.config.yaml')
+        t._load_yaml_file.return_value = EXAMPLE_CONFIG_DICT
+        config_file = FileConfig(
+            './example.config.yaml', config_env='alt'
+        )
+        t._load_yaml_file.assert_called_with(t.Path.return_value)
+        t.Path.assert_called_with('./example.config.yaml')
         t.assertEqual(
             config_file.get('key', module='bat.module'), 'alt_value'
         )
@@ -110,8 +121,7 @@ class TestFileConfig(TestCase):
         t.assertEqual(conf.get('_sir_not_appearing_in_this_film'), None)
 
     def test__getitem__(t):
-        with patch('builtins.open', t.m_open):
-            config_file = FileConfig()
+        config_file = FileConfig()
 
         with t.subTest('dot notation key path'):
             t.assertEqual(
@@ -125,27 +135,32 @@ class TestFileConfig(TestCase):
             )
 
     def test_keys(t):
-        with patch('builtins.open', t.m_open):
-            config_file = FileConfig()
-
+        config_file = FileConfig()
         t.assertEqual(config_file.keys(), {'bat': None}.keys())
 
 
 class Test_load_config_file(TestCase):
+    _load_yaml_file: Mock
 
     def setUp(t):
-        t.m_open = mock_open(read_data=EXAMPLE_CONFIG_YAML)
+        patches = ['_load_yaml_file', ]
+        for target in patches:
+            patcher = patch(f'{SRC}.{target}', autospec=True)
+            setattr(t, target, patcher.start())
+            t.addCleanup(patcher.stop)
+
+        t._load_yaml_file.return_value = EXAMPLE_CONFIG_DICT
 
     def test_arg_config_file_name(t):
-        with patch('builtins.open', t.m_open):
-            conf = load_config_file('./example.config.yaml')
+        conf = load_config_file('./example.config.yaml')
 
-        t.m_open.assert_called_with('./example.config.yaml')
+        t._load_yaml_file.assert_called_with(
+            file_path=Path('example.config.yaml')
+        )
         t.assertEqual(conf, EXAMPLE_CONFIG_DICT)
 
     def test_config_default_config_env(t):
-        with patch('builtins.open', t.m_open):
-            conf = load_config_file('./example.config.yaml')
+        conf = load_config_file('./example.config.yaml')
 
         t.assertEqual(conf['default'], 'example')
 
@@ -157,10 +172,11 @@ class Test_load_config_file(TestCase):
         f'{SRC}.os.environ', {'BAT_CONFIG_FILE': 'env.config.yaml'}
     )
     def test_config_file_env_variable(t):
-        with patch('builtins.open', t.m_open):
-            conf = load_config_file()
+        conf = load_config_file()
 
-        t.m_open.assert_called_with('env.config.yaml')
+        t._load_yaml_file.assert_called_with(
+            file_path=Path('env.config.yaml')
+        )
 
         example_env = conf['example']['bat']
         t.assertEqual(
@@ -177,13 +193,11 @@ class Test_load_config_file(TestCase):
         Path.is_file = create_autospec(
             Path.is_file, spec_set=True, return_value=True
         )
-        t.m_open = mock_open(read_data=EXAMPLE_CONFIG_YAML)
 
-        with patch('builtins.open', t.m_open):
-            CONF = load_config_file()
+        CONF = load_config_file()
 
-        t.m_open.assert_called_with(
-            Path(os.getcwd() + '/config.yaml')
+        t._load_yaml_file.assert_called_with(
+            file_path=Path(os.getcwd() + '/config.yaml')
         )
         example_env = CONF['example']['bat']
         t.assertEqual(

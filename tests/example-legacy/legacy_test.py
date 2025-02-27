@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, skipIf
 from unittest.mock import patch, Mock
 
 from os import path, environ
@@ -16,11 +16,19 @@ from legacy.submodule import SubmoduleConfig
 from legacy.submodule.sub import KEY2_DEFAULT
 
 
+_PYYAML_INSTALLED = True
+try:
+    import yaml
+except ImportError:
+    _PYYAML_INSTALLED = False
+
+
 # Get the absolute path to the test config.yaml file
 example_dir = path.dirname(path.realpath(__file__))
 config_file_name = path.join(example_dir, "config.yaml")
 
 
+@skipIf(not _PYYAML_INSTALLED, 'requires pyyaml')
 class GetConfigFunctionTests(TestCase):
 
     def test_get_config(t):
@@ -96,6 +104,7 @@ class CLITests(TestCase):
         exit.assert_called_once_with(0)
 
 
+@skipIf(not _PYYAML_INSTALLED, 'requires pyyaml')
 class LibTests(TestCase):
     def test_hello(t):
         ret = hello_world()
