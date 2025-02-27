@@ -112,7 +112,7 @@ def _load_yaml(
 ) -> dict:
     match when_missing:
         case 'ignore':
-            return  _load_yaml_file_ignore_when_missing(file_path=file_path)
+            return _load_yaml_file_ignore_when_missing(file_path=file_path)
         case 'warn':
             return _load_yaml_file_warn_when_mising(file_path=file_path)
         case 'error':
