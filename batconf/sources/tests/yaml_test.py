@@ -233,7 +233,7 @@ class FileCheckerTests(TestCase):
         with t.subTest(
             'file path does not exist, missing_file_option="error"'
         ):
-            '''Setting _config_file_name to an invalid path 
+            '''Setting _config_file_name to an invalid path
             should raise a FileNotFound error
             '''
             print('test__config_file_missing_error')
@@ -348,7 +348,7 @@ class YamlLoaderFunctionsTests(TestCase):
          """
         with t.subTest('pyyaml behaves as if it is not installed'):
             with t.assertRaises(ImportError):
-                import yaml
+                import yaml  # noqa: quiet flake8
 
         with t.subTest('Instantiating YamlConfig raises ImportError'):
             with t.assertRaises(ImportError) as err:
