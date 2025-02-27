@@ -1,12 +1,12 @@
 import logging as log
 
 import os
-import yaml
 from pathlib import Path
 from typing import Union, List
 from warnings import warn
 
 from ..source import SourceInterface, OpStr
+from .yaml import _load_yaml_file
 
 
 _DEPRECATION_WARNING = (
@@ -64,8 +64,7 @@ def load_config_file(config_file: Union[Path, str, None] = None) -> dict:
         log.warning(_missing_config_warning)
         return {'default': 'none', 'none': {}}
 
-    with open(conf_path) as env_file:
-        conf = yaml.load(env_file, Loader=yaml.BaseLoader)
+    conf = _load_yaml_file(file_path=Path(conf_path))
 
     return conf
 

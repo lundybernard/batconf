@@ -24,10 +24,12 @@ classifiers=[
 
 [tool.poetry.dependencies]
 python = "^3.9"
-pyyaml = "*"
 
 # optional dev dependencies
 # ref: https://python-poetry.org/docs/pyproject/#extras
+# optional extras for users:
+pyyaml = { version='*', optional=true }
+# optional dev dependencies:
 coverage = { version='*', optional=true}
 flake8 = { version='*', optional=true}
 mypy = { version='*', optional=true}
@@ -45,6 +47,7 @@ matplotlib = {version='*', optional=true}  # for social preview cards
 
 
 [tool.poetry.extras]
+yaml = ["pyyaml",]
 dev = [
     "coverage",
     "flake8",
