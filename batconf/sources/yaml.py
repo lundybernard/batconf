@@ -1,5 +1,6 @@
 # Postpones evaluation of type hints for compatibility
 from __future__ import annotations
+from typing import Any
 
 import logging as log
 
@@ -10,11 +11,10 @@ from ..source import SourceInterface, OpStr
 
 
 _MissingFileOption = Literal['ignore', 'warn', 'error']
-_NestedDict = dict[str, Union[str, '_NestedDict']]
 
 
 class YamlConfig(SourceInterface):
-    __data: _NestedDict
+    __data: Any
 
     def __init__(
         self,
@@ -37,7 +37,7 @@ class YamlConfig(SourceInterface):
         )
 
     @property
-    def _data(self) -> dict:
+    def _data(self) -> Any:
         return self.__data
 
     @_data.setter
@@ -50,7 +50,6 @@ class YamlConfig(SourceInterface):
             self.__data = config
 
     def __getitem__(self, key: str) -> Union[SourceInterface, str]:
-        print(f'YamlConfig.__getitem__({key})')
         path = key.split('.')
         conf = self._data
         for k in path:
@@ -110,7 +109,7 @@ def get_file_path(
 def _load_yaml(
     file_path: Path,
     when_missing: _MissingFileOption,
-) -> _NestedDict:
+) -> dict:
     match when_missing:
         case 'ignore':
             return  _load_yaml_file_ignore_when_missing(file_path=file_path)
@@ -120,7 +119,7 @@ def _load_yaml(
             return _load_yaml_file(file_path=file_path)
 
 
-def _load_yaml_file_warn_when_mising(file_path: Path) -> _NestedDict:
+def _load_yaml_file_warn_when_mising(file_path: Path) -> dict:
     try:
         config = _load_yaml_file(file_path)
     except FileNotFoundError:
@@ -130,7 +129,7 @@ def _load_yaml_file_warn_when_mising(file_path: Path) -> _NestedDict:
     return config
 
 
-def _load_yaml_file_ignore_when_missing(file_path: Path) -> _NestedDict:
+def _load_yaml_file_ignore_when_missing(file_path: Path) -> dict:
     try:
         config = _load_yaml_file(file_path)
     except FileNotFoundError:
@@ -139,7 +138,7 @@ def _load_yaml_file_ignore_when_missing(file_path: Path) -> _NestedDict:
     return config
 
 
-def _load_yaml_file(file_path: Path) -> _NestedDict:
+def _load_yaml_file(file_path: Path) -> dict:
     try:
         import yaml
     except ImportError as e:
