@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, skipIf
 from unittest.mock import patch, mock_open, Mock, MagicMock, PropertyMock
 
 from pathlib import Path as _PathClass
@@ -13,8 +13,6 @@ from ..yaml import (
     _missing_config_warning,
     _YAML_IMPORT_ERROR_MSG
 )
-
-import yaml
 
 
 SRC = 'batconf.sources.yaml'
@@ -41,12 +39,21 @@ bat:
     key: envless_value
 '''
 
-EXAMPLE_CONFIG_DICT = yaml.load(EXAMPLE_CONFIG_YAML, Loader=yaml.BaseLoader)
-EXAMPLE_CONFIG_WITHOUT_ENV_DICT = yaml.load(
-    EXAMPLE_CONFIG_WITHOUT_ENVIRONMENTS,
-    Loader=yaml.BaseLoader,
-)
 
+EXAMPLE_CONFIG_DICT: dict = {
+    'default': 'example',
+    'example': {
+        'bat': {
+            'key': 'value',
+            'remote_host': {
+                'api_key': 'example_api_key',
+                'url': 'https://api-example.host.io/'
+    },},},
+    'alt': {'bat': {'module': {'key': 'alt_value'}}},
+}
+
+
+EXAMPLE_CONFIG_WITHOUT_ENV_DICT = {'bat': {'key': 'envless_value'}}
 DEFAULT_EMPTY_CONFIGFILE_DICT = {'default': 'none', 'none': {}}
 
 
@@ -269,8 +276,19 @@ class FileCheckerTests(TestCase):
 
 class YamlLoaderFunctionsTests(TestCase):
     def setUp(t):
-        t.m_open = mock_open(read_data=EXAMPLE_CONFIG_YAML)
+        # Patch out the pyyaml module,
+        # so tests can be run when it is not installed
+        pyyaml = MagicMock(spec=['load', 'BaseLoader'])
+        pyyaml.load.return_value = EXAMPLE_CONFIG_DICT
+        pyyaml_patcher = patch.dict(
+            'sys.modules',
+            {'yaml': pyyaml}
+        )
+        t.pyyaml = pyyaml_patcher.start()
+        t.addCleanup(pyyaml_patcher.stop)
 
+        # Patch out the `with open` statement, so it returns the mock_open obj
+        t.m_open = mock_open(read_data=EXAMPLE_CONFIG_YAML)
         open_patcher = patch('builtins.open', t.m_open)
         t.open = open_patcher.start()
         t.addCleanup(open_patcher.stop)
@@ -338,7 +356,7 @@ class YamlLoaderFunctionsTests(TestCase):
             t.assertEqual(ret, t.empy_config_dict)
 
     # patch out the pyyaml module, as if it is not installed.
-    @patch.dict('sys.modules', {'yaml': None})
+    @patch.dict('sys.modules', {'yaml': None}, clear=True)
     def test__load_yaml_file_missing_pyyaml_module(t):
         """The pyyaml module is an optional extra,
          not requeired to use this package.
@@ -346,6 +364,7 @@ class YamlLoaderFunctionsTests(TestCase):
          But attempting to use YamlConfig when it is not installed
          will raise an ImprortError.
          """
+
         with t.subTest('pyyaml behaves as if it is not installed'):
             with t.assertRaises(ImportError):
                 import yaml  # noqa: quiet flake8
