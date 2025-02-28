@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, skipIf
 
 from project import ProjectConfig
 from project.conf import get_config
@@ -9,11 +9,19 @@ from os import path, environ
 from contextlib import contextmanager
 
 
+_PYYAML_INSTALLED = True
+try:
+    import yaml
+except ImportError:
+    _PYYAML_INSTALLED = False
+
+
 # Get the absolute path to the test config.yaml file
 example_dir = path.dirname(path.realpath(__file__))
 config_file_name = path.join(example_dir, "config.yaml")
 
 
+@skipIf(not _PYYAML_INSTALLED, 'requires pyyaml')
 class GetConfigFunctionTests(TestCase):
 
     def test_get_config(t):
