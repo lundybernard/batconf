@@ -32,7 +32,7 @@ alt:
 '''
 
 
-EXAMPLE_CONFIG_DICT = {
+EXAMPLE_CONFIG_DICT: dict = {
     'default': 'example',
     'example': {
         'bat': {
