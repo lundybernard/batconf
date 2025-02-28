@@ -49,9 +49,7 @@ jobs:
 
     - name: Install the module
       run: |
-        pip install .${{ optional-extras }}
-      with:
-        optional-extras: ${{ matrix.install-opts }}
+        pip install .${{ matrix.install-opts }}
 
     - name: Integration Tests
       run: |
