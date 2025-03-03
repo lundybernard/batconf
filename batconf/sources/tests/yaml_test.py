@@ -317,9 +317,11 @@ class YamlLoaderFunctionsTests(TestCase):
 
     @patch(f'{SRC}._load_yaml_file', autospec=True)
     def test__load_yaml_error(t, _load_yaml_file: Mock):
-        ret = _load_yaml(file_path=t.file_path, when_missing='error')
+        _load_yaml_file.side_effect = FileNotFoundError
+        with t.assertRaises(FileNotFoundError):
+            _ = _load_yaml(file_path=t.file_path, when_missing='error')
+
         _load_yaml_file.assert_called_with(file_path=t.file_path)
-        t.assertIs(_load_yaml_file.return_value, ret)
 
     @patch(f'{SRC}.log', autospec=True)
     def test__load_yaml_file_warn_when_mising(t, log: Mock):
