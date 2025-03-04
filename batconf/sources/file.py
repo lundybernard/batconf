@@ -1,12 +1,73 @@
+from typing import Union, List, Protocol, Literal, Any
 import logging as log
 
 import os
+
 from pathlib import Path
-from typing import Union, List
 from warnings import warn
 
 from ..source import SourceInterface, OpStr
 from .yaml import _load_yaml_file
+
+
+class FileLoaderP(Protocol):
+    def __call__(self, path: Path) -> Any: ...
+
+
+_MissingFileOption = Literal['ignore', 'warn', 'error']
+
+
+def load_file_warn_when_mising(
+    loader_fn: FileLoaderP,
+    file_path: Path,
+) -> dict:
+    try:
+        config = loader_fn(file_path)
+    except FileNotFoundError:
+        log.warning(_missing_config_warning)
+        return {'default': 'none', 'none': {}}
+
+    return config
+
+
+def load_file_ignore_when_missing(
+    loader_fn: FileLoaderP,
+    file_path: Path,
+) -> dict:
+    try:
+        config = loader_fn(file_path)
+    except FileNotFoundError:
+        return {'default': 'none', 'none': {}}
+
+    return config
+
+
+def get_file_path(
+    file_name: str,
+    when_missing: _MissingFileOption = 'warn'
+) -> Path:
+    path = Path(file_name)
+
+    if path.is_file():
+        return path
+
+    relpath = path.resolve()
+    if relpath.is_file():
+        return relpath
+
+    if when_missing == 'warn':
+        log.warning(_missing_config_warning)
+    elif when_missing == 'error':
+        raise FileNotFoundError(
+            f"Could not find Yaml Config file"
+            f" Using absolute path: {path}"
+            f" or relative path: {relpath}."
+        )
+
+    return path
+
+
+# === Deprecated FileConfig class === #
 
 
 _DEPRECATION_WARNING = (
@@ -17,6 +78,12 @@ _DEPRECATION_WARNING = (
 
 
 class FileConfig(SourceInterface):
+    """
+    .. deprecated:: 0.2.0
+       Use a file-type specific loader instead.
+       Such as `batconf.sources.yaml.YamlConfig`.
+    """
+
 
     def __init__(
         self, config_file_name: OpStr = None, config_env: OpStr = None
@@ -53,7 +120,13 @@ class FileConfig(SourceInterface):
         return conf
 
 
+
 def load_config_file(config_file: Union[Path, str, None] = None) -> dict:
+    """
+        .. deprecated:: 2.0
+           Use `new_function` instead.
+        """
+
     if conf_path := config_file:
         pass
     elif conf_path := os.environ.get('BAT_CONFIG_FILE', default=None):
