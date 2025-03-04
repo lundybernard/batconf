@@ -182,6 +182,19 @@ class IniConfigEnvsTests(TestCase):
             t.assertEqual(conf.get('_sir_not_appearing_in_this_film'), None)
             t.assertEqual(conf.get('sir.not.appearing.in.this.film'), None)
 
+    def test_get_raises_err_for_module_parameter(t):
+        # TODO: remove this check when the SourceInterface.get
+        #  module parameter is removed.
+        t.conf = IniConfigEnvs('testconfig.ini')
+        with t.assertRaises(NotImplementedError) as err:
+            t.conf.get('project.user', module='this.throws.an.error')
+
+        t.assertEqual(
+            str(err.exception),
+            'The module argument is deprecated and will be removed'
+            ' from the SourceInterface.get interface in a future release.',
+        )
+
     def test__default_env(t):
         '''Default environment is extracted from the config file
         else it is None
@@ -205,6 +218,18 @@ class IniConfigEnvsTests(TestCase):
             EXAMPLE_CONFIGPARSER.get('production.project', 'user')
         )
 
+    def test__config_env_invalid_section_raises_err(t):
+        with t.assertRaises(ValueError) as err:
+            _ = IniConfigEnvs(
+                file_path='testconfig.ini',
+                config_env='sir.not.appearing.in.this.film',
+            )
+
+        t.assertEqual(
+            str(err.exception),
+            'Config Environment "sir.not.appearing.in.this.film"'
+            ' not found in testconfig.ini',
+        )
 
 
 class IniFileLoaderTests(TestCase):
@@ -272,11 +297,11 @@ class IniFileLoaderTests(TestCase):
 
         _load_ini_file.assert_called_with(file_path=t.file_path)
 
-
     def test__load_ini(t):
         with (t.subTest('default: when_missing="warn"')):
             with patch(
-                f'{SRC}.load_file_warn_when_mising'
+                f'{SRC}.load_file_warn_when_mising',
+                autospec=True,
             ) as load_file_warn_when_mising:
                 _ = _load_ini(file_path=t.file_path)
                 load_file_warn_when_mising.assert_called_with(
@@ -286,19 +311,23 @@ class IniFileLoaderTests(TestCase):
                 
         with t.subTest('when_missing="ignore"'):
             with patch(
-                f'{SRC}.load_file_ignore_when_missing'
+                f'{SRC}.load_file_ignore_when_missing',
+                    autospec=True,
             ) as load_file_ignore_when_missing:
                 _ = _load_ini(
                     file_path=t.file_path,
                     when_missing='ignore',
                 )
-                load_file_ignore_when_missing.called_with(
+                load_file_ignore_when_missing.assert_called_with(
                     loader_fn=_load_ini_file,
                     file_path=Path('testconfig.ini')
                 )
                 
         with t.subTest('when_missing="error"'):
-            with patch(f'{SRC}._load_ini_file') as load_ini_file:
+            with patch(
+                f'{SRC}._load_ini_file',
+                autospec=True,
+            ) as load_ini_file:
                 load_ini_file.side_effect = FileNotFoundError
                 with t.assertRaises(FileNotFoundError):
                     _ = _load_ini(

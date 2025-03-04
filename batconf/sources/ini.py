@@ -69,11 +69,6 @@ class IniConfigEnvs(SourceInterface):
         self._data = _load_ini_file(self._config_file_path)
         self._config_env = config_env
 
-    def __getitem__(self, key: str):
-        section, key = key.rsplit(sep='.', maxsplit=1)
-        #return self._config.get(section=section, option=key, fallback=None)
-        return self._data[section][key]
-
     def get(
         self,
         key: str,
@@ -96,14 +91,11 @@ class IniConfigEnvs(SourceInterface):
                 fallback=None,
             )
         else:
-            section = f'{self._config_env}.{section}'
-            print(f'ConfigParser.get({section=}, {key=})')
             val = self._data.get(
                 option=key,
-                section=section, #f'{self._config_env}.{section}',
+                section=f'{self._config_env}.{section}',
                 fallback=None,
             )
-
         return val
 
     @property
@@ -122,20 +114,6 @@ class IniConfigEnvs(SourceInterface):
                 f'Config Environment "{self._config_env}" '
                 f'not found in {self._config_file_path}'
             )
-
-    @cached_property
-    def _env_prefix(self) -> str:
-        if not self._config_env:
-            self._config_env = self._data.get('batconf', 'default_env')
-
-        if not self._data.has_section(self._config_env):
-            raise ValueError(
-                f'Config Environment "{self._config_env}" '
-                f'not found in {self._config_file_path}'
-            )
-
-        return f'{self._config_env}.'
-
 
 
 class IniConfigSect(SourceInterface):
