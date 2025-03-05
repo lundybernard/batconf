@@ -59,6 +59,5 @@ def get_config_str(cfg: Configuration) -> str:
 def get_data_from_server(cfg: Configuration) -> str:
     my_client_config = cfg.submodule.sub
 
-    print(cfg.submodule.sub.key1)
-    client = MyClient.from_config(cfg.submodule.sub)
+    client = MyClient.from_config(my_client_config)
     return client.fetch_data()
