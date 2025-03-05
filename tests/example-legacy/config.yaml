@@ -1,0 +1,7 @@
+default: test
+
+test:
+  legacy:
+    submodule:
+      sub:
+        key1: "Config.yaml: test.legacy.submodule.sub.key1"
