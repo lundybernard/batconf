@@ -152,9 +152,3 @@ _YAML_IMPORT_ERROR_MSG = (
     "Please install it using `pip install pyyaml`."
     "Or as an optional extra using `pip install batconf[yaml]`."
 )
-
-_WHEN_MISSING = {
-    'ignore': _load_yaml_file_ignore_when_missing,
-    'warn': _load_yaml_file_warn_when_mising,
-    'error': _load_yaml_file,
-}
