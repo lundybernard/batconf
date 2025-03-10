@@ -82,3 +82,8 @@ skip_empty = true
 [tool.flake8]
 max-line-length = "79"
 max-complexity = 10
+
+
+# === Type Checking === #
+[tool.mypy]
+exclude = "runcli.py"

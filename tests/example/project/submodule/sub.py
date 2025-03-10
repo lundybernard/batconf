@@ -33,3 +33,6 @@ class MyClient:
     def __init__(self, key1: str, key2: str = KEY2_DEFAULT):
         self.key1 = key1
         self.key2 = key2
+
+    def fetch_data(self):
+        return f'MyClient data: {self.key1=}, {self.key2=}'
