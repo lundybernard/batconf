@@ -3,39 +3,39 @@
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
-import sys
 import os
 import subprocess
+import sys
 
-sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath(".."))
 sys.path.insert(0, os.path.abspath("../batconf"))
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'BatConf'
-copyright = '2024, Lundy Bernard, Lauren Moore'
-author = 'Lundy Bernard, Lauren Moore'
-release = '0.1.8'
+project = "BatConf"
+copyright = "2024, Lundy Bernard, Lauren Moore"
+author = "Lundy Bernard, Lauren Moore"
+release = "0.1.8"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-master_doc = 'index'
-html_logo = '_static/batconf-logo.png'
-html_favicon = '_static/batconf-favicon.png'
+master_doc = "index"
+html_logo = "_static/batconf-logo.png"
+html_favicon = "_static/batconf-favicon.png"
 
 
 extensions = [
-    'sphinx.ext.autodoc',
+    "sphinx.ext.autodoc",
     "sphinx.ext.extlinks",
-    'sphinxext.opengraph',
-    'sphinx_autodoc_typehints',
-    'myst_parser',
-    'sphinx_design',
+    "sphinxext.opengraph",
+    "sphinx_autodoc_typehints",
+    "myst_parser",
+    "sphinx_design",
 ]
 
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -54,8 +54,8 @@ autodoc_default_options = {
 }
 
 source_suffix = {
-    '.rst': 'restructuredtext',
-    '.md': 'markdown',
+    ".rst": "restructuredtext",
+    ".md": "markdown",
 }
 
 # sphinx-autodoc-typehints options
@@ -80,32 +80,25 @@ extlinks = {
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'sphinx_rtd_theme'
-html_static_path = ['_static']
-html_css_files = ['custom.css']
+html_theme = "sphinx_rtd_theme"
+html_static_path = ["_static"]
+html_css_files = ["custom.css"]
 
 
 # -- Options for OGP social preview ------------------------------------------
-if rtd_canon_url := os.getenv('READTHEDOCS_CANONICAL_URL', False):
-    print(f'rtd_canon_url={rtd_canon_url}')
+if rtd_canon_url := os.getenv("READTHEDOCS_CANONICAL_URL", False):
+    print(f"rtd_canon_url={rtd_canon_url}")
     ogp_site_url = rtd_canon_url
 
 
 def run_apidoc(app):
     source_dir = os.path.abspath(os.path.dirname(__file__))
     package_dir = os.path.join(source_dir, "../../batconf")
-    output_dir = os.path.join(
-        source_dir,
-        "reference"
-    )  # Reference within "source"
+    output_dir = os.path.join(source_dir, "reference")  # Reference within "source"
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-    subprocess.check_call(
-        [
-            "sphinx-apidoc", "--output-dir", output_dir, package_dir
-        ]
-    )
+    subprocess.check_call(["sphinx-apidoc", "--output-dir", output_dir, package_dir])
 
 
 def setup(app):
-    app.connect('builder-inited', run_apidoc)
+    app.connect("builder-inited", run_apidoc)
