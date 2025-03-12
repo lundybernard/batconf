@@ -6,6 +6,7 @@
 import os
 import subprocess
 import sys
+from datetime import datetime
 
 sys.path.insert(0, os.path.abspath(".."))
 sys.path.insert(0, os.path.abspath("../batconf"))
@@ -14,7 +15,8 @@ sys.path.insert(0, os.path.abspath("../batconf"))
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "BatConf"
-copyright = "2024, Lundy Bernard, Lauren Moore"
+current_year = datetime.now().year
+copyright = f"{current_year}, Lundy Bernard, Lauren Moore"
 author = "Lundy Bernard, Lauren Moore"
 release = "0.1.8"
 
