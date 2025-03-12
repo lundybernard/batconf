@@ -1,11 +1,19 @@
 import logging as log
 
 import os
-import yaml
 from pathlib import Path
 from typing import Union, List
+from warnings import warn
 
 from ..source import SourceInterface, OpStr
+from .yaml import _load_yaml_file
+
+
+_DEPRECATION_WARNING = (
+    'FileConfig is deprecated and will be removed a future release.'
+    ' FileConfig will be replaced with format-specific file sources.'
+    ' batconf.sources.yaml.YamlConfig should be a direct replacement.'
+)
 
 
 class FileConfig(SourceInterface):
@@ -13,6 +21,8 @@ class FileConfig(SourceInterface):
     def __init__(
         self, config_file_name: OpStr = None, config_env: OpStr = None
     ) -> None:
+        warn(_DEPRECATION_WARNING)
+
         config = load_config_file(config_file_name)
 
         if not config_env:
@@ -54,8 +64,7 @@ def load_config_file(config_file: Union[Path, str, None] = None) -> dict:
         log.warning(_missing_config_warning)
         return {'default': 'none', 'none': {}}
 
-    with open(conf_path) as env_file:
-        conf = yaml.load(env_file, Loader=yaml.BaseLoader)
+    conf = _load_yaml_file(file_path=Path(conf_path))
 
     return conf
 

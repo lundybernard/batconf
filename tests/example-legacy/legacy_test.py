@@ -1,17 +1,26 @@
-from unittest import TestCase
+from unittest import TestCase, skipIf
+from unittest.mock import patch, Mock
+
+from os import path, environ
+from contextlib import contextmanager
 
 from legacy import ProjectConfig
 from legacy.conf import get_config
-from legacy.submodule import SubmoduleConfig
-from legacy.submodule.sub import KEY2_DEFAULT
 from legacy.lib import (
     hello_world,
     get_config_str,
     get_data_from_server,
 )
+from legacy.cli import BATCLI
+from legacy.submodule import SubmoduleConfig
+from legacy.submodule.sub import KEY2_DEFAULT
 
-from os import path, environ
-from contextlib import contextmanager
+
+_PYYAML_INSTALLED = True
+try:
+    import yaml
+except ImportError:
+    _PYYAML_INSTALLED = False
 
 
 # Get the absolute path to the test config.yaml file
@@ -19,6 +28,7 @@ example_dir = path.dirname(path.realpath(__file__))
 config_file_name = path.join(example_dir, "config.yaml")
 
 
+@skipIf(not _PYYAML_INSTALLED, 'requires pyyaml')
 class GetConfigFunctionTests(TestCase):
 
     def test_get_config(t):
@@ -75,16 +85,27 @@ class GetConfigFunctionTests(TestCase):
                 t.assertEqual(cfg.submodule.unknown.key, value)
 
 
-@contextmanager
-def set_environ(key: str, value: str):
-    try:
-        environ[key] = value
-        yield
-    finally:
-        del environ[key]
+class CLITests(TestCase):
+    '''
+    Tests which invoke the project.cli.BATCLI *entry point*
+    This is a bit of a shortcut to executing the CLI in a separate shell.
+    '''
+
+    SRC = 'legacy.cli'
+
+    @patch(f'{SRC}.exit', autospec=True)
+    def test_hello_world(t, exit: Mock):
+        ARGS = 'hello'.split(' ')
+
+        with patch('builtins.print') as mock_print:
+            BATCLI(ARGS=ARGS)
+
+        mock_print.assert_called_with('Hello World!')
+        exit.assert_called_once_with(0)
 
 
-class TestLib(TestCase):
+@skipIf(not _PYYAML_INSTALLED, 'requires pyyaml')
+class LibTests(TestCase):
     def test_hello(t):
         ret = hello_world()
         t.assertEqual('Hello World!', ret)
@@ -116,3 +137,12 @@ class TestLib(TestCase):
            " test.legacy.submodule.sub.key1', self.key2='DEFAULT VALUE'",
            ret,
        )
+
+
+@contextmanager
+def set_environ(key: str, value: str):
+    try:
+        environ[key] = value
+        yield
+    finally:
+        del environ[key]
