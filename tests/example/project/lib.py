@@ -17,7 +17,7 @@ from typing import Optional, Callable
 from functools import wraps
 from argparse import Namespace
 
-from .conf import get_config, Configuration
+from .conf import get_config, Configuration, CONFIG_FILE_NAME
 from .submodule.sub import MyClient
 
 
@@ -30,7 +30,7 @@ def configurable(func: Callable) -> Callable:
     @wraps(func)
     def wrapper(
         cli_args: Optional[Namespace] = None,
-        config_file_name: Optional[str] = None,
+        config_file_name: str = CONFIG_FILE_NAME,
         config_env: Optional[str] = None,
         ):
         # Fetch the configuration using get_config
