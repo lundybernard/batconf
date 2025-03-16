@@ -23,7 +23,7 @@ classifiers=[
 "Source Code" = "https://github.com/lundybernard/batconf/"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 pyyaml = "*"
 
 # optional dev dependencies
