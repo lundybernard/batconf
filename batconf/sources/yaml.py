@@ -112,13 +112,13 @@ def _load_yaml(
     # TODO: Replace with a match statement when support for py3.9 is dropped
     loader_map = {
         'ignore': _load_yaml_file_ignore_when_missing,
-        'warn': _load_yaml_file_warn_when_mising,
+        'warn': _load_yaml_file_warn_when_missing,
         'error': _load_yaml_file,
     }
     return loader_map[when_missing](file_path=file_path)
 
 
-def _load_yaml_file_warn_when_mising(file_path: Path) -> dict:
+def _load_yaml_file_warn_when_missing(file_path: Path) -> dict:
     try:
         config = _load_yaml_file(file_path)
     except FileNotFoundError:
