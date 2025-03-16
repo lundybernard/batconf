@@ -7,7 +7,7 @@ from ..yaml import (
     YamlConfig,
     get_file_path,
     _load_yaml,
-    _load_yaml_file_warn_when_mising,
+    _load_yaml_file_warn_when_missing,
     _load_yaml_file_ignore_when_missing,
     _load_yaml_file,
     _missing_config_warning,
@@ -305,13 +305,13 @@ class YamlLoaderFunctionsTests(TestCase):
         ret = _load_yaml(file_path=t.file_path, when_missing='ignore')
         t.assertEqual(ret, t.empy_config_dict)
 
-    @patch(f'{SRC}._load_yaml_file_warn_when_mising', autospec=True)
-    def test__load_yaml_warn(t, _load_yaml_file_warn_when_mising: Mock):
+    @patch(f'{SRC}._load_yaml_file_warn_when_missing', autospec=True)
+    def test__load_yaml_warn(t, _load_yaml_file_warn_when_missing: Mock):
         ret = _load_yaml(file_path=t.file_path, when_missing='warn')
-        _load_yaml_file_warn_when_mising.assert_called_with(
+        _load_yaml_file_warn_when_missing.assert_called_with(
             file_path=t.file_path,
         )
-        t.assertIs(_load_yaml_file_warn_when_mising.return_value, ret)
+        t.assertIs(_load_yaml_file_warn_when_missing.return_value, ret)
 
     @patch(f'{SRC}._load_yaml_file', autospec=True)
     def test__load_yaml_error(t, _load_yaml_file: Mock):
@@ -322,17 +322,17 @@ class YamlLoaderFunctionsTests(TestCase):
         _load_yaml_file.assert_called_with(file_path=t.file_path)
 
     @patch(f'{SRC}.log', autospec=True)
-    def test__load_yaml_file_warn_when_mising(t, log: Mock):
+    def test__load_yaml_file_warn_when_missing(t, log: Mock):
         '''Logs a warning if the file is missing
         '''
         with t.subTest('file found'):
-            ret = _load_yaml_file_warn_when_mising(file_path=t.file_path)
+            ret = _load_yaml_file_warn_when_missing(file_path=t.file_path)
             t.assertEqual(ret, EXAMPLE_CONFIG_DICT)
 
         with t.subTest('file not found'):
             t.open.side_effect = FileNotFoundError
 
-            ret = _load_yaml_file_warn_when_mising(file_path=t.file_path)
+            ret = _load_yaml_file_warn_when_missing(file_path=t.file_path)
 
             t.open.assert_called_with(t.file_path)
             log.warning.assert_called_with(_missing_config_warning)
@@ -359,10 +359,10 @@ class YamlLoaderFunctionsTests(TestCase):
     @patch.dict('sys.modules', {'yaml': None}, clear=True)
     def test__load_yaml_file_missing_pyyaml_module(t):
         """The pyyaml module is an optional extra,
-         not requeired to use this package.
+         not required to use this package.
          Using the module without pyyaml should not raise any Errors,
          But attempting to use YamlConfig when it is not installed
-         will raise an ImprortError.
+         will raise an ImportError.
          """
 
         with t.subTest('pyyaml behaves as if it is not installed'):
