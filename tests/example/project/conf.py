@@ -25,13 +25,13 @@ based on OS standards useful.
 '''
 # Get the absolute path to the test config.yaml file
 _example_project_dir = path.dirname(path.realpath(__file__))
-CONFIG_FILE_NAME = path.join(_example_project_dir, "../config.yaml")
+CONFIG_FILE_NAME = path.join(_example_project_dir, "../config.ini")
 
 
 def get_config(
     config_class: Union[ConfigProtocol, Any] = ProjectConfig,
     cli_args: Optional[Namespace] = None,
-    config_file: Optional[IniConfig] = None,
+    config_file: Optional[SourceInterface] = None,
     config_file_name: str = CONFIG_FILE_NAME,
     config_env: Optional[str] = None,
 ) -> Configuration:

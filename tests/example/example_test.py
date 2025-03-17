@@ -173,7 +173,7 @@ class LibTests(TestCase):
     def test_get_data_from_server(t):
        # This example has not set a default config file,
        # so we need to tell get_config where to find the test config file.
-       ret = get_data_from_server(config_file_name=config_file_name,)
+       ret = get_data_from_server()
        t.assertEqual(
            "MyClient data: self.key1='Config.yaml:"
            " test.project.submodule.sub.key1', self.key2='DEFAULT VALUE'",
