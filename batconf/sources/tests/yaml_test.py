@@ -94,6 +94,32 @@ class YamlConfigTests(TestCase):
         # Enable multi-environment support by default
         t.assertEqual(True, yc._enable_config_environments)
 
+    def test__data(t):
+        yc = YamlConfig(config_file_name=t.config_file_name)
+        yc._config_env = 'new_config_env'
+        env_cfg = {'k': 'v'}
+
+        with t.subTest('defaults'):
+            config = {yc._config_env: env_cfg}
+            yc._data = config
+            t.assertDictEqual(env_cfg, yc._data)
+
+        with t.subTest('defaults: missing environment'):
+            config = {'missing_environment': env_cfg}
+            with t.assertRaises(KeyError):
+                yc._data = config
+
+        with t.subTest('no config_env specified'):
+            yc._config_env = None
+            config = {'default':'my_env', 'my_env':env_cfg}
+            yc._data = config
+            t.assertDictEqual(env_cfg, yc._data)
+
+        with t.subTest('config environments disabled'):
+            yc = YamlConfig(config_file_name=t.config_file_name, enable_config_environments=False)
+            yc._data = env_cfg
+            t.assertDictEqual(env_cfg, yc._data)
+
     def test_disable_config_environments(t):
         """The default behavior for the configuration file allows it to
         contain separate configurations for different environments.
@@ -196,7 +222,7 @@ class YamlConfigTests(TestCase):
         t.assertEqual({'bat': None}.keys(), yc.keys())
 
 
-class FileCheckerTests(TestCase):
+class get_file_pathTests(TestCase):
     Path: Mock
 
     def setUp(t):
