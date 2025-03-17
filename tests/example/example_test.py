@@ -1,6 +1,9 @@
 from unittest import TestCase, skipIf
 from unittest.mock import patch, Mock
 
+from os import path, environ
+from contextlib import contextmanager
+
 from project import ProjectConfig
 from project.conf import get_config
 from project.cli import BATCLI
@@ -11,8 +14,7 @@ from project.lib import (
 from project.submodule import SubmoduleConfig
 from project.submodule.sub import KEY2_DEFAULT
 
-from os import path, environ
-from contextlib import contextmanager
+from batconf.sources.yaml import YamlConfig
 
 
 _PYYAML_INSTALLED = True
@@ -24,18 +26,33 @@ except ImportError:
 
 # Get the absolute path to the test config.yaml file
 example_dir = path.dirname(path.realpath(__file__))
-config_file_name = path.join(example_dir, "config.yaml")
+ini_config_file_name = path.join(example_dir, "config.ini")
+yaml_config_file_name = path.join(example_dir, "config.yaml")
 
 
-@skipIf(not _PYYAML_INSTALLED, 'requires pyyaml')
-class GetConfigFunctionTests(TestCase):
+class GetIniConfigFunctionTests(TestCase):
 
     def test_get_config(t):
         """Bare get_config() returns a Project-level Configuration object.
-
         Submodule configs can be accessed using their namespace.
         """
         cfg = get_config()
+        # This cfg object can be used to lookup default values
+        # provided by the Config dataclasses for the module.
+        t.assertEqual(cfg.submodule.sub.key2, KEY2_DEFAULT)
+
+
+@skipIf(not _PYYAML_INSTALLED, 'requires pyyaml')
+class GetYamlConfigFunctionTests(TestCase):
+
+    def test_get_config(t):
+        """get_config() returns a Project-level Configuration object.
+
+        Submodule configs can be accessed using their namespace.
+        """
+        # Inject a YamlConfig file source, to overwrite the default .ini
+        yaml_config_file = YamlConfig(yaml_config_file_name)
+        cfg = get_config(config_file=yaml_config_file)
         # This cfg object can be used to lookup default values
         # provided by the Config dataclasses for the module.
         t.assertEqual(cfg.submodule.sub.key2, KEY2_DEFAULT)
@@ -46,7 +63,7 @@ class GetConfigFunctionTests(TestCase):
         """
         cfg = get_config(
             config_class=SubmoduleConfig,
-            config_file_name=config_file_name,
+            config_file_name=yaml_config_file_name,
         )
         t.assertEqual(cfg.sub.key2, KEY2_DEFAULT)
 
@@ -107,7 +124,6 @@ class GetConfigFunctionTests(TestCase):
         # Flat cfg example, containing only key/value pairs
         t.assertEqual(cfg.key2, 'cli override')
 
-
     def test_args_path_based_variable(t):
         '''
         Known Bug: github issue #67
@@ -149,7 +165,6 @@ class CLITests(TestCase):
         exit.assert_called_once_with(0)
 
 
-@skipIf(not _PYYAML_INSTALLED, 'requires pyyaml')
 class LibTests(TestCase):
     def test_hello_world(t):
         ret = hello_world()
@@ -157,13 +172,18 @@ class LibTests(TestCase):
 
     def test_get_data_from_server(t):
        # This example has not set a default config file,
-       # so we need to tell gitconfig where to find the test config file.
-       ret = get_data_from_server(config_file_name=config_file_name,)
+       # so we need to tell get_config where to find the test config file.
+       ret = get_data_from_server()
        t.assertEqual(
            "MyClient data: self.key1='Config.yaml:"
            " test.project.submodule.sub.key1', self.key2='DEFAULT VALUE'",
            ret,
        )
+    def test_print_format(t):
+        t.assertEqual(
+            str(get_config()),
+            ""
+        )
 
 
 @contextmanager
