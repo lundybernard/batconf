@@ -1,0 +1,14 @@
+default: test
+
+test:
+  integration:
+    key1: 'Config.yaml: test.integration.key1'
+  project:
+    submodule:
+      sub:
+        key1: "Config.yaml: test.project.submodule.sub.key1"
+
+production:
+  doc: "Options for the production environment"
+  project:
+    doc: "Python module specific options"
