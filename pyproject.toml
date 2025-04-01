@@ -86,6 +86,11 @@ skip_empty = true
 max-line-length = "79"
 max-complexity = 10
 
+[tool.ruff]
+line-length = 79
+[tool.ruff.format]
+quote-style = 'single'
+
 
 # === Type Checking === #
 [tool.mypy]
