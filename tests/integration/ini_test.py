@@ -110,3 +110,57 @@ class IniConfigMissingFileTests(TestCase):
                 t.assertIsNone(ic.get('doc'))
                 t.assertIsNone(ic.get('project.submodule.sub.key1'))
                 t.assertIsNone(ic.get('any.random.key'))
+
+
+from batconf.manager import Configuration
+from batconf.source import SourceList, SourceInterface
+from typing import Optional, Sequence
+from dataclasses import dataclass
+
+
+class IniConfigConfigurationManagerTests(TestCase):
+    """Test that IniConfig works as expected
+    within the Configuration, and SourceList classes.
+    """
+
+    def test(t) -> None:
+        this_dir = path.dirname(path.realpath(__file__))
+        config_file_path = path.join(this_dir, 'data/envs.config.ini')
+        ic = IniConfig(file_path=config_file_path)
+        # Build a prioritized config source list
+        config_sources: Sequence[Optional[SourceInterface]] = [ic, None]
+        source_list = SourceList(config_sources)
+
+        # Define a Configuration Schema
+        @dataclass
+        class SubmoduleSchema:
+            key1: str
+            key2: str = 'default from schema'
+
+        # some horrible hacks, to force the __module__ lookup to work
+        SubmoduleSchema.__module__ = 'project.submodule'
+
+        @dataclass
+        class CfgSchema:
+            doc: str
+            submodule: SubmoduleSchema
+
+        CfgSchema.__module__ = 'project'
+
+        cfg = Configuration(source_list, CfgSchema)
+        print(cfg)
+        # this should work, but requires the upcoming path changes
+        t.assertEqual('project doc string', cfg.doc)
+
+        t.assertEqual('wark', cfg.submodule.key2)
+        t.assertEqual(
+            'envs.config.ini: test.project.submodule.key1',
+            cfg.submodule.key1,
+        )
+
+        print(f'{cfg.submodule=}')
+
+        t.assertEqual('default from schema', cfg.submodule.key2)
+
+        # Example fallback to key-lookup
+        t.assertEqual('fallback', cfg.get('submodule.key1'))
