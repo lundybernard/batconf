@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch, mock_open
 from ..ini import (
     # Under Test
     IniConfig,
-    IniConfigFileFormats,
+    ConfigFileFormats,
     _load_ini_file,
     _load_ini_file_flat,
     _load_ini,
@@ -298,7 +298,7 @@ class IniConfigTests(TestCase):
                 t.assertIsNone(ic._config_env)
 
     def test_get_methods_for_file_formats(t) -> None:
-        formats: list[IniConfigFileFormats] = [
+        formats: list[ConfigFileFormats] = [
             'flat',
             'sections',
             'environments',

@@ -8,6 +8,7 @@ from enum import Enum, auto
 from ..source import SourceInterface
 
 from .file import (
+    ConfigFileFormats,
     _MissingFileOption,
     load_file_warn_when_missing,
     load_file_ignore_when_missing,
@@ -20,7 +21,6 @@ from .file import (
 log = getLogger(__name__)
 
 
-IniConfigFileFormats = Literal['flat', 'sections', 'environments']
 _OptStr = Optional[str]
 
 
@@ -128,7 +128,7 @@ class IniConfig(SourceInterface):
         file_path: str,
         config_env: _EnvOpts = _DEFAULTS.environment,
         missing_file_option: _MissingFileOption = 'warn',
-        file_format: IniConfigFileFormats = 'environments',
+        file_format: ConfigFileFormats = 'environments',
     ):
         self._missing_file_option = missing_file_option
         self._file_format = file_format
@@ -188,7 +188,7 @@ class IniConfig(SourceInterface):
 
 def _load_ini(
     file_path: Path,
-    file_format: IniConfigFileFormats,
+    file_format: ConfigFileFormats,
     when_missing: _MissingFileOption = 'warn',
 ) -> Union[ConfigParser, EmptyConfigParser]:
     loader_fn = _file_type_loaders[file_format]

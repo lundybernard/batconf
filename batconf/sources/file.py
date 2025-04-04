@@ -13,10 +13,14 @@ from .yaml import _load_yaml_file
 log = getLogger(__name__)
 
 
+# === Type Annotation and Protocols === #
+
+
 class FileLoaderP(Protocol):
     def __call__(self, file_path: Path) -> Any: ...
 
 
+ConfigFileFormats = Literal['flat', 'sections', 'environments']
 _MissingFileOption = Literal['ignore', 'warn', 'error']
 EmptyConfigurationSentinel = object()
 
