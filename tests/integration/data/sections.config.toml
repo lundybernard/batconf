@@ -1,0 +1,11 @@
+a_root_value = 'is a valid key'
+
+['section 001']
+section.name = 'section 1'
+
+[section.7]
+section.name = 'section 7'
+
+[section.9]
+section.name = 'section 9'
+key1 = 'val1'

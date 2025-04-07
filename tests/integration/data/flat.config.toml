@@ -1,0 +1,11 @@
+key0 = 'value0'
+int = '0'
+not.really.nested = 'still a root value'
+root = 'is a valid key'
+
+#[your-app-name]
+#key1 = 'value1'
+#dot.delimited.key = 'dot value'
+#
+#[unused-section]
+#key1 = 'other value'
