@@ -9,13 +9,13 @@ description = "Application configuration tool from the BAT project"
 authors = ["Lundy Bernard <lundy.bernard@gmail.com>", "Lauren Moore"]
 license = "MIT"
 readme = "README.md"
-classifiers=[
-        'Development Status :: 4 - Beta',
-        'Intended Audience :: Developers',
-        'Operating System :: OS Independent',
-        'Operating System :: POSIX :: Linux',
-        'Operating System :: MacOS',
-        'Operating System :: Microsoft :: Windows',
+classifiers = [
+    'Development Status :: 4 - Beta',
+    'Intended Audience :: Developers',
+    'Operating System :: OS Independent',
+    'Operating System :: POSIX :: Linux',
+    'Operating System :: MacOS',
+    'Operating System :: Microsoft :: Windows',
 ]
 
 [tool.poetry.urls]
@@ -28,26 +28,28 @@ python = "^3.9"
 # optional dev dependencies
 # ref: https://python-poetry.org/docs/pyproject/#extras
 # optional extras for users:
-pyyaml = { version='*', optional=true }
+pyyaml = { version = '*', optional = true }
+toml = { version = '*', optional = true, python = "<=3.10" }
 # optional dev dependencies:
-coverage = { version='*', optional=true}
-flake8 = { version='*', optional=true}
-mypy = { version='*', optional=true}
-pytest = { version='*', optional=true }
-pytest-cov = { version='*', optional=true }
-types-PyYAML = { version='*', optional=true }
+coverage = { version = '*', optional = true }
+flake8 = { version = '*', optional = true }
+mypy = { version = '*', optional = true }
+pytest = { version = '*', optional = true }
+pytest-cov = { version = '*', optional = true }
+types-PyYAML = { version = '*', optional = true }
 # optional documentation dependencies
-myst_parser = {version='*', optional=true}
-sphinx = {version='*', optional=true}
-sphinx_autodoc_typehints = {version='*', optional=true}
-sphinxext-opengraph = {version='*', optional=true}
-sphinx_design = {version='*', optional=true}
-sphinx-rtd-theme = {version='*', optional=true}
-matplotlib = {version='*', optional=true}  # for social preview cards
+myst_parser = { version = '*', optional = true }
+sphinx = { version = '*', optional = true }
+sphinx_autodoc_typehints = { version = '*', optional = true }
+sphinxext-opengraph = { version = '*', optional = true }
+sphinx_design = { version = '*', optional = true }
+sphinx-rtd-theme = { version = '*', optional = true }
+matplotlib = { version = '*', optional = true }  # for social preview cards
 
 
 [tool.poetry.extras]
-yaml = ["pyyaml",]
+yaml = ["pyyaml", ]
+toml = ["toml", ]
 dev = [
     "coverage",
     "flake8",
