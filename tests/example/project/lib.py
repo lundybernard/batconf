@@ -18,7 +18,7 @@ from functools import wraps
 from argparse import Namespace
 
 from .conf import get_config, Configuration, CONFIG_FILE_NAME
-from .submodule.sub import MyClient
+from .submodule.client import MyClient
 
 
 def configurable(func: Callable) -> Callable:
@@ -57,7 +57,8 @@ def get_config_str(cfg: Configuration) -> str:
 
 @configurable
 def get_data_from_server(cfg: Configuration) -> str:
-    my_client_config = cfg.submodule.sub
+    """Get data from Client B"""
+    my_client_config = cfg.clients.clientB
 
     client = MyClient.from_config(my_client_config)
     return client.fetch_data()
