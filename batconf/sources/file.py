@@ -17,7 +17,6 @@ _DEPRECATION_WARNING = (
 
 
 class FileConfig(SourceInterface):
-
     def __init__(
         self, config_file_name: OpStr = None, config_env: OpStr = None
     ) -> None:
@@ -70,8 +69,8 @@ def load_config_file(config_file: Union[Path, str, None] = None) -> dict:
 
 
 _missing_config_warning = (
-    "Config File not specified:"
-    " create config.yaml,"
-    " set environment variable BAT_CONFIG_FILE to config file path,"
-    " or speicfy a config file."
+    'Config File not specified:'
+    ' create config.yaml,'
+    ' set environment variable BAT_CONFIG_FILE to config file path,'
+    ' or speicfy a config file.'
 )

@@ -12,7 +12,7 @@ from batconf.sources.env import EnvConfig
 from batconf.sources.yaml import YamlConfig
 from batconf.sources.dataclass import DataclassConfig
 
-'''
+"""
 Use of a default configuration file location bears some careful consideration
 Think carefully about the location of a default ~/.cfg/yourapp/ /etc/yourapp/ ?
   On Linux systems you may want both system and user config files.
@@ -22,10 +22,10 @@ Your choice in configuration file location is entirely up to you,
   
 Let us know if you would find some default settings 
 based on OS standards useful.
-'''
+"""
 # Get the absolute path to the test config.yaml file
 _example_project_dir = path.dirname(path.realpath(__file__))
-CONFIG_FILE_NAME = path.join(_example_project_dir, "../config.yaml")
+CONFIG_FILE_NAME = path.join(_example_project_dir, '../config.yaml')
 
 
 def get_config(
