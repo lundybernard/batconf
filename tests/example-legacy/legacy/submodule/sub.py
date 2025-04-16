@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 
-KEY2_DEFAULT = "DEFAULT VALUE"
+KEY2_DEFAULT = 'DEFAULT VALUE'
 
 
 class MyClient:
@@ -27,7 +27,7 @@ class MyClient:
         key2: str = KEY2_DEFAULT
 
     @classmethod
-    def from_config(cls, config: Config) -> "MyClient":
+    def from_config(cls, config: Config) -> 'MyClient':
         return cls(config.key1, config.key2)
 
     def __init__(self, key1: str, key2: str = KEY2_DEFAULT):

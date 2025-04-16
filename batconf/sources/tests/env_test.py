@@ -8,14 +8,13 @@ SRC = 'batconf.sources.env'
 
 
 class TestEnvConfig(TestCase):
-
     @patch.dict(
         f'{SRC}.os.environ',
         {
             'BAT_CONFIG_FILE': 'example.config.yaml',
             'BAT_MODULE_KEY': 'value',
             'BAT_MODULE_PATH_TO_KEY': 'value2',
-        }
+        },
     )
     def test_get(t):
         conf = EnvConfig()
@@ -31,8 +30,7 @@ class TestEnvConfig(TestCase):
 
         with t.subTest('module and key paths'):
             t.assertEqual(
-                conf.get('to.key', module='bat.module.path'),
-                'value2'
+                conf.get('to.key', module='bat.module.path'), 'value2'
             )
 
     def test_env_name(t):
@@ -46,12 +44,11 @@ class TestEnvConfig(TestCase):
 
         with t.subTest('single key from module'):
             t.assertEqual(
-                conf.env_name('key', module='bat.module'),
-                'BAT_MODULE_KEY'
+                conf.env_name('key', module='bat.module'), 'BAT_MODULE_KEY'
             )
 
         with t.subTest('module and key paths'):
             t.assertEqual(
                 conf.env_name('to.key', module='bat.module.path'),
-                'BAT_MODULE_PATH_TO_KEY'
+                'BAT_MODULE_PATH_TO_KEY',
             )

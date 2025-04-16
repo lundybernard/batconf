@@ -25,12 +25,11 @@ except ImportError:
 
 # Get the absolute path to the test config.yaml file
 example_dir = path.dirname(path.realpath(__file__))
-config_file_name = path.join(example_dir, "config.yaml")
+config_file_name = path.join(example_dir, 'config.yaml')
 
 
 @skipIf(not _PYYAML_INSTALLED, 'requires pyyaml')
 class GetConfigFunctionTests(TestCase):
-
     def test_get_config(t):
         """Bare get_config() returns a Project-level Configuration object.
 
@@ -54,7 +53,7 @@ class GetConfigFunctionTests(TestCase):
         # Which can access values from structured Sources like yaml files
         t.assertEqual(
             cfg.sub.key1,
-            "Config.yaml: test.legacy.submodule.sub.key1",
+            'Config.yaml: test.legacy.submodule.sub.key1',
         )
 
     def test_environment_variable(t):
@@ -63,33 +62,33 @@ class GetConfigFunctionTests(TestCase):
         The environment variable name is the namespace-path to the cfg key
         All Uppercase, '_'(underscore) delimited.
         """
-        value = "Environment, value"
-        override_value = "overwrite key2 default"
+        value = 'Environment, value'
+        override_value = 'overwrite key2 default'
 
         cfg = get_config(config_class=ProjectConfig)
 
         # Environment variables overwrite defaults from the Config class
-        with set_environ("LEGACY_SUBMODULE_SUB_KEY2", override_value):
+        with set_environ('LEGACY_SUBMODULE_SUB_KEY2', override_value):
             t.assertEqual(cfg.submodule.sub.key2, override_value)
 
         # We have a limited ability to add new key:value pairs.
         # at this time, they must be added to existing namespaces
-        with set_environ("LEGACY_SUBMODULE_ENVKEY", value):
+        with set_environ('LEGACY_SUBMODULE_ENVKEY', value):
             # environ["LEGACY_SUBMODULE_ENVKEY"] = value
             t.assertEqual(cfg.submodule.envkey, value)
 
         with t.assertRaises(AttributeError):
             # Unsupported arbitrary namespace
-            with set_environ("LEGACY_SUBMODULE_UNKNOWN_KEY", value):
+            with set_environ('LEGACY_SUBMODULE_UNKNOWN_KEY', value):
                 # environ["LEGACY_SUBMODULE_UNKNOWN_KEY"] = value
                 t.assertEqual(cfg.submodule.unknown.key, value)
 
 
 class CLITests(TestCase):
-    '''
+    """
     Tests which invoke the project.cli.BATCLI *entry point*
     This is a bit of a shortcut to executing the CLI in a separate shell.
-    '''
+    """
 
     SRC = 'legacy.cli'
 
@@ -115,8 +114,8 @@ class LibTests(TestCase):
             get_config_str(),
             r"^Root <class 'legacy.ProjectConfig'>:\n"
             r"    \|- submodule <class 'legacy\.submodule\.SubmoduleConfig'>:"
-            r"\n"
-            r"    \|    \|- sub <class"
+            r'\n'
+            r'    \|    \|- sub <class'
             r" 'legacy\.submodule\.sub\.MyClient\.Config'>:\n"
             r'    \|    \|    \|- key1: "MISSING_VALUE"\n'
             r'    \|    \|    \|- key2: "DEFAULT VALUE"\n'
@@ -129,14 +128,16 @@ class LibTests(TestCase):
         )
 
     def test_get_data_from_server(t):
-       # This example has not set a default config file,
-       # so we need to tell gitconfig where to find the test config file.
-       ret = get_data_from_server(config_file_name=config_file_name,)
-       t.assertEqual(
-           "MyClient data: self.key1='Config.yaml:"
-           " test.legacy.submodule.sub.key1', self.key2='DEFAULT VALUE'",
-           ret,
-       )
+        # This example has not set a default config file,
+        # so we need to tell gitconfig where to find the test config file.
+        ret = get_data_from_server(
+            config_file_name=config_file_name,
+        )
+        t.assertEqual(
+            "MyClient data: self.key1='Config.yaml:"
+            " test.legacy.submodule.sub.key1', self.key2='DEFAULT VALUE'",
+            ret,
+        )
 
 
 @contextmanager
