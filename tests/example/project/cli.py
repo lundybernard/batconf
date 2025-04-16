@@ -33,11 +33,12 @@ def argparser():
     p.set_defaults(func=get_help(p))
 
     p.add_argument(
-        '-v', '--verbose',
+        '-v',
+        '--verbose',
         help='enable INFO output',
         action='store_const',
         dest='loglevel',
-        const=logging.INFO
+        const=logging.INFO,
     )
     p.add_argument(
         '--debug',
@@ -47,14 +48,18 @@ def argparser():
         const=logging.DEBUG,
     )
     p.add_argument(
-        '-c', '--conf', '--config_file',
+        '-c',
+        '--conf',
+        '--config_file',
         dest='config_file',
         default=None,
         help='specify a config file to get environment details from.'
-             ' default=./config.yaml',
+        ' default=./config.yaml',
     )
     p.add_argument(
-        '-e', '--env', '--config_environment',
+        '-e',
+        '--env',
+        '--config_environment',
         dest='config_env',
         default=None,
         help='specify the remote environment to use from the config file',
@@ -65,7 +70,7 @@ def argparser():
         dest='command',
         title='commands',
         description='for additonal details on each command use: '
-                    '"bat {command name} --help"',
+        '"bat {command name} --help"',
     )
     # hello args
     hello = commands.add_parser(
@@ -100,6 +105,7 @@ def argparser():
 def get_help(parser):
     def help(_: Namespace):
         parser.print_help()
+
     return help
 
 

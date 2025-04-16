@@ -5,7 +5,6 @@ from ..dataclass import DataclassConfig
 
 
 class TestDataclassConfig(TestCase):
-
     def test_get(t) -> None:
         @dataclass
         class SubConfig:

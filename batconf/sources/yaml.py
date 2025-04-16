@@ -72,14 +72,14 @@ class YamlConfig(SourceInterface):
         return conf
 
 
-_missing_config_warning = "Config File not found"
+_missing_config_warning = 'Config File not found'
 
 
 # === OS File Checker === #
 
+
 def get_file_path(
-    file_name: str,
-    when_missing: _MissingFileOption = 'warn'
+    file_name: str, when_missing: _MissingFileOption = 'warn'
 ) -> Path:
     path = Path(file_name)
 
@@ -94,9 +94,9 @@ def get_file_path(
         log.warning(_missing_config_warning)
     elif when_missing == 'error':
         raise FileNotFoundError(
-            f"Could not find Yaml Config file"
-            f" Using absolute path: {path}"
-            f" or relative path: {relpath}."
+            f'Could not find Yaml Config file'
+            f' Using absolute path: {path}'
+            f' or relative path: {relpath}.'
         )
 
     return path
@@ -148,7 +148,7 @@ def _load_yaml_file(file_path: Path) -> dict:
 
 
 _YAML_IMPORT_ERROR_MSG = (
-    "PyYAML is required to use YamlConfig. "
-    "Please install it using `pip install pyyaml`."
-    "Or as an optional extra using `pip install batconf[yaml]`."
+    'PyYAML is required to use YamlConfig. '
+    'Please install it using `pip install pyyaml`.'
+    'Or as an optional extra using `pip install batconf[yaml]`.'
 )

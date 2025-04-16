@@ -1,4 +1,4 @@
-'''
+"""
 This example library module,
 which demonstrates use of batconf's Configuration manager.
 
@@ -11,7 +11,7 @@ A few notes:
     so does not get scattered throughout your codebase.
   * While this is a useful pattern, it is not required by batconf.
     You are free to use the Configuration manager as best suits your project.
-'''
+"""
 
 from typing import Optional, Callable
 from functools import wraps
@@ -22,23 +22,24 @@ from .submodule.sub import MyClient
 
 
 def configurable(func: Callable) -> Callable:
-    '''
+    """
     configurable is a decorator for library functions.
     It modifies the functon signature to accept parameters
     needed for the get_config function.
-    '''
+    """
+
     @wraps(func)
     def wrapper(
         cli_args: Optional[Namespace] = None,
         config_file_name: Optional[str] = None,
         config_env: Optional[str] = None,
-        ):
+    ):
         # Fetch the configuration using get_config
         cfg = get_config(
             cli_args=cli_args,
             config_file_name=config_file_name,
-            config_env=config_env
-            )
+            config_env=config_env,
+        )
         # Pass the configuration as the first argument to the wrapped function
         return func(cfg=cfg)
 

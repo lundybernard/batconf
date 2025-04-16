@@ -4,7 +4,6 @@ from ..source import SourceInterface, OpStr
 
 
 class CliArgsConfig(SourceInterface):
-
     def __init__(self, args: Namespace) -> None:
         self._data = args
 

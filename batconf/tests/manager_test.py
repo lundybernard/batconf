@@ -21,9 +21,8 @@ class Source(SourceInterface):
 
 
 class TestConfiguration(TestCase):
-
     def setUp(t) -> None:
-        '''Values are looked up exclusively from the Source List'''
+        """Values are looked up exclusively from the Source List"""
         t.source_1 = Source(
             {
                 'bat.AModule.arg_1': 's1_a_arg_1',
@@ -45,10 +44,10 @@ class TestConfiguration(TestCase):
         )
         t.source_list = SourceList([t.source_1, t.source_2])
 
-        '''Config dataclasses are used to build the tree-structure,
+        """Config dataclasses are used to build the tree-structure,
         so attribute lookup will work.
         In this context only the attributes contain Config dataclasses are used
-        '''
+        """
 
         @dataclass
         class ConfSubModule:
@@ -126,33 +125,33 @@ class TestConfiguration(TestCase):
             "    |- b_module <class 'bat.b_module"
             ".TestConfiguration.setUp.<locals>.BClient.Config'>:\n"
             '    |    |- arg_1: "s1_b_arg_1"\n'
-            "SourceList=\\[\n"
-            r"    <batconf.tests.manager_test.Source object at .*>,\n"
-            r"    <batconf.tests.manager_test.Source object at .*>,\n"
-            "\\]",
+            'SourceList=\\[\n'
+            r'    <batconf.tests.manager_test.Source object at .*>,\n'
+            r'    <batconf.tests.manager_test.Source object at .*>,\n'
+            '\\]',
         )
 
         # TODO: Fix bug, this should work but fails to find the attribute
         with t.assertRaises(AttributeError):
             t.assertRegex(
                 str(t.conf.ConfA),
-                "- AModule\n"
-                "   └─ SubModule\n"
-                "SourceList=\\[\n"
-                r"    <batconf.tests.manager_test.Source object at .*>,\n"
-                r"    <batconf.tests.manager_test.Source object at .*>,\n"
-                "\\]"
+                '- AModule\n'
+                '   └─ SubModule\n'
+                'SourceList=\\[\n'
+                r'    <batconf.tests.manager_test.Source object at .*>,\n'
+                r'    <batconf.tests.manager_test.Source object at .*>,\n'
+                '\\]',
             )
 
     def test___repr__(t):
         t.assertRegex(
             repr(t.conf),
-            f"Configuration\\(source_list=SourceList\\("
-            rf"sources=\[<{__name__}.Source object at .*>, "
-            f"<{__name__}"
-            r".Source object at .*>\]\), "
-            "config_class="
-            "<class 'bat.TestConfiguration.setUp.<locals>.GlobalConfig'>\\)"
+            f'Configuration\\(source_list=SourceList\\('
+            rf'sources=\[<{__name__}.Source object at .*>, '
+            f'<{__name__}'
+            r'.Source object at .*>\]\), '
+            'config_class='
+            "<class 'bat.TestConfiguration.setUp.<locals>.GlobalConfig'>\\)",
         )
 
     def test__configuration_repr(t):
@@ -170,12 +169,11 @@ class TestConfiguration(TestCase):
                 ".TestConfiguration.setUp.<locals>.BClient.Config'>:",
                 '    |- arg_1: "s1_b_arg_1"',
             ],
-            repr_str_list
+            repr_str_list,
         )
 
     def test__configuration_repr_level1(t):
-        """Adding a level indents the returned strings and adds a pipe char
-        """
+        """Adding a level indents the returned strings and adds a pipe char"""
         t.maxDiff = None
         repr_str_list = _configuration_repr(t.conf, level=1)
         t.assertListEqual(
@@ -191,5 +189,5 @@ class TestConfiguration(TestCase):
                 ".TestConfiguration.setUp.<locals>.BClient.Config'>:",
                 '    |    |- arg_1: "s1_b_arg_1"',
             ],
-            repr_str_list
+            repr_str_list,
         )

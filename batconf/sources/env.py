@@ -4,7 +4,6 @@ from ..source import SourceInterface, OpStr
 
 
 class EnvConfig(SourceInterface):
-
     def __init__(self) -> None:
         pass
 

@@ -26,10 +26,10 @@ class FieldProtocol(Protocol):
 
 @runtime_checkable
 class ConfigProtocol(Protocol):
-    '''
+    """
     In most cases this should be a dataclass,
     However, any object that provides `__dataclass_fields__` will work
-    '''
+    """
 
     __dataclass_fields__: Dict[str, FieldProtocol]
 
@@ -39,13 +39,12 @@ _DATA_DICT_TYPE = Dict[str, _VALUES]
 
 
 class DataclassConfig(SourceInterface):
-
     def __init__(self, ConfigClass: Union[ConfigProtocol, Any]):
-        '''Extract default values from the Config dataclass.
+        """Extract default values from the Config dataclass.
         Properties without defaults are set to None.
 
         :param ConfigClass: a Config dataclass or :class:`ConfigProtocol` obj
-        '''
+        """
         self._root = ConfigClass.__module__
         self._data: _DATA_DICT_TYPE = {}
 

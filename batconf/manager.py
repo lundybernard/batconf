@@ -30,7 +30,7 @@ ConfigRet = Union['Configuration', str]
 
 
 class Configuration:
-    '''
+    """
     Input: an application config in dictionary form
 
     Configuration Hierarchy:
@@ -47,7 +47,7 @@ class Configuration:
         the config file path may be set to the BAT_CONFIG_FILE ENV variable
     4. Default Values
         default values may be set in the config specification
-    '''
+    """
 
     def __init__(
         self,
@@ -125,10 +125,14 @@ def _configuration_repr(
                 level + 1,
             )
         else:
-            attrs.append(''.join((
-                '    |' * level,
-                f'- {field.name}: ',
-                f'"{getattr(configuration, field.name, "MISSING_VALUE")}"'
-            )))
+            attrs.append(
+                ''.join(
+                    (
+                        '    |' * level,
+                        f'- {field.name}: ',
+                        f'"{getattr(configuration, field.name, "MISSING_VALUE")}"',
+                    )
+                )
+            )
 
     return attrs + children

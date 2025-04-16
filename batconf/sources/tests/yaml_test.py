@@ -11,14 +11,14 @@ from ..yaml import (
     _load_yaml_file_ignore_when_missing,
     _load_yaml_file,
     _missing_config_warning,
-    _YAML_IMPORT_ERROR_MSG
+    _YAML_IMPORT_ERROR_MSG,
 )
 
 
 SRC = 'batconf.sources.yaml'
 
 
-EXAMPLE_CONFIG_YAML = '''
+EXAMPLE_CONFIG_YAML = """
 default: example
 
 example:
@@ -32,12 +32,12 @@ alt:
     bat:
         module:
             key: alt_value
-'''
+"""
 
-EXAMPLE_CONFIG_WITHOUT_ENVIRONMENTS = '''
+EXAMPLE_CONFIG_WITHOUT_ENVIRONMENTS = """
 bat:
     key: envless_value
-'''
+"""
 
 
 EXAMPLE_CONFIG_DICT: dict = {
@@ -47,8 +47,10 @@ EXAMPLE_CONFIG_DICT: dict = {
             'key': 'value',
             'remote_host': {
                 'api_key': 'example_api_key',
-                'url': 'https://api-example.host.io/'
-    },},},
+                'url': 'https://api-example.host.io/',
+            },
+        },
+    },
     'alt': {'bat': {'module': {'key': 'alt_value'}}},
 }
 
@@ -62,7 +64,10 @@ class YamlConfigTests(TestCase):
     _load_yaml: Mock
 
     def setUp(t):
-        patches = ['get_file_path', '_load_yaml', ]
+        patches = [
+            'get_file_path',
+            '_load_yaml',
+        ]
         for target in patches:
             patcher = patch(f'{SRC}.{target}', autospec=True)
             setattr(t, target, patcher.start())
@@ -111,12 +116,15 @@ class YamlConfigTests(TestCase):
 
         with t.subTest('no config_env specified'):
             yc._config_env = None
-            config = {'default':'my_env', 'my_env':env_cfg}
+            config = {'default': 'my_env', 'my_env': env_cfg}
             yc._data = config
             t.assertDictEqual(env_cfg, yc._data)
 
         with t.subTest('config environments disabled'):
-            yc = YamlConfig(config_file_name=t.config_file_name, enable_config_environments=False)
+            yc = YamlConfig(
+                config_file_name=t.config_file_name,
+                enable_config_environments=False,
+            )
             yc._data = env_cfg
             t.assertDictEqual(env_cfg, yc._data)
 
@@ -143,13 +151,15 @@ class YamlConfigTests(TestCase):
         with t.subTest('single key'):
             t.assertEqual(
                 conf.get('bat.key'),
-                EXAMPLE_CONFIG_DICT['example']['bat']['key']
+                EXAMPLE_CONFIG_DICT['example']['bat']['key'],
             )
 
         with t.subTest('key from module'):
             t.assertEqual(
                 conf.get('api_key', module='bat.remote_host'),
-                EXAMPLE_CONFIG_DICT['example']['bat']['remote_host']['api_key']
+                EXAMPLE_CONFIG_DICT['example']['bat']['remote_host'][
+                    'api_key'
+                ],
             )
         with t.subTest('missing item'):
             t.assertEqual(conf.get('_sir_not_appearing_in_this_film'), None)
@@ -177,23 +187,20 @@ class YamlConfigTests(TestCase):
         yc._data = t._load_yaml.return_value
 
     def test_config_env_argument(t):
-        yc = YamlConfig(
-            './example.config.yaml', config_env='alt'
-        )
+        yc = YamlConfig('./example.config.yaml', config_env='alt')
         t.assertEqual(
             EXAMPLE_CONFIG_DICT['alt']['bat']['module']['key'],
             yc.get('key', module='bat.module'),
         )
 
     def test_missing_file_warning(t):
-        '''Default behavior.
+        """Default behavior.
         Missing config files result in a warning.
-        '''
+        """
         t._load_yaml.return_value = DEFAULT_EMPTY_CONFIGFILE_DICT
 
         yc = YamlConfig(
-            config_file_name=t.config_file_name,
-            missing_file_option='warn'
+            config_file_name=t.config_file_name, missing_file_option='warn'
         )
 
         t._load_yaml.assert_called_with(
@@ -207,14 +214,10 @@ class YamlConfigTests(TestCase):
         yc = YamlConfig(config_file_name=t.config_file_name)
 
         with t.subTest('dot notation key path'):
-            t.assertEqual(
-                yc['bat.remote_host.api_key'],
-                'example_api_key'
-            )
+            t.assertEqual(yc['bat.remote_host.api_key'], 'example_api_key')
         with t.subTest('__getitem__ chain'):
             t.assertEqual(
-                yc['bat']['remote_host']['url'],
-                'https://api-example.host.io/'
+                yc['bat']['remote_host']['url'], 'https://api-example.host.io/'
             )
 
     def test_keys(t):
@@ -239,7 +242,9 @@ class get_file_pathTests(TestCase):
         t.missing_file.is_file.return_value = False
         t.missing_file.resolve.return_value.is_file.return_value = False
 
-        patches = ['Path', ]
+        patches = [
+            'Path',
+        ]
         for target in patches:
             patcher = patch(f'{SRC}.{target}', autospec=True)
             setattr(t, target, patcher.start())
@@ -251,9 +256,9 @@ class get_file_pathTests(TestCase):
 
     @patch(f'{SRC}.log', autospec=True)
     def test_missing_warning(t, log: Mock):
-        '''file path does not exist,
+        """file path does not exist,
         default=warn
-        '''
+        """
         # When we call 'Path' on the file_name,
         # it returns a path to a file which is missing
         t.Path.return_value = t.missing_file
@@ -263,11 +268,11 @@ class get_file_pathTests(TestCase):
         t.assertIs(pth, t.missing_file)
 
     def test_missing_error(t):
-        '''
+        """
         file path does not exist, missing_file_option="error"
         Setting _config_file_name to an invalid path
         should raise a FileNotFound error
-        '''
+        """
         t.Path.return_value = t.missing_file
 
         with t.assertRaises(FileNotFoundError):
@@ -286,14 +291,12 @@ class get_file_pathTests(TestCase):
         t.assertIs(pth, t.missing_file)
 
     def test_absolute_path(t):
-        '''when the absolute path exists, return it
-        '''
+        """when the absolute path exists, return it"""
         pth = get_file_path(file_name=t.config_file_name)
         t.assertIs(pth, t.extant_file)
 
     def test_relative_path(t):
-        '''When the relative path exists, return it
-        '''
+        """When the relative path exists, return it"""
         t.Path.return_value = t.relative_file
         pth = get_file_path(file_name=t.config_file_name)
         # The relative_file has been saved to _config_file_path
@@ -306,10 +309,7 @@ class YamlLoaderFunctionsTests(TestCase):
         # so tests can be run when it is not installed
         pyyaml = MagicMock(spec=['load', 'BaseLoader'])
         pyyaml.load.return_value = EXAMPLE_CONFIG_DICT
-        pyyaml_patcher = patch.dict(
-            'sys.modules',
-            {'yaml': pyyaml}
-        )
+        pyyaml_patcher = patch.dict('sys.modules', {'yaml': pyyaml})
         t.pyyaml = pyyaml_patcher.start()
         t.addCleanup(pyyaml_patcher.stop)
 
@@ -349,8 +349,7 @@ class YamlLoaderFunctionsTests(TestCase):
 
     @patch(f'{SRC}.log', autospec=True)
     def test__load_yaml_file_warn_when_missing(t, log: Mock):
-        '''Logs a warning if the file is missing
-        '''
+        """Logs a warning if the file is missing"""
         with t.subTest('file found'):
             ret = _load_yaml_file_warn_when_missing(file_path=t.file_path)
             t.assertEqual(ret, EXAMPLE_CONFIG_DICT)
@@ -366,8 +365,7 @@ class YamlLoaderFunctionsTests(TestCase):
 
     @patch(f'{SRC}.log', autospec=True)
     def test__load_yaml_file_ignore_when_missing(t, log):
-        '''Logs a warning if the file is missing
-        '''
+        """Logs a warning if the file is missing"""
         with t.subTest('file found'):
             ret = _load_yaml_file_ignore_when_missing(file_path=t.file_path)
             t.assertEqual(ret, EXAMPLE_CONFIG_DICT)
@@ -385,11 +383,11 @@ class YamlLoaderFunctionsTests(TestCase):
     @patch.dict('sys.modules', {'yaml': None}, clear=True)
     def test__load_yaml_file_missing_pyyaml_module(t):
         """The pyyaml module is an optional extra,
-         not required to use this package.
-         Using the module without pyyaml should not raise any Errors,
-         But attempting to use YamlConfig when it is not installed
-         will raise an ImportError.
-         """
+        not required to use this package.
+        Using the module without pyyaml should not raise any Errors,
+        But attempting to use YamlConfig when it is not installed
+        will raise an ImportError.
+        """
 
         with t.subTest('pyyaml behaves as if it is not installed'):
             with t.assertRaises(ImportError):

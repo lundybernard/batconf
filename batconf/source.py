@@ -17,7 +17,6 @@ class SourceInterface(SourceInterfaceProto, metaclass=ABCMeta):
 
 
 class SourceList(SourceInterface):
-
     def __init__(self, sources: Sequence[Optional[SourceInterface]]) -> None:
         self._sources: List[SourceInterface] = list(filter(None, sources))
 

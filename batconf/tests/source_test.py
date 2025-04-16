@@ -10,7 +10,6 @@ from ..source import (
 
 
 class TestSourceInterfaceABC(TestCase):
-
     def test_config_source_interface(t):
         SourceInterface.__abstractmethods__ = set()
 
@@ -33,7 +32,6 @@ class Source(SourceInterface):
 
 
 class TestSourceList(TestCase):
-
     def setUp(t):
         t.source_1 = Source({'p1.key1': 'value1'})
         t.source_2 = Source({'p2.key2': 'value2'})
@@ -52,16 +50,16 @@ class TestSourceList(TestCase):
             t.assertEqual(sl.get('DNE'), None)
 
     def test_none_values_in_args(t):
-        '''Given None values in the initial sources list,
+        """Given None values in the initial sources list,
         they will be ignored, and only valid sources used
-        '''
+        """
         sl = SourceList([None, t.source_1, None, t.source_2, None])
         t.assertEqual(sl.get('key2', 'p2'), 'value2')
 
     def test_get_priority(t):
-        '''If duplicate keys exist in multiple sources,
+        """If duplicate keys exist in multiple sources,
         always return the first found in the list
-        '''
+        """
         sl = SourceList([t.source_1, t.source_3])
         t.assertEqual(sl.get('key1', 'p1'), 'value1')
 
@@ -82,8 +80,8 @@ class TestSourceList(TestCase):
         ret = repr(SourceList([t.source_1, t.source_2]))
         t.assertRegex(
             ret,
-            "SourceList\\(sources=\\["
-            r"<batconf.tests.source_test.Source object at 0x.+>, "
-            r"<batconf.tests.source_test.Source object at 0x.+>"
-            "\\]\\)"
+            'SourceList\\(sources=\\['
+            r'<batconf.tests.source_test.Source object at 0x.+>, '
+            r'<batconf.tests.source_test.Source object at 0x.+>'
+            '\\]\\)',
         )
