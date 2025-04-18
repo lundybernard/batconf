@@ -9,6 +9,15 @@ doc = 'our testing environment'
 key1 = 'envs.config.toml: test.project.submodule.sub.key1'
 integer = '0'
 
+[test.configuration_test]
+doc = 'configuration_test.py options'
+[test.configuration_test.subsection]
+doc = 'config test subsection'
+opt0 = 'envs.config.toml/test.configuration_test.subsection: opt0'
+notinschema = 'a value not specified in the schema'
+[test.configuration_test.notinschema]
+doc = 'file section not included in the config schema'
+
 [production]
 doc = 'Options for the production environment'
 int = '0'

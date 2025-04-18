@@ -70,7 +70,6 @@ from batconf.source import SourceList
 from batconf.sources.args import CliArgsConfig, Namespace
 from batconf.sources.env import EnvConfig
 from batconf.sources.file import FileConfig
-from batconf.sources.dataclass import DataclassConfig
 
 
 def get_config(
@@ -89,7 +88,6 @@ def get_config(
         config_file if config_file else FileConfig(
             config_file_name, config_env=config_env
         ),
-        DataclassConfig(config_class),
     ]
 
     source_list = SourceList(config_sources)
