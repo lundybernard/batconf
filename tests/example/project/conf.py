@@ -10,7 +10,7 @@ from batconf.source import SourceList, SourceInterface
 from batconf.sources.args import CliArgsConfig, Namespace
 from batconf.sources.env import EnvConfig
 from batconf.sources.ini import IniConfig
-from batconf.sources.dataclass import DataclassConfig
+
 
 """
 Use of a default configuration file location bears some careful consideration
@@ -64,7 +64,6 @@ def get_config(
             if config_file
             else IniConfig(config_file_name, config_env=config_env)
         ),
-        DataclassConfig(config_class),
     ]
 
     source_list = SourceList(config_sources)

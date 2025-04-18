@@ -7,7 +7,7 @@ from ..source import SourceInterface, SourceList
 from ..manager import Configuration, OpStr, _configuration_repr
 
 
-SRC = 'batconf.configuration.manager'
+SRC = 'batconf.manager'
 
 
 class Source(SourceInterface):
@@ -15,14 +15,12 @@ class Source(SourceInterface):
         self._data = data
 
     def get(self, key: str, path: OpStr = None) -> Optional[str]:
-        if v := self._data.get(f'{path}.{key}'):
-            return v
-        return None
+        return self._data.get(f'{path}.{key}', None)
 
 
 class TestConfiguration(TestCase):
     def setUp(t) -> None:
-        """Values are looked up exclusively from the Source List"""
+        """Configuration parameters/values are looked up from the Source List"""
         t.source_1 = Source(
             {
                 'bat.AModule.arg_1': 's1_a_arg_1',
@@ -44,7 +42,8 @@ class TestConfiguration(TestCase):
         )
         t.source_list = SourceList([t.source_1, t.source_2])
 
-        """Config dataclasses are used to build the tree-structure,
+        """
+        Config dataclasses are used to build the tree-structure,
         so attribute lookup will work.
         In this context only the attributes contain Config dataclasses are used
         """
@@ -56,6 +55,7 @@ class TestConfiguration(TestCase):
         @dataclass
         class ConfA:
             SubModule: ConfSubModule
+            no_default_arg: str
             default_arg: str = 'unused default value'
             arg_1: str = 'ConfA arg_1 default'
 
@@ -69,15 +69,9 @@ class TestConfiguration(TestCase):
             AModule: ConfA
             b_module: BClient.Config
 
-        #  As if imported from a module
-        GlobalConfig.__module__ = 'bat'
-        ConfA.__module__ = 'bat.AModule'
-        BClient.Config.__module__ = 'bat.b_module'
-        ConfSubModule.__module__ = 'bat.AModule.SubModule'
-
         t.GlobalConfig = GlobalConfig
 
-        t.conf = Configuration(t.source_list, t.GlobalConfig)
+        t.conf = Configuration(t.source_list, t.GlobalConfig, path='bat')
 
     def test_from_sources(t) -> None:
         with t.subTest('get value from first source'):
@@ -95,15 +89,23 @@ class TestConfiguration(TestCase):
         with t.subTest('source n+1 is next top priority'):
             t.assertEqual(t.conf.AModule.arg_2, 's2_a_arg_2')
 
-        with t.subTest('defaults from Config classes are not available'):
+        with t.subTest('default values from Config classes'):
+            t.assertEqual(t.conf.AModule.default_arg, 'unused default value')
+
+        with t.subTest('options without defaults raise AttributeError'):
             with t.assertRaises(AttributeError):
-                t.conf.AModule.default_arg
+                t.conf.AModule.no_default_arg
 
     def test___getattr__(t) -> None:
         with t.subTest('module lookup'):
             t.assertEqual(t.conf.AModule.s1_unique, 's1_a_unique')
 
-        with t.subTest('sub-module lookup'):
+        with t.subTest('child configurations'):
+            """Child configurations are Configuration instances
+            """
+            t.assertIsInstance(t.conf.AModule, Configuration)
+
+        with t.subTest('sub-module value lookup'):
             t.assertEqual(t.conf.AModule.SubModule.arg_1, 's1_a_sub_1')
 
         with t.subTest('__getattr__ missing'):
@@ -117,7 +119,8 @@ class TestConfiguration(TestCase):
             ".TestConfiguration.setUp.<locals>.GlobalConfig'>:\n"
             "    |- AModule <class 'bat.AModule"
             ".TestConfiguration.setUp.<locals>.ConfA'>:\n"
-            '    |    |- default_arg: "MISSING_VALUE"\n'
+            '    |    |- no_default_arg: "MISSING_VALUE"\n'
+            '    |    |- default_arg: "unused default value"\n'
             '    |    |- arg_1: "s1_a_arg_1"\n'
             "    |    |- SubModule <class 'bat.AModule.SubModule"
             ".TestConfiguration.setUp.<locals>.ConfSubModule'>:\n"
@@ -131,12 +134,17 @@ class TestConfiguration(TestCase):
             '\\]',
         )
 
-        # TODO: Fix bug, this should work but fails to find the attribute
-        with t.assertRaises(AttributeError):
+        with t.subTest('child configuration to str'):
+            module_path = f'{__name__}.TestConfiguration.setUp.<locals>'
             t.assertRegex(
-                str(t.conf.ConfA),
-                '- AModule\n'
-                '   └─ SubModule\n'
+                str(t.conf.AModule),
+                f"Root <class '{module_path}.ConfA'>:\n"
+                '    |- no_default_arg: "MISSING_VALUE"\n'
+                '    |- default_arg: "unused default value"\n'
+                '    |- arg_1: "s1_a_arg_1"\n'
+                f"    |- SubModule <class '{module_path}.ConfSubModule\n"
+                '    |    |- arg_1: "s1_a_sub_1"'
+                'path=bat.Amodule\n'
                 'SourceList=\\[\n'
                 r'    <batconf.tests.manager_test.Source object at .*>,\n'
                 r'    <batconf.tests.manager_test.Source object at .*>,\n'
@@ -148,24 +156,25 @@ class TestConfiguration(TestCase):
             repr(t.conf),
             f'Configuration\\(source_list=SourceList\\('
             rf'sources=\[<{__name__}.Source object at .*>, '
-            f'<{__name__}'
-            r'.Source object at .*>\]\), '
+            rf'<{__name__}.Source object at .*>\]\), '
             'config_class='
-            "<class 'bat.TestConfiguration.setUp.<locals>.GlobalConfig'>\\)",
+            f"<class '{__name__}.TestConfiguration.setUp.<locals>"
+            ".GlobalConfig'>\\)",
         )
 
     def test__configuration_repr(t):
         repr_str_list = _configuration_repr(t.conf, level=0)
         t.assertListEqual(
             [
-                "- AModule <class 'bat.AModule"
+                f"- AModule <class '{__name__}"
                 ".TestConfiguration.setUp.<locals>.ConfA'>:",
-                '    |- default_arg: "MISSING_VALUE"',
+                '    |- no_default_arg: "MISSING_VALUE"',
+                '    |- default_arg: "unused default value"',
                 '    |- arg_1: "s1_a_arg_1"',
-                "    |- SubModule <class 'bat.AModule.SubModule"
+                f"    |- SubModule <class '{__name__}"
                 ".TestConfiguration.setUp.<locals>.ConfSubModule'>:",
                 '    |    |- arg_1: "s1_a_sub_1"',
-                "- b_module <class 'bat.b_module"
+                f"- b_module <class '{__name__}"
                 ".TestConfiguration.setUp.<locals>.BClient.Config'>:",
                 '    |- arg_1: "s1_b_arg_1"',
             ],
@@ -178,16 +187,21 @@ class TestConfiguration(TestCase):
         repr_str_list = _configuration_repr(t.conf, level=1)
         t.assertListEqual(
             [
-                "    |- AModule <class 'bat.AModule"
+                f"    |- AModule <class '{__name__}"
                 ".TestConfiguration.setUp.<locals>.ConfA'>:",
-                '    |    |- default_arg: "MISSING_VALUE"',
+                '    |    |- no_default_arg: "MISSING_VALUE"',
+                '    |    |- default_arg: "unused default value"',
                 '    |    |- arg_1: "s1_a_arg_1"',
-                "    |    |- SubModule <class 'bat.AModule.SubModule"
+                f"    |    |- SubModule <class '{__name__}"
                 ".TestConfiguration.setUp.<locals>.ConfSubModule'>:",
                 '    |    |    |- arg_1: "s1_a_sub_1"',
-                "    |- b_module <class 'bat.b_module"
+                f"    |- b_module <class '{__name__}"
                 ".TestConfiguration.setUp.<locals>.BClient.Config'>:",
                 '    |    |- arg_1: "s1_b_arg_1"',
             ],
             repr_str_list,
         )
+
+    def test__module(t):
+        """the _module attribute is the __module__ of the config_class"""
+        t.assertEqual(t.conf._module, t.GlobalConfig.__module__)
