@@ -1,4 +1,5 @@
 from unittest import TestCase, skipIf
+from unittest.mock import patch
 
 from os import path
 
@@ -38,13 +39,61 @@ class SourcesYamlUnittestStaticValuesTests(TestCase):
 
 @skipIf(not _PYYAML_INSTALLED, 'optional pyyaml module not installed')
 class YamlFileIntegrationTests(TestCase):
+    def setUp(t):
+        # Get the absolute path to the test config.yaml file
+        t.this_dir = path.dirname(path.realpath(__file__))
+
     def test_yaml_file_source_defaults(t):
         # Get the OS-agnostic absolute path to the test config.yaml file
-        this_dir = path.dirname(path.realpath(__file__))
-        yml_config_file_name = path.join(this_dir, 'data', 'config.yaml')
+        yml_config_file_name = path.join(t.this_dir, 'data', 'config.yaml')
         yc = YamlConfig(config_file_name=yml_config_file_name)
 
         t.assertEqual(
             'Config.yaml: test.project.submodule.sub.key1',
             yc.get('project.submodule.sub.key1'),
         )
+
+
+@skipIf(not _PYYAML_INSTALLED, 'yaml is not available, skipping')
+class YamlConfigMissingFileTests(TestCase):
+    """Test configurable behavior when the specified config file is missing."""
+
+    def setUp(t):
+        t.filename = 'sir.not.appearing.in.this.film'
+
+    def test_warning_default(t):
+        # The same behavior applies to all file formats
+        with patch('batconf.sources.yaml.log') as log:
+            yc = YamlConfig(
+                config_file_name=t.filename,
+                # missing_file_option='warning', is the default value
+            )
+            log.warning.assert_called_with('Config File not found')
+        # and all calls to .get will return None
+        t.assertIsNone(yc.get('root'))
+        t.assertIsNone(yc.get('project.submodule.sub.key1'))
+        t.assertIsNone(yc.get('any.random.key'))
+
+    def test_missing_file_error(t):
+        """when missing_file_option='error'
+        attempting to load a missing file will raise a FileNotFoundError
+        """
+        with t.assertRaises(FileNotFoundError):
+            _ = YamlConfig(
+                config_file_name=t.filename,
+                missing_file_option='error',
+            )
+
+    def test_missing_file_ignore(t):
+        """when missing_file_option='ignore'
+        attempting to load a missing file will not raise an error
+        """
+        yc = YamlConfig(
+            config_file_name=t.filename,
+            missing_file_option='ignore',
+        )
+
+        # and all calls to .get will return None
+        t.assertIsNone(yc.get('doc'))
+        t.assertIsNone(yc.get('project.submodule.sub.key1'))
+        t.assertIsNone(yc.get('any.random.key'))
