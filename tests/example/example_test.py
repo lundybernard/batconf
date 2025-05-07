@@ -115,36 +115,13 @@ class GetIniConfigFunctionTests(TestCase):
         from argparse import Namespace
 
         args = Namespace()
-        args.key2 = 'cli override'
+        setattr(args, 'project.submodule.client.key2', 'cli override')
 
         cfg = get_config(cli_args=args)
 
+        print(cfg)
         # Nested cfg example, with a key-path
         t.assertEqual(cfg.submodule.client.key2, 'cli override')
-        # Flat cfg example, containing only key/value pairs
-        t.assertEqual(cfg.key2, 'cli override')
-
-    def test_args_path_based_variable(t):
-        """
-        Known Bug: github issue #67
-          The current implementation of .sources.args.CliArgsConfig
-          treats args as a flat structure.
-          It does not recognize the full path of a key.
-        """
-        from argparse import Namespace
-
-        args = Namespace()
-        setattr(args, 'submodule.client.key2', 'path-based override')
-
-        cfg = get_config(cli_args=args)
-
-        # TODO: Fix this Bug
-        # this check should not raise an error
-        with t.assertRaises(AssertionError):
-            t.assertEqual(
-                cfg.submodule.client.key2,
-                'path-based override',
-            )
 
 
 class CLITests(TestCase):
@@ -165,6 +142,26 @@ class CLITests(TestCase):
         mock_print.assert_called_with('Hello World!')
         exit.assert_called_once_with(0)
 
+    @patch(f'{SRC}.exit', autospec=True)
+    def test_configuration_override_from_cli_args(t, exit: Mock):
+        """Options passed in from the CLI
+        should override values from other sources
+        """
+        ARGS = (
+            'fetch-data clientA'
+            ' project.client.clientA.key1=cli-key1'
+            ' project.client.clientA.key2=cli-key2'
+        ).split(' ')
+
+        with patch('builtins.print') as mock_print:
+            BATCLI(ARGS=ARGS)
+
+        mock_print.assert_called_with(
+            'MyClient data:'
+            " self.key1='config.ini: clientA.key1', self.key2='DEFAULT VALUE'"
+        )
+        exit.assert_called_once_with(0)
+
 
 class LibTests(TestCase):
     def test_hello_world(t):
@@ -174,7 +171,7 @@ class LibTests(TestCase):
     def test_get_data_from_server(t):
         # This example has not set a default config file,
         # so we need to tell get_config where to find the test config file.
-        ret = get_data_from_server()
+        ret = get_data_from_server(clientid='clientB')
         t.assertEqual(
             "MyClient data: self.key1='config.ini:"
             " clientB.key1', self.key2='DEFAULT VALUE'",
@@ -283,54 +280,18 @@ class GetYamlConfigFunctionTests(TestCase):
                 t.assertEqual(cfg.submodule.unknown.key, value)
 
     def test_args_variable(t):
-        """
-        Known Bug: github issue #67
-          setting a key in ARGS will overwrite every key in the config with
-          that name,
-          .sources.args.CliArgsConfig does not recognize key paths.
-
-          Note that both the nested and flat examples currently work.
-          But they are both overwritten by setting just args.key2.
-          To fix this but, we should distinguish between nested and flat
-          configuration structures.
-          Simply making CliArgsConfig path-aware may solve the problem.
+        """Providing a Namespace argparse,
+        the result of calling argparser().parse_args,
+        allows the CLI args to override the value from the configuration file
         """
         from argparse import Namespace
 
         args = Namespace()
-        args.key2 = 'cli override'
+        setattr(args, 'project.submodule.client.key2', 'cli override')
 
         cfg = get_config(
             cli_args=args,
             config_file=t.yaml_config,
         )
 
-        # Nested cfg example, with a key-path
         t.assertEqual(cfg.submodule.client.key2, 'cli override')
-        # Flat cfg example, containing only key/value pairs
-        t.assertEqual(cfg.key2, 'cli override')
-
-    def test_args_path_based_variable(t):
-        """
-        Known Bug: github issue #67
-          The current implementation of .sources.args.CliArgsConfig
-          treats args as a flat structure.
-          It does not recognize the full path of a key.
-        """
-        from argparse import Namespace
-
-        args = Namespace()
-        setattr(args, 'submodule.sub.key2', 'path-based override')
-
-        cfg = get_config(
-            cli_args=args,
-            config_file=t.yaml_config,
-        )
-
-        # TODO: Fix this Bug
-        # this check should not raise an error
-        with t.assertRaises(AssertionError):
-            t.assertEqual(
-                cfg.submodule.client.key2,
-                'path-based override',
-            )
