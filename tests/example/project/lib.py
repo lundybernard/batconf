@@ -18,7 +18,7 @@ from functools import wraps
 from argparse import Namespace
 
 from .conf import get_config, Configuration, CONFIG_FILE_NAME
-from .submodule.sub import MyClient
+from .submodule.client import MyClient
 
 
 def configurable(func: Callable) -> Callable:
@@ -33,6 +33,7 @@ def configurable(func: Callable) -> Callable:
         cli_args: Optional[Namespace] = None,
         config_file_name: str = CONFIG_FILE_NAME,
         config_env: Optional[str] = None,
+        **kwargs,
     ):
         # Fetch the configuration using get_config
         cfg = get_config(
@@ -41,7 +42,7 @@ def configurable(func: Callable) -> Callable:
             config_env=config_env,
         )
         # Pass the configuration as the first argument to the wrapped function
-        return func(cfg=cfg)
+        return func(cfg=cfg, **kwargs)
 
     return wrapper
 
@@ -56,8 +57,10 @@ def get_config_str(cfg: Configuration) -> str:
 
 
 @configurable
-def get_data_from_server(cfg: Configuration) -> str:
-    my_client_config = cfg.submodule.sub
+def get_data_from_server(clientid: str, cfg: Configuration) -> str:
+    """Get data from the specified client"""
+    # get the configuration for the specified clientid from your configuration
+    my_client_config = getattr(cfg.clients, clientid)
 
     client = MyClient.from_config(my_client_config)
     return client.fetch_data()

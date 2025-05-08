@@ -2,14 +2,41 @@ from typing import Any, Union, Optional, Sequence
 
 from os import path
 
-from . import ProjectConfig
-
 from batconf.manager import Configuration, ConfigProtocol
 
 from batconf.source import SourceList, SourceInterface
-from batconf.sources.args import CliArgsConfig, Namespace
+from batconf.sources.argparse import NamespaceConfig, Namespace
+
+# from batconf.sources.args import CliArgsConfig, Namespace
 from batconf.sources.env import EnvConfig
 from batconf.sources.ini import IniConfig
+from .submodule import MyClient
+
+
+# === Configuration Schema === #
+from dataclasses import dataclass
+
+
+@dataclass
+class SubmoduleConfigSchema:
+    client: MyClient.Config
+
+
+@dataclass
+class ClientConfigurationsSchema:
+    """
+    .. versionchanged:: 0.2
+       Added support for multiple configurations from single Schema.
+    """
+
+    clientA: MyClient.Config
+    clientB: MyClient.Config
+
+
+@dataclass
+class ProjectConfigSchema:
+    submodule: SubmoduleConfigSchema
+    clients: ClientConfigurationsSchema
 
 
 """
@@ -19,7 +46,7 @@ Think carefully about the location of a default ~/.cfg/yourapp/ /etc/yourapp/ ?
   Windows has its own concept of appdata to conform to.
 Your choice in configuration file location is entirely up to you,
   and may depend heavily on your application's needs.
-  
+
 Let us know if you would find some default settings 
 based on OS standards useful.
 """
@@ -30,7 +57,8 @@ CONFIG_FILE_NAME = path.join(_example_project_dir, '../config.ini')
 
 
 def get_config(
-    config_class: Union[ConfigProtocol, Any] = ProjectConfig,
+    config_class: Union[ConfigProtocol, Any] = ProjectConfigSchema,
+    cfg_path: str = 'project',
     cli_args: Optional[Namespace] = None,
     config_file: Optional[SourceInterface] = None,
     config_file_name: str = CONFIG_FILE_NAME,
@@ -57,7 +85,7 @@ def get_config(
 
     # Build a prioritized config source list
     config_sources: Sequence[Optional[SourceInterface]] = [
-        CliArgsConfig(cli_args) if cli_args else None,
+        NamespaceConfig(cli_args) if cli_args else None,
         EnvConfig(),
         (
             config_file
@@ -68,4 +96,4 @@ def get_config(
 
     source_list = SourceList(config_sources)
 
-    return Configuration(source_list, config_class)
+    return Configuration(source_list, config_class, path=cfg_path)
