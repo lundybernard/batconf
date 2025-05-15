@@ -12,6 +12,7 @@ Designed to provide 12-factor compliant configuration management
 for python microservices, applications, and automation tools.
 
 Provides builtin support for hierarchical configuration via:
+
 * CLI args
 * Environment Variables
 * Config File (yaml)
@@ -39,21 +40,25 @@ BatConf provides a way to define arbitrary configuration sources
 (cli args, ENV variables, config files, web-services, etc.) and access them in
 a user-defined priority order.
 
+## Composable Configuration Sources
+
+![Configuration Sources Diagram](/_static/configuration_sources.png)
+
 ## Limitations
 
-- Some features (ENV variable names, and sub-module config lookups) are 
+- Some features (ENV variable names, and sub-module config lookups) are
   `__module__` dependent.  
-  The configuration tree structure is also linked to 
+  The configuration tree structure is also linked to
   the python module namespace.  
-  We now consider this a defect, and have plans to decouple 
+  We now consider this a defect, and have plans to decouple
   the config-tree-paths from the module namespace in v0.2
 
 - All config values should™ return strings.  
-  This is a best practice, as some sources (like ENV) cannot store/return 
+  This is a best practice, as some sources (like ENV) cannot store/return
   non-string values.  
   This can be abused as desired if you are very careful.
 
 - Falsey values cannot be returned.
   This is not a problem if all values are strings ("False" or "None" are valid
-  config values), but if a config source returns `False` or `None` 
+  config values), but if a config source returns `False` or `None`
   they are treated as missing values.
