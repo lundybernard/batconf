@@ -120,6 +120,3 @@ def create_config_diagram():
                 )
 
         o1 - Edge(style='invis') - o2 - Edge(style='invis') - o3
-
-
-create_config_diagram()
