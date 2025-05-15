@@ -8,7 +8,7 @@ import subprocess
 import sys
 from datetime import datetime
 
-from .diagram_config_comp import create_config_diagram
+from diagram_config_comp import create_config_diagram
 
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('../batconf'))
