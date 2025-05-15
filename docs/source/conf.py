@@ -8,10 +8,13 @@ import subprocess
 import sys
 from datetime import datetime
 
-from diagram_config_comp import create_config_diagram
 
+sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('../batconf'))
+
+from diagram_config_comp import create_config_diagram
+
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -110,6 +113,4 @@ def run_apidoc(app):
 
 def setup(app):
     create_config_diagram()
-    app.file_to_watch('_static/configuration_sources.png')
-
     app.connect('builder-inited', run_apidoc)
