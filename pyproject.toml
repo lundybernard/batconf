@@ -46,7 +46,6 @@ sphinx_design = { version = '*', optional = true }
 sphinx-rtd-theme = { version = '*', optional = true }
 matplotlib = { version = '*', optional = true }  # for social preview cards
 diagrams = { version = '*', optional = true }  # for diagram images
-graphviz = { version = '*', optional = true }
 
 
 [tool.poetry.extras]
@@ -69,7 +68,6 @@ docs = [
     "matplotlib", # for social preview cards
     "myst_parser",
     "diagrams",
-    "graphviz",
 ]
 
 
