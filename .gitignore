@@ -69,6 +69,8 @@ instance/
 docs/_build/
 docs/source/reference/
 
+docs/source/_static/config_composition.png
+
 # PyBuilder
 target/
 
