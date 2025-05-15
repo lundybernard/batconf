@@ -14,6 +14,9 @@ build:
     # nodejs: "19"
     # rust: "1.64"
     # golang: "1.19"
+  apt_packages:
+    - graphviz
+
 
 python:
   install:
