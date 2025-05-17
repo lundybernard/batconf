@@ -2,7 +2,7 @@ from typing import Sequence, Optional as Opt
 
 from sys import exit
 import logging
-from argparse import ArgumentParser, Namespace, REMAINDER
+from argparse import ArgumentParser, Namespace, Action
 
 from .lib import hello_world, get_config_str, get_data_from_server
 
@@ -15,6 +15,7 @@ def BATCLI(ARGS: Opt[Sequence[str]] = None):
     # Execute
     # get only the first command in args
     args = p.parse_args(args=ARGS)
+    # post-processing to collect arbitrary extra arguments
     args = _parse_overrides(args)
     Commands.set_log_level(args)
     # execute function set for parsed command
@@ -88,7 +89,8 @@ def argparser():
     print_config.set_defaults(func=Commands.print_config)
     print_config.add_argument(
         'key_values',
-        nargs=REMAINDER,  # Accept zero or more arguments
+        nargs='*',  # Accept zero or more arguments
+        action=FilterHelp,
         help='Configuration key-value pairs to print',
     )
 
@@ -96,6 +98,17 @@ def argparser():
         'fetch-data',
         description='fetch data from a remote source',
         help='for details use fetch-data --help',
+    )
+    fetch_data.add_argument(
+        'clientid',
+        default='clientA',
+        choices=['clientA', 'clientB'],
+    )
+    fetch_data.add_argument(
+        'key_values',
+        nargs='*',
+        action=FilterHelp,
+        help='optional configuration override values',
     )
     fetch_data.set_defaults(func=Commands.get_data_from_server)
 
@@ -139,19 +152,18 @@ class Commands:
 
     @staticmethod
     def get_data_from_server(args: Namespace):
+        print(get_data_from_server(clientid=args.clientid, cli_args=args))
+
+    @staticmethod
+    def get_data_from_server_args(args: Namespace):
         """
         Using a function with a traditional signature,
         we can pull individual keys off the config and pass them to the func.
         """
         from .conf import get_config
 
-        # Get the global configuration object, providing the CLI Args
-        # so that args from the cli can overwrite other config settings.
         cfg = get_config(cli_args=args)
-
-        # Select the subsection of the config that we need
-        client_cfg = cfg.submodule.sub
-
+        client_cfg = getattr(cfg.clients, args.clientid)
         print(get_data_from_server(key1=client_cfg.key1, key2=client_cfg.key2))
 
 
@@ -160,31 +172,17 @@ def _parse_overrides(args: Namespace) -> Namespace:
     Example of how to parse arbitrary key-value pairs,
     and add them to the args Namespace.
 
-    ex:
     ```
-    > bat print_config key1=crash key2=override`
-    Root <class 'project.ProjectConfig'>:
-        |- submodule <class 'project.submodule.SubmoduleConfig'>:
-        |    |- sub <class 'project.submodule.sub.MyClient.Config'>:
-        |    |    |- key1: "crash"
-        |    |    |- key2: "override"
-    ```
-
-    Notes: without a NestedNamespace, the key value will overwrite every
-    option where the final key in its path matches.
-    project.key1, project.thing1.key1, project.thing2.key1, etc.
-    would all be set to "crash"
-
-    We need to update the example to demonstrate usage of a NestedNamespace
-    such that the keys to be overwritten require a full path.
-    ex:
-        ```
-    > bat print_config project.submodule.sub.MyClient.key1=crash key2=override`
-    Root <class 'project.ProjectConfig'>:
-        |- submodule <class 'project.submodule.SubmoduleConfig'>:
-        |    |- sub <class 'project.submodule.sub.MyClient.Config'>:
+    > bat print_config project.submodule.client.key1=crash \
+        project.clients.key2=override`
+    project <class 'project.cfg.ProjectSchema'>:
+        |- submodule <class 'project.cfg.SubmoduleConfig'>:
+        |    |- client <class 'project.submodule.client.MyClient.Config'>:
         |    |    |- key1: "crash"
         |    |    |- key2: "DEFAULT VALUE"
+        |- clients <class 'project.cfg.ClientsSchema'>:
+        |    |- key1: "DEFAULT_VALUE"
+        |    |- key2: "override"
     ```
     """
     try:
@@ -192,8 +190,16 @@ def _parse_overrides(args: Namespace) -> Namespace:
     except AttributeError:
         return args
 
+    print(args)
+
     for item in key_values:
         k, v = item.split('=')
         setattr(args, k, v)
 
     return args
+
+
+class FilterHelp(Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        filtered_values = [v for v in values if v not in ('-h', '--help')]
+        setattr(namespace, self.dest, filtered_values)

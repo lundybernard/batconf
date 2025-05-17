@@ -5,7 +5,9 @@ from os import path
 from batconf.manager import Configuration, ConfigProtocol
 
 from batconf.source import SourceList, SourceInterface
-from batconf.sources.args import CliArgsConfig, Namespace
+from batconf.sources.argparse import NamespaceConfig, Namespace
+
+# from batconf.sources.args import CliArgsConfig, Namespace
 from batconf.sources.env import EnvConfig
 from batconf.sources.ini import IniConfig
 from .submodule import MyClient
@@ -83,7 +85,7 @@ def get_config(
 
     # Build a prioritized config source list
     config_sources: Sequence[Optional[SourceInterface]] = [
-        CliArgsConfig(cli_args) if cli_args else None,
+        NamespaceConfig(cli_args) if cli_args else None,
         EnvConfig(),
         (
             config_file
