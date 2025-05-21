@@ -4,6 +4,7 @@
    :hidden:
    :maxdepth: 2
 
+
 Introduction
 ============
 
@@ -14,8 +15,9 @@ Provides builtin support for hierarchical configuration via:
 
 * CLI args
 * Environment Variables
-* Config File (yaml)
+* Config Files (ini, toml, yaml)
 * Config classes with default values
+* Fully customizeable configuration Schemas
 
 Users can create their own config sources
 by creating classes that satisfy ``batconf.source.SourceInterfaceProto``
@@ -24,9 +26,9 @@ by creating classes that satisfy ``batconf.source.SourceInterfaceProto``
 The config lookup order is determined by the ``SourceList`` instance,
 which can be adjusted to suit your needs.
 
-Motivation
----------
 
+Motivation
+----------
 This module was created to serve the configuration needs of python projects,
 especially microservices, command line applications, and service clients.
 
@@ -40,22 +42,18 @@ BatConf provides a way to define arbitrary configuration sources
 (cli args, ENV variables, config files, web-services, etc.) and access them in
 a user-defined priority order.
 
+
 Composable Configuration Sources
-------------------------------
+--------------------------------
+This diagram illustrates how sources with higher priority override values
+ from lower priority sources to compose the runtime configuration.
 
 .. image:: _static/config_composition.png
    :alt: Configuration Sources Diagram
 
+
 Limitations
-----------
-
-- Some features (ENV variable names, and sub-module config lookups) are
-  ``__module__`` dependent.
-  The configuration tree structure is also linked to
-  the python module namespace.
-  We now consider this a defect, and have plans to decouple
-  the config-tree-paths from the module namespace in v0.2
-
+-----------
 - All config values should™ return strings.
   This is a best practice, as some sources (like ENV) cannot store/return
   non-string values.
