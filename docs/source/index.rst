@@ -36,7 +36,7 @@ that works best for them.
 Security
 ________
 
-Supply-Chain Security :ref:`_supplychain_security_blog`
+Supply-Chain Security :ref:`supplychain_security_blog`
 
 
 New Dev Blog!
