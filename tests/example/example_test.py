@@ -268,8 +268,6 @@ class GetYamlConfigFunctionTests(TestCase):
 
         The environment variable name is the namespace-path to the cfg key
         All Uppercase, '_'(underscore) delimited.
-
-
         """
         value = 'Environment, value'
         override_value = 'overwrite key2 default'
