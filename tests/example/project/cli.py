@@ -4,7 +4,7 @@ from sys import exit
 import logging
 from argparse import ArgumentParser, Namespace, Action
 
-from .lib import hello_world, get_config_str, get_data_from_server
+from .lib import hello_world, get_config_str, get_data_from_server, get_opt
 
 
 log = logging.getLogger('root')
@@ -112,6 +112,22 @@ def argparser():
     )
     fetch_data.set_defaults(func=Commands.get_data_from_server)
 
+    # This example shows how to set various configuration options via the cli
+    set_cli_opt = commands.add_parser(
+        'cliopt',
+        description='set the "opt" configuration option',
+    )
+    set_cli_opt.set_defaults(func=Commands.set_cli_opt)
+    # Add a required positional argument to set cfg.opt
+    # This adds a new value to the configuration
+    set_cli_opt.add_argument('project.opt', help='Set the value of cfg.opt')
+    # Add an argument flag with a default value to cfg.opt2
+    # This also adds a new value to the configuration
+    set_cli_opt.add_argument(
+        '--opt2', dest='project.opt2', default='default opt2'
+    )
+    # Add an argument which overrides an existing value in the configuration
+    set_cli_opt.add_argument('--opt3', dest='project.clients.clientA.key1')
     return p
 
 
@@ -166,6 +182,10 @@ class Commands:
         client_cfg = getattr(cfg.clients, args.clientid)
         print(get_data_from_server(key1=client_cfg.key1, key2=client_cfg.key2))
 
+    @staticmethod
+    def set_cli_opt(args: Namespace):
+        print(get_opt(cli_args=args))
+
 
 def _parse_overrides(args: Namespace) -> Namespace:
     """
@@ -190,8 +210,6 @@ def _parse_overrides(args: Namespace) -> Namespace:
     except AttributeError:
         return args
 
-    print(args)
-
     for item in key_values:
         k, v = item.split('=')
         setattr(args, k, v)
@@ -200,6 +218,11 @@ def _parse_overrides(args: Namespace) -> Namespace:
 
 
 class FilterHelp(Action):
+    """
+    Used when collecting arbitrary arguments from a comand
+    This filters out the help command, so it behaves as expected.
+    """
+
     def __call__(self, parser, namespace, values, option_string=None):
         filtered_values = [v for v in values if v not in ('-h', '--help')]
         setattr(namespace, self.dest, filtered_values)

@@ -64,3 +64,12 @@ def get_data_from_server(clientid: str, cfg: Configuration) -> str:
 
     client = MyClient.from_config(my_client_config)
     return client.fetch_data()
+
+
+@configurable
+def get_opt(cfg: Configuration) -> str:
+    return (
+        f'cfg.opt was set to `{cfg.opt}`\n'
+        f'cfg.opt2 was set to `{cfg.opt2}`\n'
+        f'cfg.clients.ClientA.key1 was set to `{cfg.clients.clientA.key1}`'
+    )

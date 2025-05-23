@@ -101,27 +101,44 @@ class GetIniConfigFunctionTests(TestCase):
 
     def test_args_variable(t):
         """
-        Known Bug: github issue #67
-          setting a key in ARGS will overwrite every key in the config with
-          that name,
-          .sources.args.CliArgsConfig does not recognize key paths.
+        Providing an argparse Namespace,
+        which is returned when your call ArgumentParser.parse_args
+        overrides any config values.
 
-          Note that both the nested and flat examples currently work.
-          But they are both overwritten by setting just args.key2.
-          To fix this but, we should distinguish between nested and flat
-          configuration structures.
-          Simply making CliArgsConfig path-aware may solve the problem.
+        args values which do not specify a config path will be available
+        on the Namespace object,
+        but will not be accessible though the configuration.
+        So options which pertain only to the CLI
+        do not need to be added to the configuration.
+
+        CLI opts which you want added to the configuration need to specify
+        the config path explicitly.
+
+        ex:
+        .. code-block:: python
+            command.add_argument(
+                '--config-opt',
+                dest='project.opt',
+                help='set the cfg.opt value',
+            )
         """
         from argparse import Namespace
 
         args = Namespace()
         setattr(args, 'project.submodule.client.key2', 'cli override')
+        setattr(args, 'cli_only_option', 'cli option')
+        setattr(args, 'project.opt', 'cfg root value')
 
         cfg = get_config(cli_args=args)
 
-        print(cfg)
         # Nested cfg example, with a key-path
         t.assertEqual(cfg.submodule.client.key2, 'cli override')
+        # CLI only values are not available in the configuration
+        with t.assertRaises(AttributeError):
+            _ = cfg.cli_only_option
+
+        # The CLI may add arbitrary values to the configuration root.
+        t.assertEqual(cfg.opt, 'cfg root value')
 
 
 class CLITests(TestCase):
