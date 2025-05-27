@@ -1,0 +1,19 @@
+name: Notebooks
+
+
+on:
+  pull_request:
+    branches:
+      - main
+
+
+jobs:
+  clean-notebooks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Clean Jupyter Notebooks
+        uses: ResearchSoftwareActions/EnsureCleanNotebooksAction@1.1
