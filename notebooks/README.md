@@ -7,7 +7,12 @@ which demonstrate how to use BatConf with your notebooks.
 
 Dirty notebooks will cause your PR to fail.
 
-To clean all notebooks run `jupyter nbconvert --clear-output --inplace \
+To clean all notebooks run:
+`make clean-nb`
+
+or
+
+`jupyter nbconvert --clear-output --inplace \
 --ClearOutputPreprocessor.enabled=True \
 --ClearMetadataPreprocessor.enabled=True \
 notebooks/*.ipynb`
