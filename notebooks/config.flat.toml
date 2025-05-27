@@ -1,0 +1,4 @@
+doc = 'flat toml config file'
+opt0 = 'value0'
+not.really.nested = 'still a root value'
+root = 'is a valid key'
