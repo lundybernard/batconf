@@ -42,6 +42,7 @@ dev = [
     "coverage",
     "flake8",
     "mypy",
+    "nbconvert",
     "pytest",
     "pytest-cov",
     "types-PyYAML",
