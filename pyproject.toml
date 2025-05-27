@@ -34,6 +34,7 @@ toml = { version = '*', optional = true, python = "<=3.10" }
 coverage = { version = '*', optional = true }
 flake8 = { version = '*', optional = true }
 mypy = { version = '*', optional = true }
+nbconvert = { version = '*', optional = true }
 pytest = { version = '*', optional = true }
 pytest-cov = { version = '*', optional = true }
 types-PyYAML = { version = '*', optional = true }
@@ -54,6 +55,7 @@ dev = [
     "coverage",
     "flake8",
     "mypy",
+    "nbconvert",
     "pytest",
     "pytest-cov",
     "types-PyYAML",
