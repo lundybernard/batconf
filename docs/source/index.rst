@@ -51,6 +51,9 @@ Check out the :ref:`upcoming_changes_in_02x`
 - More flexible config structures
 - New config file sources (.ini, .toml)
 
+We have provided a :doc:`migration` to help you through any breaking changes
+in the upgrade from 0.1.x to 0.2.x, and future updates.
+
 
 Professional Support
 ---------------------
@@ -124,4 +127,5 @@ Indices and tables
    :maxdepth: 2
 
    changelog
+   migration
    reference/modules
