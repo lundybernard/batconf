@@ -20,10 +20,12 @@ Provides builtin support for hierarchical configuration via:
 * Fully customizeable configuration Schemas
 
 Users can create their own config sources
-by creating classes that satisfy ``batconf.source.SourceInterfaceProto``
-(or subclass ``batconf.source.SourceInterface``)
+by creating classes that satisfy
+:py:class:`SourceInterfaceProto <batconf.source.SourceInterfaceProto>`
+(or subclass :py:class:`SourceInterface <batconf.source.SourceInterface>`)
 
-The config lookup order is determined by the ``SourceList`` instance,
+The config lookup order is determined by the
+:py:class:`SourceList <batconf.source.SourceList>` instance,
 which can be adjusted to suit your needs.
 
 
@@ -46,7 +48,7 @@ a user-defined priority order.
 Composable Configuration Sources
 --------------------------------
 This diagram illustrates how sources with higher priority override values
- from lower priority sources to compose the runtime configuration.
+from lower priority sources to compose the runtime configuration.
 
 .. image:: _static/config_composition.png
    :alt: Configuration Sources Diagram
