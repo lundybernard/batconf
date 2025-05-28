@@ -21,6 +21,45 @@ BatConf 0.x
 
 .. _v0.1.8:
 
+
+-----------
+0.2.0 - TBD
+-----------
+
+Supported versions:
+
+* Drop support for python 3.8
+* Add support for python 3.13
+
+Documentation:
+
+* Extensive additions and improvements
+* Update `Example Project <https://github.com/lundybernard/batconf/tree/main/tests/example>`_
+* Add `Legacy Example <https://github.com/lundybernard/batconf/tree/main/tests/example-legacy>`_
+* Add dynamic copyright year (thanks @jgafnea)
+* Add spiffy config composition diagram
+
+Code:
+
+* Add :py:class:`YamlConfig <batconf.sources.yaml.YamlConfig>` to replace
+  :py:class:`FileConfig <batconf.sources.file.FileConfig>`
+* Add .ini config source :py:class:`IniConfig <batconf.sources.ini.IniConfig>`
+* Add .toml config source :py:class:`TomlConfig <batconf.sources.toml.TomlConfig>`
+* Make the pyyaml dependency optional
+* Make [toml] an optional extra for Python version < 3.11
+* Modify :`Example Project <https://github.com/lundybernard/batconf/tree/main/tests/example>`_
+  to use .ini instead of .yaml
+* Update `Example Project <https://github.com/lundybernard/batconf/tree/main/tests/example>`_
+  to use freeform Schemas, instead of schemas bound to module namespaces.
+* Add default parameters to Configuration class:
+    * The Configuration class now handles default values set in Config
+      dataclasses.  As a result, we no longer need the DataclassConfig source
+      to lookup default values.
+    * Improve Configuration repr for paths and child-configs
+    * Remove DataclassConfig from example code and docs
+* Add _path attribute to :py:class:`Configuration <batconf.manager.Configuration>`
+* Lint with Ruff
+
 --------------------
 0.1.8 - 2024-08-09
 --------------------
