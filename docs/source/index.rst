@@ -36,7 +36,10 @@ that works best for them.
 Security
 ________
 
-Supply-Chain Security :ref:`supplychain_security_blog`
+Read about how BatConf helps to protect you against supply chain attacks
+on our Developer's Blog.
+
+:ref:`supplychain_security_blog`
 
 
 New Dev Blog!
