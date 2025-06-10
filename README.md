@@ -125,7 +125,18 @@ class GlobalConfig:
 
 ## Install Instructions
 
+Install the core package:
+
 `pip install .`
+
+Install with Yaml support:
+
+`pip install .[yaml]`
+
+Install with Toml support, for python<=3.11:
+
+`pip install .[toml]`
+
 
 #### Install with Poetry
 
@@ -137,15 +148,13 @@ install poetry >= 1.1.13
 
 install the dev dependencies listed in pyproject.toml
 
+
 ## Dev Guide
 
 ### Install dev dependencies (pytest, mypy, etc)
 
-`pip install -e .[dev]`
+`pip install --group=dev -e .`
 
-### macos/zsh:
-
-`pip install -e ".[dev]"`
 
 ## Security contact information
 
