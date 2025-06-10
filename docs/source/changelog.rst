@@ -59,6 +59,7 @@ Code:
     * Remove DataclassConfig from example code and docs
 * Update `Example Project <https://github.com/lundybernard/batconf/tree/main/tests/example>`_
   to use freeform Schemas, instead of schemas bound to module namespaces.
+* Convert optional extras only used in development into dependency groups.
 
 
 --------------------
