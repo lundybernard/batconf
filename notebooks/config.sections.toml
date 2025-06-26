@@ -1,0 +1,4 @@
+[notebooks]
+doc = 'toml sections file documentation'
+[notebooks.client]
+doc = 'toml sections client documentation'
