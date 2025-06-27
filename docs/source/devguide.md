@@ -10,10 +10,10 @@
 Information to assist developers working to maintain and improve BatConf
 
 ## Install dev dependencies
-`pip install --editable .[dev]`
+`pip install --group=dev --editable .`
 
 ## Install documentation dependencies
-`pip install --editable .[docs]`
+`pip install --group=docs --editable .`
 
 
 ## Build the documentation:

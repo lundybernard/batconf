@@ -14,13 +14,15 @@ build:
     # nodejs: "19"
     # rust: "1.64"
     # golang: "1.19"
+  apt_packages:
+    - graphviz
 
-python:
-  install:
-    - method: pip
-      path: .
-      extra_requirements:
-        - docs
+
+  jobs:
+    pre_install:
+      - pip install --upgrade pip 
+    install:
+      - pip install --group=docs
 
 # Build documentation in the "docs/" directory with Sphinx
 sphinx:
