@@ -15,8 +15,10 @@ that works best for them.
 
   * CLI args
   * Environment Variables
-  * Config File (yaml)
+  * Config File (ini, toml, yaml)
   * Config classes with default values
+  * Fully customizeable configuration Schemas
+
 * Easily extendable, add new sources to serve your needs.
 * Set reasonable defaults, and override them as needed.
 * Designed for 12-factor applications (config via Environment Variables)
@@ -31,6 +33,15 @@ that works best for them.
    :target: https://pypistats.org/packages/batconf
 
 
+Security
+________
+
+Read about how BatConf helps to protect you against supply chain attacks
+on our Developer's Blog.
+
+:ref:`supplychain_security_blog`
+
+
 New Dev Blog!
 -------------
 
@@ -39,6 +50,9 @@ Check out the :ref:`upcoming_changes_in_02x`
 - Optional pyyaml dependency
 - More flexible config structures
 - New config file sources (.ini, .toml)
+
+We have provided a :doc:`migration` to help you through any breaking changes
+in the upgrade from 0.1.x to 0.2.x, and future updates.
 
 
 Professional Support
@@ -113,4 +127,5 @@ Indices and tables
    :maxdepth: 2
 
    changelog
+   migration
    reference/modules
