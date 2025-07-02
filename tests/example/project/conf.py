@@ -35,8 +35,9 @@ class ClientConfigurationsSchema:
 
 @dataclass
 class ProjectConfigSchema:
-    submodule: SubmoduleConfigSchema
-    clients: ClientConfigurationsSchema
+    username: str = 'Default User'
+    projectname: str = 'BatConf'
+
 
 
 """

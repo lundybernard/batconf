@@ -80,7 +80,11 @@ def argparser():
         help='for details use hello --help',
     )
     hello.set_defaults(func=Commands.hello)
-
+    hello.add_argument(
+        '--user',
+        dest='project.username',
+        default=None,
+    )
     print_config = commands.add_parser(
         'print-config',
         description='print the application configuration',
@@ -146,8 +150,8 @@ class Commands:
     """
 
     @staticmethod
-    def hello(_: Namespace):
-        print(hello_world())
+    def hello(args: Namespace):
+        print(hello_world(cli_args=args))
 
     @staticmethod
     def set_log_level(args: Namespace):
@@ -162,7 +166,7 @@ class Commands:
         Using this style, we can simply pass the ARGS Namespace
         from argparser to the library function.
         """
-        print(args)
+        #print(args)
 
         print(get_config_str(cli_args=args))
 

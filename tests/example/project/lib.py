@@ -52,6 +52,11 @@ def hello_world() -> str:
 
 
 @configurable
+def hello_world(cfg: Configuration) -> str:
+
+    return f'Hello {cfg.username}, welcome to the {cfg.projectname} Project!'
+
+@configurable
 def get_config_str(cfg: Configuration) -> str:
     return str(cfg)
 
