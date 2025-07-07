@@ -29,6 +29,7 @@ Information to assist developers working to maintain and improve BatConf
 * Update the version in {gh-file}`pyproject.toml <pyproject.toml>`
   * In most cases just remove the `+dev` suffix `0.1.2+dev -> 0.1.2`
 * Add release notes to the {gh-file}`changelog <docs/source/changelog.rst>`
+  * Change the release date from TBD to the appropriate date.
 * Rebuild the documentation locally `make docs`, 
   and review the new changelog entry
 * Commit the changes
@@ -48,7 +49,7 @@ Information to assist developers working to maintain and improve BatConf
   * update your main branch: 
     `git switch main & git pull & git fetch --all --tags`
   * Get the commit hash for the "release version..." commit, 
-    not the "bump version": `git log`
+    not the "+dev version": `git log`
   * Tag the release:
     ```
     git tag -f release {{commit#}}
