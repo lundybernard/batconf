@@ -1,10 +1,12 @@
 from unittest import TestCase
+from unittest.mock import patch
 
 from dataclasses import dataclass
 from os import path
 
 from batconf.manager import Configuration, SourceList
 from batconf.sources.ini import IniConfig
+from batconf.sources.env import EnvConfig
 
 
 # === Configuration Schema === #
@@ -218,3 +220,25 @@ class FreeFormConfigTreeTests(TestCase):
             t.assertEqual(cfg.opt2, 'sir not appearing in this film')
         # the schema may provide default values
         t.assertEqual(cfg.opt3, 'opt3 default')
+
+    @patch.dict(
+        'batconf.sources.env.os.environ',
+        {
+            'ROOT_VALUE': 'ENVIRONMENT root config value',
+            'ROOT_L1A_VALUE': 'ENVIRONMENT level 1 config A value',
+        },
+    )
+    def test_sub_configs_respect_environment_variables(t) -> None:
+        """REF: github #2
+        """
+        cfg = Configuration(
+            source_list=SourceList([EnvConfig()]),
+            config_class=RootConfigSchema,
+            path='root',
+        )
+
+        t.assertEqual(cfg.value, 'ENVIRONMENT root config value')
+        t.assertIsInstance(cfg.l1a, Configuration)
+        t.assertEqual(cfg.l1a.value, 'ENVIRONMENT level 1 config A value')
+        sub_config = cfg.l1a
+        t.assertEqual(sub_config.value, 'ENVIRONMENT level 1 config A value')
