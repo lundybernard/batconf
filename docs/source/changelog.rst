@@ -19,12 +19,12 @@ BatConf 0.x
 
     .. include:: ../RELEASE.rst
 
-.. _v0.1.8:
 
+.. _v0.2.0:
 
------------
-0.2.0 - TBD
------------
+------------------
+0.2.0 - 2025-07-07
+------------------
 
 Supported versions:
 
@@ -41,12 +41,16 @@ Documentation:
 
 Code:
 
+* Freeform Schemas: Config schemas no longer depend on module names.
 * Add :py:class:`YamlConfig <batconf.sources.yaml.YamlConfig>` to replace
   :py:class:`FileConfig <batconf.sources.file.FileConfig>`
+    * Deprecate `FileConfig <batconf.sources.file.FileConfig>`
 * Add .ini config source :py:class:`IniConfig <batconf.sources.ini.IniConfig>`
 * Add .toml config source :py:class:`TomlConfig <batconf.sources.toml.TomlConfig>`
 * Make the pyyaml dependency optional
 * Make [toml] an optional extra for Python version < 3.11
+* Docs: added a migration guide for v0.1 -> v0.2
+* Added Example Jupyter Notebook to `notebooks <https://github.com/lundybernard/batconf/tree/main/notebooks/>`_
 * Modify :`Example Project <https://github.com/lundybernard/batconf/tree/main/tests/example>`_
   to use .ini instead of .yaml
 * Update `Example Project <https://github.com/lundybernard/batconf/tree/main/tests/example>`_
@@ -59,6 +63,9 @@ Code:
     * Remove DataclassConfig from example code and docs
 * Add _path attribute to :py:class:`Configuration <batconf.manager.Configuration>`
 * Lint with Ruff
+
+
+.. _v0.1.8:
 
 --------------------
 0.1.8 - 2024-08-09
