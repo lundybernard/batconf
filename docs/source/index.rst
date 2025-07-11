@@ -33,6 +33,10 @@ that works best for them.
    :target: https://pypistats.org/packages/batconf
 
 
+| Source code: https://github.com/lundybernard/batconf
+| PyPi: https://pypi.org/project/batconf/
+
+
 Security
 ________
 
