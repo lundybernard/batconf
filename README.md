@@ -65,63 +65,11 @@ https://tidelift.com/subscription/pkg/pypi-batconf?utm_source=pypi-batconf&utm_m
 )
 
 ## [Example Configuration](tests/example/)
+Check out our [Quick Start Guide](https://batconf.readthedocs.io/en/latest/quickstart.html)
 
-*
-REF: [template project example](https://github.com/lundybernard/project_template/blob/main/bat/conf.py)
-* [tests/example/](/tests/example) contains an example project and tests
-  with documentation.
+and the example project in [tests/example/](/tests/example) 
+  which includes tests and documentation.
 
-Most projects can copy this example with minimal modification.
-
-```python
-from bat import GlobalConfig
-
-from batconf.manager import Configuration, ConfigProtocol
-
-from batconf.source import SourceList
-from batconf.sources.args import CliArgsConfig, Namespace
-from batconf.sources.env import EnvConfig
-from batconf.sources.file import FileConfig
-
-
-def get_config(
-    # Known issue: https://github.com/python/mypy/issues/4536
-    config_class: ConfigProtocol = GlobalConfig,  # type: ignore
-    cli_args: Namespace = None,
-    config_file: FileConfig = None,
-    config_file_name: str = None,
-    config_env: str = None,
-) -> Configuration:
-    # Build a prioritized config source list
-    config_sources = [
-        CliArgsConfig(cli_args) if cli_args else None,
-        EnvConfig(),
-        config_file if config_file else FileConfig(
-            config_file_name, config_env=config_env
-        ),
-    ]
-
-    source_list = SourceList(config_sources)
-
-    return Configuration(source_list, config_class)
-```
-
-### GlobalConfig and Config classes
-
-the `GlobalConfig` class is a python `dataclass`, used for namespacing,
-and providing a structured configuration tree.
-Its attributes should be other Config dataclasses for sub-modules.
-
-```python
-from dataclasses import dataclass
-from .example import Config
-
-
-@dataclass
-class GlobalConfig:
-    # example module with configuration dataclass
-    example: Config
-```
 
 ## Install Instructions
 
@@ -137,16 +85,22 @@ Install with Toml support, for python<=3.11:
 
 `pip install .[toml]`
 
+### Adding BatConf to your project requirements
+```toml
+[project]
+dependencies = [
+    'batconf',
+]
+```
 
-#### Install with Poetry
+Including optional extras, like Yaml:
 
-install poetry >= 1.1.13
-
-`poetry install`
-
-#### Manual install
-
-install the dev dependencies listed in pyproject.toml
+```toml
+[project]
+dependencies = [
+    'batconf[yaml]',
+]
+```
 
 
 ## Dev Guide
