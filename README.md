@@ -66,7 +66,6 @@ https://tidelift.com/subscription/pkg/pypi-batconf?utm_source=pypi-batconf&utm_m
 
 ## [Example Configuration](tests/example/)
 
-*
 REF: [template project example](https://github.com/lundybernard/project_template/blob/main/bat/conf.py)
 * [tests/example/](/tests/example) contains an example project and tests
   with documentation.
@@ -74,36 +73,36 @@ REF: [template project example](https://github.com/lundybernard/project_template
 Most projects can copy this example with minimal modification.
 
 ```python
-from bat import GlobalConfig
-
 from batconf.manager import Configuration, ConfigProtocol
 
 from batconf.source import SourceList
 from batconf.sources.args import CliArgsConfig, Namespace
 from batconf.sources.env import EnvConfig
-from batconf.sources.file import FileConfig
+from batconf.sources.ini import IniConfig
 
 
 def get_config(
-    # Known issue: https://github.com/python/mypy/issues/4536
-    config_class: ConfigProtocol = GlobalConfig,  # type: ignore
-    cli_args: Namespace = None,
-    config_file: FileConfig = None,
-    config_file_name: str = None,
-    config_env: str = None,
-) -> Configuration:
+    config_class: Union[ConfigProtocol, Any] = ProjectConfigSchema,
+    cfg_path: str = 'project',  # Your Project's name
+    cli_args: Optional[Namespace] = None,
+    config_file: Optional[SourceInterface] = None,
+    config_file_name: str = CONFIG_FILE_NAME,
+    config_env: Optional[str] = None,
+  ) -> Configuration:
     # Build a prioritized config source list
-    config_sources = [
-        CliArgsConfig(cli_args) if cli_args else None,
-        EnvConfig(),
-        config_file if config_file else FileConfig(
-            config_file_name, config_env=config_env
-        ),
+    config_sources: Sequence[Optional[SourceInterface]] = [
+      NamespaceConfig(cli_args) if cli_args else None,
+      EnvConfig(),
+      (
+        config_file
+        if config_file
+        else IniConfig(config_file_name, config_env=config_env)
+      ),
     ]
 
     source_list = SourceList(config_sources)
 
-    return Configuration(source_list, config_class)
+    return Configuration(source_list, config_class, path=cfg_path)
 ```
 
 ### GlobalConfig and Config classes
