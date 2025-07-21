@@ -1,40 +1,39 @@
 [build-system]
-requires = ["poetry-core>=1.1.13"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.poetry]
+[project]
 name = "batconf"
 version = "0.2.1+dev"
 description = "Application configuration tool from the BAT project"
-authors = ["Lundy Bernard <lundy.bernard@gmail.com>", "Lauren Moore"]
-license = "MIT"
+authors = [
+    {name = 'Lundy Bernard', email = 'lundy.bernard@gmail.com'},
+    {name = 'Lauren Moore', email = 'donotreply@no.com'},
+]
+license = {file = 'LICENSE'}
 readme = "README.md"
+requires-python = '>=3.9'
 classifiers = [
     'Development Status :: 4 - Beta',
     'Intended Audience :: Developers',
+    'Programming Language :: Python :: 3',
     'Operating System :: OS Independent',
     'Operating System :: POSIX :: Linux',
     'Operating System :: MacOS',
     'Operating System :: Microsoft :: Windows',
 ]
 
-[tool.poetry.urls]
-"Documentation" = "https://batconf.readthedocs.io/en/latest/"
-"Source Code" = "https://github.com/lundybernard/batconf/"
+[project.urls]
+documentation = "https://batconf.readthedocs.io/en/latest/"
+repository = "https://github.com/lundybernard/batconf/"
+issues = 'https://github.com/lundybernard/batconf/issues'
+changelog = 'https://batconf.readthedocs.io/en/latest/changelog.html'
 
-[tool.poetry.dependencies]
-python = "^3.9"
 
-# ref: https://python-poetry.org/docs/pyproject/#extras
+[project.optional-dependencies]
 # optional extras for users:
-pyyaml = { version = '*', optional = true }
-toml = { version = '*', optional = true, python = "<=3.10" }
-
-
-[tool.poetry.extras]
-yaml = ["pyyaml", ]
-toml = ["toml", ]
-
+yaml = ['pyyaml']
+toml = ['toml ; python_version <= "3.10"']
 
 [dependency-groups]
 # optional dev dependencies:
@@ -46,6 +45,11 @@ dev = [
     "pytest",
     "pytest-cov",
     "types-PyYAML",
+]
+
+build = [
+    'hatch',
+    'twine',
 ]
 
 # optional documentation dependencies
@@ -66,7 +70,7 @@ docs = [
 log_level = "INFO"
 addopts = "--cov=batconf --cov-report=term --cov-report=xml"
 python_classes = '*Tests'
-python_files = ["*_test.py", "*_pytest.py"]
+python_files = ["*_test.py", "*_pytest.py", "test_*.py"]
 
 [tool.coverage.report]
 fail_under = 100
@@ -84,7 +88,8 @@ max-complexity = 10
 line-length = 79
 [tool.ruff.format]
 quote-style = 'single'
-
+[tool.ruff.lint]
+ignore = ['F401']
 
 # === Type Checking === #
 [tool.mypy]
