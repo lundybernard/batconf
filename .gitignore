@@ -8,6 +8,7 @@ __pycache__/
 
 # Distribution / packaging
 ## poetry
+uv.lock
 poetry.lock
 .Python
 build/
