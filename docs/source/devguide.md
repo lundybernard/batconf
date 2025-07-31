@@ -9,8 +9,8 @@
 # Developers Guide
 Information to assist developers working to maintain and improve BatConf
 
-## Install dev dependencies
-`pip install --group=dev --editable .`
+## Install build dependencies
+`pip install --group=build --editable .`
 
 ## Install documentation dependencies
 `pip install --group=docs --editable .`
@@ -23,6 +23,8 @@ Information to assist developers working to maintain and improve BatConf
 
 
 ## Release Procedure
+* Create a clean git workspace: `git worktree add ../batconf-release main`
+  * switch to the release directory `cd ../batconf-release`
 * Create a new release branch
   * Update your main branch, `git checkout main & git pull`
   * Checkout a release branch `git checkout -b release/vX.Y.Z`
@@ -59,9 +61,9 @@ Information to assist developers working to maintain and improve BatConf
     ```
 * Build and Publish to PyPi
   * Checkout release `git checkout release`
-  * Build the package: `poetry build`
-  * Publish to test pypi: `poetry publish -r testpypi`
+  * Build the package: `hatch build`
+  * Publish to test pypi: `twine upload --verbose --repository testpypi dist/*`
   * Verify the release looks good on:
     [test.pypi](https://test.pypi.org/project/batconf/)
-  * Publish to pypi: `poetry publish`
+  * Publish to pypi: `twine upload --verbose --repository pypi dist/*`
   * Verify the release on [pypi](https://pypi.org/project/batconf/)
