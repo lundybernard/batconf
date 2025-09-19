@@ -19,6 +19,17 @@ BatConf 0.x
 
     .. include:: ../RELEASE.rst
 
+.. _v0.2.1:
+
+------------------
+0.2.1 - 2025-09-18
+------------------
+
+Project maintenance
+
+* Updated links on docs page
+* Updated example code in readme
+* Changed build backend to Hatchling
 
 .. _v0.2.0:
 
