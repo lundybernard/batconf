@@ -1,4 +1,4 @@
-from typing import Any, Union, Optional, Sequence
+from typing import Any, Sequence
 
 from os import path
 
@@ -57,12 +57,12 @@ CONFIG_FILE_NAME = path.join(_example_project_dir, '../config.ini')
 
 
 def get_config(
-    config_class: Union[ConfigProtocol, Any] = ProjectConfigSchema,
+    config_class: ConfigProtocol | Any = ProjectConfigSchema,
     cfg_path: str = 'project',
-    cli_args: Optional[Namespace] = None,
-    config_file: Optional[SourceInterface] = None,
+    cli_args: Namespace | None = None,
+    config_file: SourceInterface | None = None,
     config_file_name: str = CONFIG_FILE_NAME,
-    config_env: Optional[str] = None,
+    config_env: str | None = None,
 ) -> Configuration:
     """Example get_config function
 
@@ -84,7 +84,7 @@ def get_config(
     """
 
     # Build a prioritized config source list
-    config_sources: Sequence[Optional[SourceInterface]] = [
+    config_sources: Sequence[SourceInterface | None] = [
         NamespaceConfig(cli_args) if cli_args else None,
         EnvConfig(),
         (
