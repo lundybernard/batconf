@@ -1,13 +1,12 @@
 # Postpones evaluation of type hints for compatibility
 from __future__ import annotations
-from typing import Any
+from typing import Any, Literal
 
 import logging as log
 
 from pathlib import Path
-from typing import Union, List, Literal
 
-from ..source import SourceInterface, OpStr
+from ..source import SourceInterface
 
 
 _MissingFileOption = Literal['ignore', 'warn', 'error']
@@ -19,7 +18,7 @@ class YamlConfig(SourceInterface):
     def __init__(
         self,
         config_file_name: str,
-        config_env: OpStr = None,
+        config_env: str | None = None,
         enable_config_environments: bool = True,
         missing_file_option: _MissingFileOption = 'warn',
     ):
@@ -49,17 +48,17 @@ class YamlConfig(SourceInterface):
         else:
             self.__data = config
 
-    def __getitem__(self, key: str) -> Union[SourceInterface, str]:
+    def __getitem__(self, key: str) -> SourceInterface | str:
         path = key.split('.')
         conf = self._data
         for k in path:
             conf = conf[k]
         return conf
 
-    def keys(self) -> List[str]:
+    def keys(self) -> list[str]:
         return self._data.keys()
 
-    def get(self, key: str, module: OpStr = None) -> OpStr:
+    def get(self, key: str, module: str | None = None) -> str | None:
         if module:
             path = module.split('.') + key.split('.')
         else:

@@ -1,4 +1,4 @@
-from typing import Literal, Protocol, Callable, Optional, Union
+from typing import Literal, Protocol, Callable
 from logging import getLogger
 
 from configparser import ConfigParser
@@ -21,14 +21,11 @@ from .file import (
 log = getLogger(__name__)
 
 
-_OptStr = Optional[str]
-
-
 class _DEFAULTS(Enum):
     environment = auto()
 
 
-_EnvOpts = Union[str, Literal[_DEFAULTS.environment], None]
+_EnvOpts = str | Literal[_DEFAULTS.environment] | None
 
 
 class ConfigParserP(Protocol):
@@ -36,8 +33,8 @@ class ConfigParserP(Protocol):
         self,
         section: str,
         option: str,
-        fallback: _OptStr = None,
-    ) -> _OptStr: ...
+        fallback: str | None = None,
+    ) -> str | None: ...
 
 
 # === IniConfig Get Methods === #
@@ -51,8 +48,8 @@ class _ConfigParserSource(Protocol):
 def _get_envs(
     self: _ConfigParserSource,
     key: str,
-    path: _OptStr = None,
-) -> _OptStr:
+    path: str | None = None,
+) -> str | None:
     if path:
         key = f'{path}.{key}'
 
@@ -74,8 +71,8 @@ def _get_envs(
 def _get_sections(
     self: _ConfigParserSource,
     key: str,
-    path: _OptStr = None,
-) -> _OptStr:
+    path: str | None = None,
+) -> str | None:
     if path:
         key = f'{path}.{key}'
 
@@ -90,16 +87,16 @@ def _get_sections(
 def _get_flat(
     self: _ConfigParserSource,
     key: str,
-    path: _OptStr = None,
-) -> _OptStr:
+    path: str | None = None,
+) -> str | None:
     return self._data.get(section='root', option=key, fallback=None)
 
 
 def _get_empty(
     self: _ConfigParserSource,
     key: str,
-    path: _OptStr = None,
-) -> _OptStr:
+    path: str | None = None,
+) -> str | None:
     return None
 
 
@@ -119,7 +116,7 @@ class EmptyConfigParser:
 
 
 class IniConfig(SourceInterface):
-    _data: Union[ConfigParser, EmptyConfigParser] = EmptyConfigParser()
+    _data: ConfigParser | EmptyConfigParser = EmptyConfigParser()
     _get_impl: Callable
     __config_env: str
 
@@ -152,7 +149,7 @@ class IniConfig(SourceInterface):
             except KeyError:
                 raise ValueError(f'Invalid file_format: {file_format}')
 
-    def get(self, key: str, path: _OptStr = None) -> _OptStr:
+    def get(self, key: str, path: str | None = None) -> str | None:
         # TODO: fully deprecate the path parameter
         return self._get_impl(self, key=key, path=path)
 
@@ -190,7 +187,7 @@ def _load_ini(
     file_path: Path,
     file_format: ConfigFileFormats,
     when_missing: _MissingFileOption = 'warn',
-) -> Union[ConfigParser, EmptyConfigParser]:
+) -> ConfigParser | EmptyConfigParser:
     loader_fn = _file_type_loaders[file_format]
     return _missing_file_handlers[when_missing](
         loader_fn=loader_fn,

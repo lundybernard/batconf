@@ -1,4 +1,4 @@
-from typing import Any, Union, List
+from typing import Any
 from logging import getLogger
 
 from pathlib import Path
@@ -15,7 +15,7 @@ from .file import (
 )
 
 
-_OptStr = Union[str, None]
+_OptStr = str | None
 TomlDictT = dict[str, Any]
 
 
@@ -57,7 +57,7 @@ class TomlConfig:
 
         return conf if type(conf) is not dict else None
 
-    def keys(self) -> List[str]:
+    def keys(self) -> list[str]:
         return self._data.keys()
 
     @property

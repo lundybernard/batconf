@@ -1,33 +1,27 @@
 from typing import (
-    Optional,
-    Union,
     Protocol,
-    Dict,
-    List,
     runtime_checkable,
     Type,
     Any,
     Iterable,
 )
+from dataclasses import Field
 
 from .source import SourceList
 
 
-OpStr = Optional[str]
-
-
 class FieldProtocol(Protocol):
-    type: Union['ConfigProtocol', Type[str]]
+    type: 'ConfigProtocol | Type[str]'
     name: str
     default: str
 
 
 @runtime_checkable
 class ConfigProtocol(Protocol):
-    __dataclass_fields__: Dict[str, FieldProtocol]
+    __dataclass_fields__: dict[str, FieldProtocol]
 
 
-ConfigRet = Union['Configuration', str]
+ConfigRet = 'Configuration | str'
 
 
 class Configuration:
@@ -53,14 +47,14 @@ class Configuration:
     def __init__(
         self,
         source_list: SourceList,
-        config_class: Union[ConfigProtocol, Any],
-        path: OpStr = None,
+        config_class: ConfigProtocol | Any,
+        path: str | None = None,
     ):
         self._config_sources = source_list
         self._config_class = config_class
         self.__path = path
 
-        self._sub_configs: Dict[str, Configuration] = {
+        self._sub_configs: dict[str, Configuration] = {
             f.name: Configuration(
                 source_list=source_list,
                 config_class=f.type,
@@ -70,13 +64,13 @@ class Configuration:
             if isinstance(f.type, ConfigProtocol)
         }
 
-        self._default_values: Dict[str, str] = {
+        self._default_values: dict[str, str] = {
             f.name: f.default
             for f in _fields(self._config_class)
             if isinstance(f.default, str)
         }
 
-    def __getattr__(self, name: str):  # -> Union[str, 'Configuration']:
+    def __getattr__(self, name: str):  # -> str | 'Configuration':
         if cfg := self._sub_configs.get(name, None):
             return cfg
         return self._get_config_opt(name)
@@ -129,7 +123,7 @@ def _fields(dataclass: ConfigProtocol) -> Iterable[FieldProtocol]:
 def _configuration_repr(
     configuration: Configuration,
     level: int,
-) -> List[str]:
+) -> list[str]:
     attrs = []
     children = []
 
