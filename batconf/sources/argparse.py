@@ -1,4 +1,4 @@
-from batconf.source import SourceInterface, OpStr
+from batconf.source import SourceInterface
 
 from argparse import Namespace
 
@@ -25,6 +25,6 @@ class NamespaceConfig(SourceInterface):
     def __init__(self, namespace: Namespace) -> None:
         self._data = namespace
 
-    def get(self, key: str, module: OpStr = None) -> OpStr:
+    def get(self, key: str, module: str | None = None) -> str | None:
         path = '.'.join((module, key)) if module else key
         return getattr(self._data, path, None)
