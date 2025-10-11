@@ -253,10 +253,9 @@ class Test_load_config_file(TestCase):
         )
 
     @patch.dict(f'{SRC}.os.environ', {}, clear=True)
-    def test_default_config_file(t):
-        Path.is_file = create_autospec(
-            Path.is_file, spec_set=True, return_value=True
-        )
+    @patch(f'{SRC}.Path.is_file', autospec=True)
+    def test_default_config_file(t, path_is_file: Mock):
+        path_is_file.return_value = True
 
         CONF = load_config_file()
 

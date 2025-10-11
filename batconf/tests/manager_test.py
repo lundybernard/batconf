@@ -1,20 +1,19 @@
 from unittest import TestCase
 
 from dataclasses import dataclass
-from typing import Dict, Optional
 
 from ..source import SourceInterface, SourceList
-from ..manager import Configuration, OpStr, _configuration_repr
+from ..manager import Configuration, _configuration_repr
 
 
 SRC = 'batconf.manager'
 
 
 class Source(SourceInterface):
-    def __init__(self, data: Dict[str, str]):
+    def __init__(self, data: dict[str, str]):
         self._data = data
 
-    def get(self, key: str, path: OpStr = None) -> Optional[str]:
+    def get(self, key: str, path: str | None = None) -> str | None:
         return self._data.get(f'{path}.{key}', None)
 
 

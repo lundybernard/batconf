@@ -13,7 +13,7 @@ A few notes:
     You are free to use the Configuration manager as best suits your project.
 """
 
-from typing import Optional, Callable
+from typing import Callable
 from functools import wraps
 from argparse import Namespace
 
@@ -30,9 +30,9 @@ def configurable(func: Callable) -> Callable:
 
     @wraps(func)
     def wrapper(
-        cli_args: Optional[Namespace] = None,
+        cli_args: Namespace | None = None,
         config_file_name: str = CONFIG_FILE_NAME,
-        config_env: Optional[str] = None,
+        config_env: str | None = None,
         **kwargs,
     ):
         # Fetch the configuration using get_config
