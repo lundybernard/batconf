@@ -19,6 +19,24 @@ BatConf 0.x
 
     .. include:: ../RELEASE.rst
 
+
+.. _v0.3.0:
+
+------------------
+0.3.0 - TBD
+------------------
+
+Supported versions:
+
+* Drop support for python 3.9
+* Add support for python 3.13t
+* Add support for python 3.14 and 3.14t
+
+Features:
+
+* Support for free-threading/nogil
+
+
 .. _v0.2.1:
 
 ------------------
@@ -30,6 +48,8 @@ Project maintenance
 * Updated links on docs page
 * Updated example code in readme
 * Changed build backend to Hatchling
+
+
 
 .. _v0.2.0:
 
