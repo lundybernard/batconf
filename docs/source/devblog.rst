@@ -5,6 +5,33 @@ Welcome to the BatConf Developers' Blog!
 Here you'll find development updates,
 tips, and other insights related to BatConf.
 
+.. _freethreading_blog:
+
+Support for free-threaded/nogil applications
+--------------------------------------------------------------------------------
+Now that
+`free-threading <https://docs.python.org/3/howto/free-threading-python.html>`__
+(`PEP 703 <https://peps.python.org/pep-0703/>`__)
+is officially supported in Python 3.14, BatConf will also officially support it.
+
+**Test Coverage**
+We added 3.14t (nogil) to our CI test matrix, to make sure the standard test
+suite passes without the GIL in place.
+
+We added new multi-threaded stress tests, which hammer a single Configuration
+object with many reads.
+
+**Supported use cases**
+The intended and supported use-case for Configuration objects,
+is that they will be created, and values will be read from them.
+We expect them to be used for configuration values, not general-purpose data
+access, and we do not expect values to be written to them...
+
+However, these uses are not prohibited, and we do not intend to prevent users
+from accessing large data sets, or mutable data.  The thread-safety from race
+conditions and read/write contention will be your responsibility if you choose
+to push these limits.
+
 
 .. _supplychain_security_blog:
 

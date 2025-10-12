@@ -37,6 +37,14 @@ that works best for them.
 | PyPi: https://pypi.org/project/batconf/
 
 
+Free-Threading support!
+-----------------------
+
+Read about how BatConf supports free-threading/nogil in python 3.14+
+
+:ref:`freethreading_blog`
+
+
 Security
 ________
 
