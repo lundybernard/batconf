@@ -1,4 +1,4 @@
-from typing import Any, Union, Optional, Sequence
+from typing import Any, Sequence
 
 from pathlib import Path
 
@@ -32,11 +32,11 @@ CONFIG_FILE_NAME = str(_notebooks_dir / 'config.ini')
 
 
 def get_config(
-    config_class: Union[ConfigProtocol, Any] = NotebooksConfigSchema,
+    config_class: ConfigProtocol | Any = NotebooksConfigSchema,
     cfg_path: str = 'notebooks',
-    config_file: Optional[SourceInterface] = None,
+    config_file: SourceInterface | None = None,
     config_file_name: str = CONFIG_FILE_NAME,
-    config_env: Optional[str] = None,
+    config_env: str | None = None,
 ) -> Configuration:
     """Example get_config function
 
@@ -64,7 +64,7 @@ def get_config(
     """
 
     # Build a prioritized config source list
-    config_sources: Sequence[Optional[SourceInterface]] = [
+    config_sources: Sequence[SourceInterface | None] = [
         (
             config_file
             if config_file

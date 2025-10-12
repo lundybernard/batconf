@@ -1,13 +1,11 @@
 from typing import (
     Type,
-    Union,
     Iterable,
     Protocol,
     runtime_checkable,
     Any,
-    Dict,
-    Optional,
     cast,
+    TypeAlias,
 )
 
 from dataclasses import _MISSING_TYPE
@@ -15,13 +13,10 @@ from dataclasses import _MISSING_TYPE
 from ..source import SourceInterface
 
 
-OpStr = Optional[str]
-
-
 class FieldProtocol(Protocol):
-    type: Union['ConfigProtocol', Type[str]]
+    type: 'ConfigProtocol | Type[str]'
     name: str
-    default: Union[str, _MISSING_TYPE]
+    default: str | _MISSING_TYPE
 
 
 @runtime_checkable
@@ -31,16 +26,12 @@ class ConfigProtocol(Protocol):
     However, any object that provides `__dataclass_fields__` will work
     """
 
-    __dataclass_fields__: Dict[str, FieldProtocol]
-
-
-_VALUES = Union['DataclassConfig', str, None]
-_DATA_DICT_TYPE = Dict[str, _VALUES]
+    __dataclass_fields__: dict[str, FieldProtocol]
 
 
 class DataclassConfig(SourceInterface):
     def __init__(
-        self, ConfigClass: Union[ConfigProtocol, Any], path: OpStr = None
+        self, ConfigClass: ConfigProtocol | Any, path: str | None = None
     ):
         """Extract default values from the Config dataclass.
         Properties without defaults are set to None.
@@ -58,7 +49,7 @@ class DataclassConfig(SourceInterface):
             else:
                 self._data[field.name] = cast(str, field.default)
 
-    def get(self, key: str, module: OpStr = None) -> OpStr:
+    def get(self, key: str, module: str | None = None) -> str | None:
         if module:
             path = module.split('.') + key.split('.')
             # remove the root module
@@ -71,7 +62,7 @@ class DataclassConfig(SourceInterface):
         # TODO: Needs a thorough review
         # The difficulty in typing this indicates some potential issues
         # like unexpected return values.
-        conf: Union[_DATA_DICT_TYPE, str, None] = self._data
+        conf: _DATA_DICT_TYPE | str | None = self._data
         for k in path:
             if (conf := conf.get(k)) is None:  # type: ignore
                 return conf
@@ -81,3 +72,7 @@ class DataclassConfig(SourceInterface):
 def _fields(dataclass: ConfigProtocol) -> Iterable[FieldProtocol]:
     for _, v in dataclass.__dataclass_fields__.items():
         yield v
+
+
+_VALUES: TypeAlias = DataclassConfig | str | None
+_DATA_DICT_TYPE: TypeAlias = dict[str, _VALUES]

@@ -1,4 +1,4 @@
-from typing import Sequence, Optional as Opt
+from typing import Sequence
 
 from sys import exit
 import logging
@@ -10,7 +10,7 @@ from .lib import hello_world, get_config_str, get_data_from_server, get_opt
 log = logging.getLogger('root')
 
 
-def BATCLI(ARGS: Opt[Sequence[str]] = None):
+def BATCLI(ARGS: Sequence[str] | None = None):
     p = argparser()
     # Execute
     # get only the first command in args

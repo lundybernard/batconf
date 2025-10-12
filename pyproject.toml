@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "batconf"
-version = "0.2.2+dev"
+version = "0.3.0+dev"
 description = "Application configuration tool from the BAT project"
 authors = [
     {name = 'Lundy Bernard', email = 'lundy.bernard@gmail.com'},
@@ -12,7 +12,7 @@ authors = [
 ]
 license = {file = 'LICENSE'}
 readme = "README.md"
-requires-python = '>=3.9'
+requires-python = '>=3.10'
 classifiers = [
     'Development Status :: 4 - Beta',
     'Intended Audience :: Developers',

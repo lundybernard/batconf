@@ -1,4 +1,4 @@
-from typing import Union, List, Protocol, Literal, Any
+from typing import Protocol, Literal, Any
 from logging import getLogger
 
 import os
@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 from warnings import warn
 
-from ..source import SourceInterface, OpStr
+from ..source import SourceInterface
 from .yaml import _load_yaml_file
 
 
@@ -88,7 +88,9 @@ class FileConfig(SourceInterface):
     """
 
     def __init__(
-        self, config_file_name: OpStr = None, config_env: OpStr = None
+        self,
+        config_file_name: str | None = None,
+        config_env: str | None = None,
     ) -> None:
         warn(_DEPRECATION_WARNING)
 
@@ -99,17 +101,17 @@ class FileConfig(SourceInterface):
 
         self._data = config[config_env]
 
-    def __getitem__(self, key: str) -> Union[SourceInterface, str]:
+    def __getitem__(self, key: str) -> SourceInterface | str:
         path = key.split('.')
         conf = self._data
         for k in path:
             conf = conf[k]
         return conf
 
-    def keys(self) -> List[str]:
+    def keys(self) -> list[str]:
         return self._data.keys()
 
-    def get(self, key: str, module: OpStr = None) -> OpStr:
+    def get(self, key: str, module: str | None = None) -> str | None:
         if module:
             path = module.split('.') + key.split('.')
         else:
@@ -122,7 +124,7 @@ class FileConfig(SourceInterface):
         return conf
 
 
-def load_config_file(config_file: Union[Path, str, None] = None) -> dict:
+def load_config_file(config_file: Path | str | None = None) -> dict:
     """
     .. deprecated:: 2.0
        Use `new_function` instead.
