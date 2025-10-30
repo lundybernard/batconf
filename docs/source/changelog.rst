@@ -19,6 +19,16 @@ BatConf 0.x
 
     .. include:: ../RELEASE.rst
 
+.. _v0.3.1:
+
+------------------
+0.3.1 - TBD
+------------------
+
+Bug Fixes:
+
+* Fix Python version shields in readme and pypi
+* Update supported version classifiers
 
 .. _v0.3.0:
 

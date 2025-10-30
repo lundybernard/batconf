@@ -9,12 +9,8 @@ and microservices.
 [![Downloads](https://img.shields.io/pypi/dm/batconf)](https://pypistats.org/packages/batconf)
 [![Build Status](https://github.com/lundybernard/batconf/actions/workflows/tests.yml/badge.svg)](https://github.com/lundybernard/batconf/actions)
 [![Documentation Status](https://readthedocs.org/projects/batconf/badge/?version=latest)](https://batconf.readthedocs.io/en/latest/)
+[![Python](https://img.shields.io/pypi/pyversions/batconf)](https://pypi.org/pypi/batconf/)
 
-![Python 3.9](https://img.shields.io/badge/Python-3.9-blue)
-![Python 3.10](https://img.shields.io/badge/Python-3.10-blue)
-![Python 3.11](https://img.shields.io/badge/Python-3.11-blue)
-![Python 3.12](https://img.shields.io/badge/Python-3.12-blue)
-![Python 3.13](https://img.shields.io/badge/Python-3.13-blue)
 
 Compose structured hierarchical configurations from multiple sources.
 Enable your code to adapt seemlessly to the current context.
