@@ -320,7 +320,7 @@ class ImportTomlLoadFunctionTests(TestCase):
     _import_toml_load_function: Mock
 
     # patch out the pytoml module, as if it is not installed.
-    @patch.dict('sys.modules', {'toml': None, 'tomllib': None}, clear=True)
+    @patch.dict('sys.modules', {'toml': None, 'tomllib': None})
     def test__import_toml_load_function_missing_toml_module(t):
         """The toml module is an optional extra,
         not required to use batconf after Python version 3.11.

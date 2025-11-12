@@ -380,14 +380,13 @@ class YamlLoaderFunctionsTests(TestCase):
             t.assertEqual(ret, t.empy_config_dict)
 
     # patch out the pyyaml module, as if it is not installed.
-    @patch.dict('sys.modules', {'yaml': None}, clear=True)
+    @patch.dict('sys.modules', {'yaml': None})
     def test__load_yaml_file_missing_pyyaml_module(t):
         """The pyyaml module is an optional extra,
         not required to use this package.
         Using the module without pyyaml should not raise any Errors,
         But attempting to use YamlConfig when it is not installed
-        will raise an ImportError.
-        """
+        will raise an ImportError."""
 
         with t.subTest('pyyaml behaves as if it is not installed'):
             with t.assertRaises(ImportError):
