@@ -22,13 +22,18 @@ BatConf 0.x
 .. _v0.3.1:
 
 ------------------
-0.3.1 - TBD
+0.3.1 - 2025-11-13
 ------------------
 
 Bug Fixes:
 
 * Fix Python version shields in readme and pypi
 * Update supported version classifiers
+
+Project management:
+
+* Add release issue template
+
 
 .. _v0.3.0:
 
