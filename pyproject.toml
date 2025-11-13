@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "batconf"
-version = "0.3.1+dev"
+version = "0.3.1"
 description = "Application configuration tool from the BAT project"
 authors = [
     {name = 'Lundy Bernard', email = 'lundy.bernard@gmail.com'},
