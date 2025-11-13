@@ -1,0 +1,34 @@
+name: Format Release Issue
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  format-issue:
+    if: contains(github.event.issue.labels.*.name, 'release')
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Update issue with version
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const body = issue.body;
+            
+            // get version #
+            const version_match = body.match(/### Version Number\s*\n\s*(.+)/);
+            if (version_match && version_match[1]) {
+              const version = version_match[1].trim();
+            
+            // Update the issue title
+            await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                title: `Release v${version}`
+            });
+            
+            console.log(`Formatted release issue for v${version}`);
