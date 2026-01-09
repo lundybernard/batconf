@@ -1,0 +1,42 @@
+name: 'CodeQL'
+
+
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    branches: ['main']
+  schedule:
+    - cron: '30 18 * * *'
+
+
+# Default all permissions to read-only
+permissions: read-all
+
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    permissions:
+      # ONLY write permission allowed is for the security dashboard
+      security-events: write
+
+
+
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      with:
+        persist-credentials: false # Disables the token's ability to push code
+
+    - name: Initialize CodeQL
+      # v4.31.9
+      uses: github/codeql-action/init@5d4e8d1aca955e8d8589aabd499c5cae939e33c7
+      with:
+        languages: python
+
+    - name: Perform Analysis
+      # v4.31.9
+      uses: github/codeql-action/analyze@5d4e8d1aca955e8d8589aabd499c5cae939e33c7
