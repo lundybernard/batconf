@@ -10,6 +10,7 @@ and microservices.
 [![Build Status](https://github.com/lundybernard/batconf/actions/workflows/tests.yml/badge.svg)](https://github.com/lundybernard/batconf/actions)
 [![Documentation Status](https://readthedocs.org/projects/batconf/badge/?version=latest)](https://batconf.readthedocs.io/en/latest/)
 [![Python](https://img.shields.io/pypi/pyversions/batconf)](https://pypi.org/pypi/batconf/)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/lundybernard/batconf/badge)](https://securityscorecards.dev/viewer/?uri=github.com/lundybernard/batconf)
 
 
 Compose structured hierarchical configurations from multiple sources.
