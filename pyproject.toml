@@ -96,7 +96,10 @@ line-length = 79
 [tool.ruff.format]
 quote-style = 'single'
 [tool.ruff.lint]
+extend-select = ['S']
 ignore = ['F401']
+[tool.ruff.lint.per-file-ignores]
+"**/*_test.py" = ["N805"]
 
 # === Type Checking === #
 [tool.mypy]
