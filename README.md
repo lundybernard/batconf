@@ -10,6 +10,7 @@ and microservices.
 [![Build Status](https://github.com/lundybernard/batconf/actions/workflows/tests.yml/badge.svg)](https://github.com/lundybernard/batconf/actions)
 [![Documentation Status](https://readthedocs.org/projects/batconf/badge/?version=latest)](https://batconf.readthedocs.io/en/latest/)
 [![Python](https://img.shields.io/pypi/pyversions/batconf)](https://pypi.org/pypi/batconf/)
+[![Tidelift](https://tidelift.com/badges/package/pypi/batconf)](https://tidelift.com/subscription/pkg/pypi-batconf)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/lundybernard/batconf/badge)](https://securityscorecards.dev/viewer/?uri=github.com/lundybernard/batconf)
 
 
@@ -50,6 +51,10 @@ which can be adjusted to suit your needs.
 ## Professional Support
 
 ![Tidelift Logo](docs/source/_static/Tidelift_Logos_RGB_Tidelift_Mark_On-White.png)
+BatConf participates in the Tidelift open source sustainability program.
+Organizations can support the ongoing maintenance of BatConf
+while receiving professional assurances through a Tidelift subscription.
+
 Professionally supported BatConf is now available.
 
 Tidelift gives software development teams a single source for purchasing
