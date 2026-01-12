@@ -10,8 +10,8 @@ on:
     - cron: '30 18 * * *'
 
 
-# Default all permissions to read-only
-permissions: read-all
+permissions:
+  contents: read
 
 
 jobs:
@@ -19,10 +19,10 @@ jobs:
     name: Analyze
     runs-on: ubuntu-latest
     permissions:
+      actions: read
+      contents: read
       # ONLY write permission allowed is for the security dashboard
       security-events: write
-
-
 
 
     steps:
