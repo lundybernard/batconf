@@ -4,6 +4,10 @@ on:
   issues:
     types: [opened]
 
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   format-issue:
     if: contains(github.event.issue.labels.*.name, 'Release')
