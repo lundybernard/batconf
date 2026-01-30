@@ -44,7 +44,7 @@ token = *token-str*
 
 # Include configs for 3rd party libraries
 [development.pandas]
-[development.pandas.diplay]
+[development.pandas.display]
 max_rows = 1000
 max_columns = 1000
 
