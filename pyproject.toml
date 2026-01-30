@@ -48,7 +48,6 @@ dev = [
     "coverage",
     "flake8",
     "mypy",
-    "nbconvert",
     "pytest",
     "pytest-cov",
     "types-PyYAML",
@@ -62,6 +61,7 @@ build = [
 # optional documentation dependencies
 docs = [
     'myst_parser',
+    'nbconvert',
     'sphinx',
     'sphinx_autodoc_typehints',
     'sphinxext-opengraph',
