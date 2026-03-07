@@ -2,7 +2,7 @@ from typing import Any, Sequence
 
 from os import path
 
-from batconf.manager import Configuration, ConfigProtocol
+from batconf.manager import Configuration, ConfigProtocol, insert_source
 
 from batconf.source import SourceList, SourceInterface
 from batconf.sources.argparse import NamespaceConfig, Namespace
@@ -97,3 +97,8 @@ def get_config(
     source_list = SourceList(config_sources)
 
     return Configuration(source_list, config_class, path=cfg_path)
+
+
+# Create a default configuration that can be imported and updated
+# you may want to guard this in a build function, so it's not created on import
+CFG = get_config()

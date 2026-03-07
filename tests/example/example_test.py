@@ -3,6 +3,7 @@ from unittest.mock import patch, Mock
 
 from os import path, environ
 from contextlib import contextmanager
+from argparse import Namespace
 
 from project.conf import get_config, ProjectConfigSchema, SubmoduleConfigSchema
 from project.cli import BATCLI
@@ -25,6 +26,33 @@ except ImportError:
 example_dir = path.dirname(path.realpath(__file__))
 ini_config_file_name = path.join(example_dir, 'config.ini')
 yaml_config_file_name = path.join(example_dir, 'config.yaml')
+
+
+class ModuleConfigTests(TestCase):
+    """A shareable configuration can be initialized in the conf module
+    and new config sources can be added to it, allowing us to decouple
+    the CLI from Library code
+    """
+
+    def test_module_cfg(t):
+        from project.conf import CFG
+
+        t.assertEqual(CFG.clients.clientA.key1, 'config.ini: clientA.key1')
+        t.assertEqual(CFG.clients.clientB.key1, 'config.ini: clientB.key1')
+
+    def test_set_source_on_module_cfg(t):
+        from project.conf import CFG, NamespaceConfig
+        from batconf import insert_source
+
+        args = Namespace()
+        setattr(args, 'project.clients.clientA.key1', 'K1')
+        setattr(args, 'project.clients.clientB.key1', 'K2')
+
+        # Set the default/first/index=0 source to a NamespaceSource
+        insert_source(cfg=CFG, source=NamespaceConfig(args))
+
+        t.assertEqual(CFG.clients.clientA.key1, 'K1')
+        t.assertEqual(CFG.clients.clientB.key1, 'K2')
 
 
 class GetIniConfigFunctionTests(TestCase):

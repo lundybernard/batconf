@@ -5,9 +5,8 @@ from typing import (
     Any,
     Iterable,
 )
-from dataclasses import Field
 
-from .source import SourceList
+from .source import SourceList, SourceInterfaceProto
 
 
 class FieldProtocol(Protocol):
@@ -70,7 +69,7 @@ class Configuration:
             if isinstance(f.default, str)
         }
 
-    def __getattr__(self, name: str):  # -> str | 'Configuration':
+    def __getattr__(self, name: str) -> Any:
         if cfg := self._sub_configs.get(name, None):
             return cfg
         return self._get_config_opt(name)
@@ -112,6 +111,14 @@ class Configuration:
             f'source_list={repr(self._config_sources)}, '
             f'config_class={repr(self._config_class)})'
         )
+
+
+def insert_source(
+    cfg: Configuration,
+    source: SourceInterfaceProto,
+    index: int = 0,
+) -> None:
+    cfg._config_sources.insert_source(source=source, index=index)
 
 
 # Replacement for dataclasses.fields, typed for ConfigProtocol
