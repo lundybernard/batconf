@@ -96,7 +96,7 @@ Project Links
 
 
 ## Ai Disclosure
-Jetbrains IDE openai-gpt-4o
+Jetbrains IDE openai-gpt-4o, Claude 4.6 Opus
 Accessibility aid.
 Used to generate an outline for this presentation,
 which I filled in with the details about the content.
