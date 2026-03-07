@@ -114,6 +114,14 @@ class Configuration:
         )
 
 
+def insert_source(
+    cfg: ConfigProtocol,
+    source: SourceList,
+    index: int = 0,
+) -> None:
+    cfg._config_sources.insert_source(source=source, index=index)
+
+
 # Replacement for dataclasses.fields, typed for ConfigProtocol
 def _fields(dataclass: ConfigProtocol) -> Iterable[FieldProtocol]:
     for _, v in dataclass.__dataclass_fields__.items():

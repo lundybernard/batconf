@@ -23,6 +23,9 @@ class SourceList(SourceInterface):
                 return value
         return None
 
+    def insert_source(self, source: SourceInterface, index: int = 0) -> None:
+        self._sources.insert(index, source)
+
     def __str__(self) -> str:
         srs = (f'{src},' for src in self._sources)
         srs_strs = '\n    '.join(srs)

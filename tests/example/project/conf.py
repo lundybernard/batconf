@@ -97,3 +97,16 @@ def get_config(
     source_list = SourceList(config_sources)
 
     return Configuration(source_list, config_class, path=cfg_path)
+
+
+# Create a default configuration that can be imported and updated
+# you may want to guard this in a build function, so it's not created on import
+CFG = get_config()
+
+
+def set_config_source(
+    cfg: Configuration,
+    source: ConfigProtocol,
+    index: int = 0,
+):
+    cfg._config_sources.insert_source(source=source, index=index)
