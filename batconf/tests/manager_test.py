@@ -213,9 +213,6 @@ class TestConfiguration(TestCase):
         t.assertEqual(t.conf._module, t.GlobalConfig.__module__)
 
 
-from unittest.mock import patch, Mock
-
-
 class ManagerTests(TestCase):
     @patch(f'{SRC}.SourceList', autospec=True)
     def setUp(t, SourceList: Mock):
