@@ -1,16 +1,14 @@
 from unittest import TestCase
-from unittest.mock import patch, Mock
 
 from dataclasses import dataclass
 
-from ..source import SourceInterface, SourceList
-from ..manager import Configuration, _configuration_repr, insert_source
+from ..manager import Configuration, _configuration_repr, SourceList
 
 
 SRC = 'batconf.manager'
 
 
-class Source(SourceInterface):
+class Source:
     def __init__(self, data: dict[str, str]):
         self._data = data
 
@@ -18,7 +16,7 @@ class Source(SourceInterface):
         return self._data.get(f'{path}.{key}', None)
 
 
-class TestConfiguration(TestCase):
+class ConfigurationTests(TestCase):
     def setUp(t) -> None:
         """Configuration parameters/values are looked up from the Source List"""
         t.source_1 = Source(
@@ -73,7 +71,7 @@ class TestConfiguration(TestCase):
 
         t.conf = Configuration(t.source_list, t.GlobalConfig, path='bat')
 
-        t.mod = f'{__name__}.TestConfiguration.setUp.<locals>'
+        t.mod = f'{__name__}.ConfigurationTests.setUp.<locals>'
 
     def test_from_sources(t) -> None:
         with t.subTest('get value from first source'):
@@ -198,29 +196,3 @@ class TestConfiguration(TestCase):
     def test__module(t):
         """the _module attribute is the __module__ of the config_class"""
         t.assertEqual(t.conf._module, t.GlobalConfig.__module__)
-
-
-class ManagerTests(TestCase):
-    @patch(f'{SRC}.SourceList', autospec=True)
-    def setUp(t, SourceList: Mock):
-        @dataclass
-        class ConfigSchema:
-            arg_1: str
-
-        t.source_list = SourceList(sources=[])
-        t.cfg = Configuration(
-            config_class=ConfigSchema, source_list=t.source_list
-        )
-        t.source_0 = Source(data={})
-
-    def test_insert_source_default(t) -> None:
-        insert_source(cfg=t.cfg, source=t.source_0)
-        t.source_list.insert_source.assert_called_with(
-            source=t.source_0, index=0
-        )
-
-    def test_insert_source_index(t) -> None:
-        insert_source(cfg=t.cfg, source=t.source_0, index=77)
-        t.source_list.insert_source.assert_called_with(
-            source=t.source_0, index=77
-        )
