@@ -32,9 +32,12 @@ class Source(SourceInterface):
 
 class TestSourceList(TestCase):
     def setUp(t):
+        t.source_0 = Source({'p1.key1': 'value0'})
         t.source_1 = Source({'p1.key1': 'value1'})
         t.source_2 = Source({'p2.key2': 'value2'})
         t.source_3 = Source({'p1.key1': 'value3'})
+
+        t.sl = SourceList([t.source_1, t.source_1, t.source_3])
 
     def test_get(t):
         sl = SourceList([t.source_1, t.source_2])
@@ -64,6 +67,23 @@ class TestSourceList(TestCase):
 
         sl = SourceList([t.source_3, t.source_1])
         t.assertEqual(sl.get('key1', 'p1'), 'value3')
+
+    def test_insert_source_default_index(t):
+        """Insert a new source into the SourceList at the given index"""
+        t.assertEqual(t.sl.get('key1', 'p1'), 'value1')
+        # Defaults to index=0, the highest priority source
+        t.sl.insert_source(t.source_0)
+        t.assertEqual(t.sl.get('key1', 'p1'), 'value0')
+
+    def test_insert_source_at_index(t):
+        source_9 = Source({'p1.key1': 'value9', 'p1.key9': 'value9'})
+        t.assertEqual(t.sl.get('key1', 'p1'), 'value1')
+        # p1.key9 is not available from any source
+        t.assertIsNone(t.sl.get('key9', 'p1'))
+
+        # overshooting the index appends to the last index in the list
+        t.sl.insert_source(source=source_9, index=9)
+        t.assertEqual(t.sl.get('key9', 'p1'), 'value9')
 
     def test___str__(t):
         ret = str(SourceList([t.source_1, t.source_2]))

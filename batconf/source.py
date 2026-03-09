@@ -13,15 +13,22 @@ class SourceInterface(SourceInterfaceProto, metaclass=ABCMeta):
         pass
 
 
-class SourceList(SourceInterface):
-    def __init__(self, sources: Sequence[SourceInterface | None]) -> None:
-        self._sources: list[SourceInterface] = list(filter(None, sources))
+class SourceList(SourceInterfaceProto):
+    def __init__(self, sources: Sequence[SourceInterfaceProto | None]) -> None:
+        self._sources: list[SourceInterfaceProto] = list(filter(None, sources))
 
     def get(self, key: str, path: str | None = None) -> str | None:
         for source in self._sources:
             if value := source.get(key, path):
                 return value
         return None
+
+    def insert_source(
+        self,
+        source: SourceInterfaceProto,
+        index: int = 0,
+    ) -> None:
+        self._sources.insert(index, source)
 
     def __str__(self) -> str:
         srs = (f'{src},' for src in self._sources)
