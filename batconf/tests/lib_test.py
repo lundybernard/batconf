@@ -3,10 +3,39 @@ from unittest.mock import Mock, patch, sentinel
 
 from dataclasses import dataclass
 
-from ..lib import insert_source, Configuration
+from ..lib import ConfigSingleton, insert_source, Configuration
 
 
 SRC = 'batconf.lib'
+
+
+def get_config():
+    """get_config always returns a new Configuration instance"""
+    return Mock(key1='+value1+')
+
+
+class ConfigSingletonTests(TestCase):
+    def setUp(t):
+        t.cs = ConfigSingleton(get_config_fn=get_config)
+
+    def test___getattr__(t) -> None:
+        t.assertEqual('+value1+', t.cs.key1)
+
+    def test__reset(t) -> None:
+        # get a value from the underlying Configuration instance
+        value = t.cs.key
+        # resetting the proxy replaces the underlying Configuration instance
+        t.cs._reset()
+        # So "key" is no longer the same object
+        t.assertIsNot(value, t.cs.key)
+
+    def test___str__(t):
+        """__str__ provided by the Configuration object"""
+        t.assertEqual(str(t.cs), str(t.cs._cfg))
+
+    def test___repr__(t):
+        """__repr__ is provided by the Configuration object"""
+        t.assertEqual(repr(t.cs), repr(t.cs._cfg))
 
 
 class InsertSourceTests(TestCase):
