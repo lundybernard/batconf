@@ -2,6 +2,7 @@ from unittest import TestCase
 from unittest.mock import patch, Mock
 
 from dataclasses import dataclass
+from re import escape
 
 from ..source import SourceInterface, SourceList
 from ..manager import Configuration, _configuration_repr, insert_source
@@ -73,6 +74,9 @@ class TestConfiguration(TestCase):
 
         t.conf = Configuration(t.source_list, t.GlobalConfig, path='bat')
 
+        t.mem = '0x[0-9a-fA-F]+'
+        t.mod = f'{__name__}.TestConfiguration.setUp.<locals>'
+
     def test_from_sources(t) -> None:
         with t.subTest('get value from first source'):
             t.assertEqual(t.conf.AModule.s1_unique, 's1_a_unique')
@@ -119,69 +123,65 @@ class TestConfiguration(TestCase):
                 t.conf.AModule.no_default_arg
 
     def test___str__(t):
-        t.assertRegex(
-            str(t.conf),
-            "Root <class 'bat"
-            ".TestConfiguration.setUp.<locals>.GlobalConfig'>:\n"
-            "    |- AModule <class 'bat.AModule"
-            ".TestConfiguration.setUp.<locals>.ConfA'>:\n"
-            '    |    |- no_default_arg: "MISSING_VALUE"\n'
-            '    |    |- default_arg: "unused default value"\n'
-            '    |    |- arg_1: "s1_a_arg_1"\n'
-            "    |    |- SubModule <class 'bat.AModule.SubModule"
-            ".TestConfiguration.setUp.<locals>.ConfSubModule'>:\n"
-            '    |    |    |- arg_1: "s1_a_sub_1"\n'
-            "    |- b_module <class 'bat.b_module"
-            ".TestConfiguration.setUp.<locals>.BClient.Config'>:\n"
-            '    |    |- arg_1: "s1_b_arg_1"\n'
-            'SourceList=\\[\n'
-            r'    <batconf.tests.manager_test.Source object at .*>,\n'
-            r'    <batconf.tests.manager_test.Source object at .*>,\n'
-            '\\]',
+        exp = (
+            escape(
+                f"bat <class '{t.mod}.GlobalConfig'>:\n"
+                f"    |- AModule <class '{t.mod}.ConfA'>:\n"
+                '    |    |- no_default_arg: "MISSING_VALUE"\n'
+                '    |    |- default_arg: "unused default value"\n'
+                '    |    |- arg_1: "s1_a_arg_1"\n'
+                f"    |    |- SubModule <class '{t.mod}.ConfSubModule'>:\n"
+                '    |    |    |- arg_1: "s1_a_sub_1"\n'
+                f"    |- b_module <class '{t.mod}.BClient.Config'>:\n"
+                '    |    |- arg_1: "s1_b_arg_1"\n'
+                'SourceList=[\n'
+            )
+            + rf'    <{__name__}\.Source object at 0x[0-9a-fA-F]+>,\n'
+            + rf'    <{__name__}\.Source object at 0x[0-9a-fA-F]+>,\n'
+            + escape(']')
         )
 
+        t.assertRegex(str(t.conf), exp)
+
         with t.subTest('child configuration to str'):
-            module_path = f'{__name__}.TestConfiguration.setUp.<locals>'
-            t.assertRegex(
-                str(t.conf.AModule),
-                f"Root <class '{module_path}.ConfA'>:\n"
-                '    |- no_default_arg: "MISSING_VALUE"\n'
-                '    |- default_arg: "unused default value"\n'
-                '    |- arg_1: "s1_a_arg_1"\n'
-                f"    |- SubModule <class '{module_path}.ConfSubModule\n"
-                '    |    |- arg_1: "s1_a_sub_1"'
-                'path=bat.Amodule\n'
-                'SourceList=\\[\n'
-                r'    <batconf.tests.manager_test.Source object at .*>,\n'
-                r'    <batconf.tests.manager_test.Source object at .*>,\n'
-                '\\]',
+            exp = (
+                escape(
+                    f"bat.AModule <class '{t.mod}.ConfA'>:\n"
+                    '    |- no_default_arg: "MISSING_VALUE"\n'
+                    '    |- default_arg: "unused default value"\n'
+                    '    |- arg_1: "s1_a_arg_1"\n'
+                    f"    |- SubModule <class '{t.mod}.ConfSubModule'>:\n"
+                    '    |    |- arg_1: "s1_a_sub_1"\n'
+                    'SourceList=[\n'
+                )
+                + rf'    <{escape(__name__)}\.Source object at {t.mem}>,\n'
+                + rf'    <{escape(__name__)}\.Source object at {t.mem}>,\n'
+                + escape(']')
             )
+
+            t.assertRegex(str(t.conf.AModule), exp)
 
     def test___repr__(t):
         t.assertRegex(
             repr(t.conf),
-            f'Configuration\\(source_list=SourceList\\('
-            rf'sources=\[<{__name__}.Source object at .*>, '
-            rf'<{__name__}.Source object at .*>\]\), '
+            rf'^Configuration\(source_list=SourceList\('
+            rf'sources=\[<{escape(__name__)}\.Source object at {t.mem}>, '
+            rf'<{escape(__name__)}\.Source object at {t.mem}>\]\), '
             'config_class='
-            f"<class '{__name__}.TestConfiguration.setUp.<locals>"
-            ".GlobalConfig'>\\)",
+            rf"<class '{escape(t.mod)}\.GlobalConfig'>\)$",
         )
 
     def test__configuration_repr(t):
         repr_str_list = _configuration_repr(t.conf, level=0)
         t.assertListEqual(
             [
-                f"- AModule <class '{__name__}"
-                ".TestConfiguration.setUp.<locals>.ConfA'>:",
+                f"- AModule <class '{t.mod}.ConfA'>:",
                 '    |- no_default_arg: "MISSING_VALUE"',
                 '    |- default_arg: "unused default value"',
                 '    |- arg_1: "s1_a_arg_1"',
-                f"    |- SubModule <class '{__name__}"
-                ".TestConfiguration.setUp.<locals>.ConfSubModule'>:",
+                f"    |- SubModule <class '{t.mod}.ConfSubModule'>:",
                 '    |    |- arg_1: "s1_a_sub_1"',
-                f"- b_module <class '{__name__}"
-                ".TestConfiguration.setUp.<locals>.BClient.Config'>:",
+                f"- b_module <class '{t.mod}.BClient.Config'>:",
                 '    |- arg_1: "s1_b_arg_1"',
             ],
             repr_str_list,
@@ -193,16 +193,13 @@ class TestConfiguration(TestCase):
         repr_str_list = _configuration_repr(t.conf, level=1)
         t.assertListEqual(
             [
-                f"    |- AModule <class '{__name__}"
-                ".TestConfiguration.setUp.<locals>.ConfA'>:",
+                f"    |- AModule <class '{t.mod}.ConfA'>:",
                 '    |    |- no_default_arg: "MISSING_VALUE"',
                 '    |    |- default_arg: "unused default value"',
                 '    |    |- arg_1: "s1_a_arg_1"',
-                f"    |    |- SubModule <class '{__name__}"
-                ".TestConfiguration.setUp.<locals>.ConfSubModule'>:",
+                f"    |    |- SubModule <class '{t.mod}.ConfSubModule'>:",
                 '    |    |    |- arg_1: "s1_a_sub_1"',
-                f"    |- b_module <class '{__name__}"
-                ".TestConfiguration.setUp.<locals>.BClient.Config'>:",
+                f"    |- b_module <class '{t.mod}.BClient.Config'>:",
                 '    |    |- arg_1: "s1_b_arg_1"',
             ],
             repr_str_list,
