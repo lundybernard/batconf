@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "batconf"
-version = "0.3.2+dev"
+version = "0.4.0+dev"
 description = "Application configuration tool from the BAT project"
 authors = [
-    {name = 'Lundy Bernard', email = 'lundy.bernard@gmail.com'},
-    {name = 'Lauren Moore', email = 'donotreply@no.com'},
+    { name = 'Lundy Bernard', email = 'lundy.bernard@gmail.com' },
+    { name = 'Lauren Moore', email = 'donotreply@no.com' },
 ]
-license = {file = 'LICENSE'}
+license = { file = 'LICENSE' }
 readme = "README.md"
 requires-python = '>=3.10'
 classifiers = [
@@ -67,7 +67,7 @@ docs = [
     'sphinxext-opengraph',
     'sphinx_design',
     'sphinx-rtd-theme',
-    'matplotlib',  # for social preview cards
+    'matplotlib', # for social preview cards
     'diagrams',
 ]
 
