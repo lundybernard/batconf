@@ -17,3 +17,9 @@ class EnvConfig(SourceInterface):
             path = ['BAT'] + key.split('.')
 
         return '_'.join(path).upper()
+
+    def __str__(self):
+        return f'Environment Variables: {repr(self)}'
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}()'

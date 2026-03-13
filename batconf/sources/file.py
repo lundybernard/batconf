@@ -62,3 +62,21 @@ def load_file_error_when_missing(
     empty_fallback: Any = ...,
 ):
     return loader_fn(file_path)
+
+
+class FileConfigReprProtocol(Protocol):
+    _config_file_path: Path | str | None
+    _config_env: str | None
+    _missing_file_option: str
+    _file_format: str
+
+
+def file_config_repr(self: FileConfigReprProtocol) -> str:
+    return (
+        f'{self.__class__.__name__}('
+        f'file_path={self._config_file_path}, '
+        f'config_env={self._config_env}, '
+        f'missing_file_option={self._missing_file_option}, '
+        f'file_format={self._file_format}'
+        ')'
+    )

@@ -109,7 +109,7 @@ class TomlConfigTests(TestCase):
             # Default: missing_file_option='warn',
         )
 
-        t.assertEqual(cs._file_path, Path(t.file_name))
+        t.assertEqual(cs._config_file_path, Path(t.file_name))
         # Enable multi-environment support by default
         t.assertEqual('environments', cs._file_format)
 
@@ -118,7 +118,7 @@ class TomlConfigTests(TestCase):
 
         t.assertDictEqual(cs._data, t._load_toml.return_value['test'])
         t._load_toml.assert_called_with(
-            file_path=cs._file_path,
+            file_path=cs._config_file_path,
             when_missing=t.default_missing_file_option,
         )
 
@@ -208,10 +208,10 @@ class TomlConfigTests(TestCase):
             t.assertIsNone(sc.get('section0.k10'))
 
     def test_config_env_argument(t):
-        yc = TomlConfig('./example.config.toml', config_env='alt')
+        cs = TomlConfig('./example.config.toml', config_env='alt')
         t.assertEqual(
             LOADED_ENV_DICT['alt']['bat']['module']['key'],
-            yc.get('key', path='bat.module'),
+            cs.get('key', path='bat.module'),
         )
 
     def test_missing_file_warning(t):
@@ -221,18 +221,30 @@ class TomlConfigTests(TestCase):
         """
         t._load_toml.return_value = EmptyConfigDict
 
-        c = TomlConfig(file_path=t.file_name, missing_file_option='warn')
+        cs = TomlConfig(file_path=t.file_name, missing_file_option='warn')
 
         t._load_toml.assert_called_with(
-            file_path=c._file_path,
+            file_path=cs._config_file_path,
             when_missing='warn',
         )
-        t.assertIs(EmptyConfigDict, c._data)
-        t.assertIsNone(c.get('bat.key'))
+        t.assertIs(EmptyConfigDict, cs._data)
+        t.assertIsNone(cs.get('bat.key'))
 
     def test_keys(t):
-        yc = TomlConfig(file_path=t.file_name)
-        t.assertEqual(yc.keys(), {'bat': None}.keys())
+        sc = TomlConfig(file_path=t.file_name)
+        t.assertEqual(sc.keys(), {'bat': None}.keys())
+
+    def test___str__(t) -> None:
+        cs = TomlConfig(file_path=t.file_name)
+        t.assertEqual(f'Toml File: {repr(cs)}', str(cs))
+
+    def test___repr__(t) -> None:
+        cs = TomlConfig(file_path=t.file_name)
+        t.assertEqual(
+            'TomlConfig(file_path=mock.config.toml, config_env=test, '
+            'missing_file_option=warn, file_format=environments)',
+            repr(cs),
+        )
 
 
 class TomlLoaderFunctionsTests(TestCase):

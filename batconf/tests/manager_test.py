@@ -2,7 +2,6 @@ from unittest import TestCase
 from unittest.mock import patch, Mock
 
 from dataclasses import dataclass
-from re import escape
 
 from ..source import SourceInterface, SourceList
 from ..manager import Configuration, _configuration_repr, insert_source
@@ -74,7 +73,6 @@ class TestConfiguration(TestCase):
 
         t.conf = Configuration(t.source_list, t.GlobalConfig, path='bat')
 
-        t.mem = '0x[0-9a-fA-F]+'
         t.mod = f'{__name__}.TestConfiguration.setUp.<locals>'
 
     def test_from_sources(t) -> None:
@@ -124,51 +122,44 @@ class TestConfiguration(TestCase):
 
     def test___str__(t):
         exp = (
-            escape(
-                f"bat <class '{t.mod}.GlobalConfig'>:\n"
-                f"    |- AModule <class '{t.mod}.ConfA'>:\n"
-                '    |    |- no_default_arg: "MISSING_VALUE"\n'
-                '    |    |- default_arg: "unused default value"\n'
-                '    |    |- arg_1: "s1_a_arg_1"\n'
-                f"    |    |- SubModule <class '{t.mod}.ConfSubModule'>:\n"
-                '    |    |    |- arg_1: "s1_a_sub_1"\n'
-                f"    |- b_module <class '{t.mod}.BClient.Config'>:\n"
-                '    |    |- arg_1: "s1_b_arg_1"\n'
-                'SourceList=[\n'
-            )
-            + rf'    <{__name__}\.Source object at 0x[0-9a-fA-F]+>,\n'
-            + rf'    <{__name__}\.Source object at 0x[0-9a-fA-F]+>,\n'
-            + escape(']')
+            f"bat <class '{t.mod}.GlobalConfig'>:\n"
+            f"    |- AModule <class '{t.mod}.ConfA'>:\n"
+            '    |    |- no_default_arg: "MISSING_VALUE"\n'
+            '    |    |- default_arg: "unused default value"\n'
+            '    |    |- arg_1: "s1_a_arg_1"\n'
+            f"    |    |- SubModule <class '{t.mod}.ConfSubModule'>:\n"
+            '    |    |    |- arg_1: "s1_a_sub_1"\n'
+            f"    |- b_module <class '{t.mod}.BClient.Config'>:\n"
+            '    |    |- arg_1: "s1_b_arg_1"\n'
+            'SourceList=[\n'
+            f'    {repr(t.source_1)},\n'
+            f'    {repr(t.source_2)},\n'
+            ']'
         )
 
-        t.assertRegex(str(t.conf), exp)
+        t.assertEqual(str(t.conf), exp)
 
         with t.subTest('child configuration to str'):
-            exp = (
-                escape(
-                    f"bat.AModule <class '{t.mod}.ConfA'>:\n"
-                    '    |- no_default_arg: "MISSING_VALUE"\n'
-                    '    |- default_arg: "unused default value"\n'
-                    '    |- arg_1: "s1_a_arg_1"\n'
-                    f"    |- SubModule <class '{t.mod}.ConfSubModule'>:\n"
-                    '    |    |- arg_1: "s1_a_sub_1"\n'
-                    'SourceList=[\n'
-                )
-                + rf'    <{escape(__name__)}\.Source object at {t.mem}>,\n'
-                + rf'    <{escape(__name__)}\.Source object at {t.mem}>,\n'
-                + escape(']')
+            t.assertEqual(
+                f"bat.AModule <class '{t.mod}.ConfA'>:\n"
+                '    |- no_default_arg: "MISSING_VALUE"\n'
+                '    |- default_arg: "unused default value"\n'
+                '    |- arg_1: "s1_a_arg_1"\n'
+                f"    |- SubModule <class '{t.mod}.ConfSubModule'>:\n"
+                '    |    |- arg_1: "s1_a_sub_1"\n'
+                'SourceList=[\n'
+                f'    {repr(t.source_1)},\n'
+                f'    {repr(t.source_2)},\n'
+                ']',
+                str(t.conf.AModule),
             )
 
-            t.assertRegex(str(t.conf.AModule), exp)
-
     def test___repr__(t):
-        t.assertRegex(
+        t.assertEqual(
+            'Configuration(source_list=SourceList('
+            f'sources=[{t.source_1}, {t.source_2}]), '
+            f"config_class=<class '{t.mod}.GlobalConfig'>)",
             repr(t.conf),
-            rf'^Configuration\(source_list=SourceList\('
-            rf'sources=\[<{escape(__name__)}\.Source object at {t.mem}>, '
-            rf'<{escape(__name__)}\.Source object at {t.mem}>\]\), '
-            'config_class='
-            rf"<class '{escape(t.mod)}\.GlobalConfig'>\)$",
         )
 
     def test__configuration_repr(t):
@@ -189,7 +180,6 @@ class TestConfiguration(TestCase):
 
     def test__configuration_repr_level1(t):
         """Adding a level indents the returned strings and adds a pipe char"""
-        t.maxDiff = None
         repr_str_list = _configuration_repr(t.conf, level=1)
         t.assertListEqual(
             [

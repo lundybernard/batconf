@@ -15,6 +15,7 @@ from .file import (
     load_file_error_when_missing,
     FileLoaderP,
     MissingFileHandlerP,
+    file_config_repr,
 )
 
 
@@ -178,6 +179,11 @@ class IniConfig(SourceInterface):
                 f'Config Environment "{self._config_env}" '
                 f'not found in {self._config_file_path}'
             )
+
+    def __str__(self):
+        return f'Ini File: {repr(self)}'
+
+    __repr__ = file_config_repr
 
 
 # === INI File Loader Functions === #

@@ -6,6 +6,7 @@ import logging as log
 
 from pathlib import Path
 
+from .file import file_config_repr
 from ..source import SourceInterface
 
 
@@ -13,6 +14,35 @@ _MissingFileOption = Literal['ignore', 'warn', 'error']
 
 
 class YamlConfig(SourceInterface):
+    """
+    Configuration source backed by a YAML file.
+
+    By default, the YAML file is interpreted as an environment-based
+    configuration, where top-level keys define environments and
+    ``config_env`` selects the active one.
+
+    Parameters
+    ----------
+    config_file_name : str
+        Path to the YAML configuration file.
+    config_env : str or None, default=None
+        Name of the active configuration environment. When
+        ``config_env`` is not provided, the ``default`` environment
+        defined in the YAML file is used.
+    enable_config_environments : bool, default=True
+        Whether the YAML file should be interpreted as an
+        environment-based configuration.
+    missing_file_option : {'warn', 'ignore', 'error'}, default='warn'
+        Behavior when the specified config file is missing.
+
+    Notes
+    -----
+    When environment-based configuration is enabled, the YAML file is
+    expected to contain a top-level ``default`` key identifying the
+    default environment, along with top-level mappings for each
+    environment.
+    """
+
     __data: Any
 
     def __init__(
@@ -28,6 +58,7 @@ class YamlConfig(SourceInterface):
             when_missing=missing_file_option,
         )
         self._config_env = config_env
+
         self._enable_config_environments = enable_config_environments
 
         self._data = _load_yaml(
@@ -48,12 +79,23 @@ class YamlConfig(SourceInterface):
         else:
             self.__data = config
 
+    @property
+    def _file_format(self) -> str:
+        if self._enable_config_environments:
+            return 'environments'
+        return 'sections'
+
     def __getitem__(self, key: str) -> SourceInterface | str:
         path = key.split('.')
         conf = self._data
         for k in path:
             conf = conf[k]
         return conf
+
+    def __str__(self) -> str:
+        return f'Yaml File: {repr(self)}'
+
+    __repr__ = file_config_repr
 
     def keys(self) -> list[str]:
         return self._data.keys()

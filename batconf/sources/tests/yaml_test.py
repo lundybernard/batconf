@@ -78,47 +78,46 @@ class YamlConfigTests(TestCase):
         t.config_file_name = 'example.config.yaml'
         t.default_missing_file_option = 'warn'
 
-    def test___init__(t):
-        yc = YamlConfig(config_file_name=t.config_file_name)
+        t.yc = YamlConfig(config_file_name=t.config_file_name)
 
-        t.assertEqual(yc._missing_file_option, t.default_missing_file_option)
+    def test___init__(t):
+        t.assertEqual(t.yc._missing_file_option, t.default_missing_file_option)
         t.get_file_path.assert_called_with(
             file_name=t.config_file_name,
             when_missing=t.default_missing_file_option,
         )
         t._load_yaml.assert_called_with(
-            file_path=yc._config_file_path,
+            file_path=t.yc._config_file_path,
             when_missing=t.default_missing_file_option,
         )
         t.assertEqual(
             EXAMPLE_CONFIG_DICT['example']['bat']['key'],
-            yc.get('bat.key'),
+            t.yc.get('bat.key'),
         )
         # When no env is specified, select the default from the config file
-        t.assertEqual(EXAMPLE_CONFIG_DICT['default'], yc._config_env)
+        t.assertEqual(EXAMPLE_CONFIG_DICT['default'], t.yc._config_env)
         # Enable multi-environment support by default
-        t.assertEqual(True, yc._enable_config_environments)
+        t.assertEqual(True, t.yc._enable_config_environments)
 
     def test__data(t):
-        yc = YamlConfig(config_file_name=t.config_file_name)
-        yc._config_env = 'new_config_env'
+        t.yc._config_env = 'new_config_env'
         env_cfg = {'k': 'v'}
 
         with t.subTest('defaults'):
-            config = {yc._config_env: env_cfg}
-            yc._data = config
-            t.assertDictEqual(env_cfg, yc._data)
+            config = {t.yc._config_env: env_cfg}
+            t.yc._data = config
+            t.assertDictEqual(env_cfg, t.yc._data)
 
         with t.subTest('defaults: missing environment'):
             config = {'missing_environment': env_cfg}
             with t.assertRaises(KeyError):
-                yc._data = config
+                t.yc._data = config
 
         with t.subTest('no config_env specified'):
-            yc._config_env = None
+            t.yc._config_env = None
             config = {'default': 'my_env', 'my_env': env_cfg}
-            yc._data = config
-            t.assertDictEqual(env_cfg, yc._data)
+            t.yc._data = config
+            t.assertDictEqual(env_cfg, t.yc._data)
 
         with t.subTest('config environments disabled'):
             yc = YamlConfig(
@@ -127,6 +126,16 @@ class YamlConfigTests(TestCase):
             )
             yc._data = env_cfg
             t.assertDictEqual(env_cfg, yc._data)
+
+    def test__file_format(t):
+        t.assertEqual('environments', t.yc._file_format)
+
+        with t.subTest('config environments disabled'):
+            yc_no_envs = YamlConfig(
+                config_file_name=t.config_file_name,
+                enable_config_environments=False,
+            )
+            t.assertEqual('sections', yc_no_envs._file_format)
 
     def test_disable_config_environments(t):
         """The default behavior for the configuration file allows it to
@@ -223,6 +232,19 @@ class YamlConfigTests(TestCase):
     def test_keys(t):
         yc = YamlConfig(config_file_name=t.config_file_name)
         t.assertEqual({'bat': None}.keys(), yc.keys())
+
+    def test___str__(t) -> None:
+        yc = YamlConfig(config_file_name=t.config_file_name)
+        t.assertEqual(f'Yaml File: {repr(yc)}', str(yc))
+
+    def test___repr__(t) -> None:
+        yc = YamlConfig(config_file_name=t.config_file_name)
+        t.assertEqual(
+            f'YamlConfig(file_path={t.get_file_path.return_value}, '
+            f'config_env=example, missing_file_option=warn, '
+            f'file_format=environments)',
+            repr(yc),
+        )
 
 
 class get_file_pathTests(TestCase):

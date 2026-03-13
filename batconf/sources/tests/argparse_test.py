@@ -25,3 +25,11 @@ class TestNamespaceConfig(TestCase):
 
         with t.subTest('module and key paths'):
             t.assertEqual(cs.get('to.key', module='bat.module.path'), 'value')
+
+    def test___str__(t) -> None:
+        cs = NamespaceConfig(Namespace())
+        t.assertEqual(f'Namespace Source: {repr(cs)}', str(cs))
+
+    def test___repr__(t) -> None:
+        cs = NamespaceConfig(Namespace())
+        t.assertEqual('NamespaceConfig(namespace=Namespace())', repr(cs))

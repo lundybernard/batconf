@@ -52,3 +52,11 @@ class TestEnvConfig(TestCase):
                 conf.env_name('to.key', module='bat.module.path'),
                 'BAT_MODULE_PATH_TO_KEY',
             )
+
+    def test___str__(t) -> None:
+        source = EnvConfig()
+        t.assertEqual(f'Environment Variables: {repr(source)}', str(source))
+
+    def test___repr__(t) -> None:
+        source = EnvConfig()
+        t.assertEqual('EnvConfig()', repr(source))
