@@ -1,13 +1,7 @@
 from typing import Protocol, Literal, Any
 from logging import getLogger
 
-import os
-
 from pathlib import Path
-from warnings import warn
-
-from ..source import SourceInterface
-from .yaml import _load_yaml_file
 
 
 log = getLogger(__name__)
@@ -68,86 +62,3 @@ def load_file_error_when_missing(
     empty_fallback: Any = ...,
 ):
     return loader_fn(file_path)
-
-
-# === Deprecated FileConfig class === #
-
-
-_DEPRECATION_WARNING = (
-    'FileConfig is deprecated and will be removed a future release.'
-    ' FileConfig will be replaced with format-specific file sources.'
-    ' batconf.sources.yaml.YamlConfig should be a direct replacement.'
-)
-
-
-class FileConfig(SourceInterface):
-    """
-    .. deprecated:: 0.2.0
-       Use a file-type specific loader instead.
-       Such as `batconf.sources.yaml.YamlConfig`.
-    """
-
-    def __init__(
-        self,
-        config_file_name: str | None = None,
-        config_env: str | None = None,
-    ) -> None:
-        warn(_DEPRECATION_WARNING)
-
-        config = load_config_file(config_file_name)
-
-        if not config_env:
-            config_env = config['default']
-
-        self._data = config[config_env]
-
-    def __getitem__(self, key: str) -> SourceInterface | str:
-        path = key.split('.')
-        conf = self._data
-        for k in path:
-            conf = conf[k]
-        return conf
-
-    def keys(self) -> list[str]:
-        return self._data.keys()
-
-    def get(self, key: str, module: str | None = None) -> str | None:
-        if module:
-            path = module.split('.') + key.split('.')
-        else:
-            path = key.split('.')
-
-        conf = self._data
-        for k in path:
-            if not (conf := conf.get(k)):
-                return conf
-        return conf
-
-
-def load_config_file(config_file: Path | str | None = None) -> dict:
-    """
-    .. deprecated:: 2.0
-       Use `new_function` instead.
-    """
-
-    if conf_path := config_file:
-        pass
-    elif conf_path := os.environ.get('BAT_CONFIG_FILE', default=None):
-        pass
-    elif (_conf_path := Path(os.getcwd() + '/config.yaml')).is_file():
-        conf_path = _conf_path  # dont leave a dirty conf_path variable
-    else:
-        log.warning(_missing_config_warning)
-        return {'default': 'none', 'none': {}}
-
-    conf = _load_yaml_file(file_path=Path(conf_path))
-
-    return conf
-
-
-_missing_config_warning = (
-    'Config File not specified:'
-    ' create config.yaml,'
-    ' set environment variable BAT_CONFIG_FILE to config file path,'
-    ' or speicfy a config file.'
-)
