@@ -4,6 +4,7 @@ from unittest.mock import patch, Mock
 from os import path, environ
 from contextlib import contextmanager
 from argparse import Namespace
+from re import escape
 
 from project.conf import get_config, ProjectConfigSchema, SubmoduleConfigSchema
 from project.cli import BATCLI
@@ -225,20 +226,27 @@ class LibTests(TestCase):
         )
 
     def test_print_format(t):
+        mem = '0x[0-9a-fA-F]+'
         t.assertRegex(
             str(get_config()),
-            (
-                "Root <class 'project.ProjectConfigSchema'>:"
-                "    |- submodule <class 'project.submodule.SubmoduleConfigSchema'>:"
-                "    |    |- sub <class 'project.submodule.sub.MyClient.Config'>:"
-                '    |    |    |- key1: "MISSING_VALUE"'
-                '    |    |    |- key2: "DEFAULT VALUE"'
-                'SourceList=['
-                r'    <batconf.sources.env.EnvConfig object at 0x.*>,'
-                r'    <batconf.sources.ini.IniConfig object at 0x.*>,'
-                r'    <batconf.sources.dataclass.DataclassConfig object at 0x.*>,'
-                ']'
-            ),
+            escape(
+                "project <class 'project.conf.ProjectConfigSchema'>:\n"
+                "    |- submodule <class 'project.conf.SubmoduleConfigSchema'>:\n"
+                "    |    |- client <class 'project.submodule.client.MyClient.Config'>:\n"
+                '    |    |    |- key1: "Config.ini: test.project.submodule.client.key1"\n'
+                '    |    |    |- key2: "DEFAULT VALUE"\n'
+                "    |- clients <class 'project.conf.ClientConfigurationsSchema'>:\n"
+                "    |    |- clientA <class 'project.submodule.client.MyClient.Config'>:\n"
+                '    |    |    |- key1: "config.ini: clientA.key1"\n'
+                '    |    |    |- key2: "DEFAULT VALUE"\n'
+                "    |    |- clientB <class 'project.submodule.client.MyClient.Config'>:\n"
+                '    |    |    |- key1: "config.ini: clientB.key1"\n'
+                '    |    |    |- key2: "DEFAULT VALUE"\n'
+                'SourceList=[\n'
+            )
+            + rf'    <batconf\.sources\.env\.EnvConfig object at {mem}>,\n'
+            + rf'    <batconf\.sources\.ini\.IniConfig object at {mem}>,\n'
+            + r'\]$',
         )
 
 
