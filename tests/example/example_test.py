@@ -4,9 +4,13 @@ from unittest.mock import patch, Mock
 from os import path, environ
 from contextlib import contextmanager
 from argparse import Namespace
-from re import escape
 
-from project.conf import get_config, ProjectConfigSchema, SubmoduleConfigSchema
+from project.conf import (
+    get_config,
+    ProjectConfigSchema,
+    SubmoduleConfigSchema,
+    CONFIG_FILE_NAME,
+)
 from project.cli import BATCLI
 from project.lib import (
     hello_world,
@@ -226,27 +230,27 @@ class LibTests(TestCase):
         )
 
     def test_print_format(t):
-        mem = '0x[0-9a-fA-F]+'
-        t.assertRegex(
-            str(get_config()),
-            escape(
-                "project <class 'project.conf.ProjectConfigSchema'>:\n"
-                "    |- submodule <class 'project.conf.SubmoduleConfigSchema'>:\n"
-                "    |    |- client <class 'project.submodule.client.MyClient.Config'>:\n"
-                '    |    |    |- key1: "Config.ini: test.project.submodule.client.key1"\n'
-                '    |    |    |- key2: "DEFAULT VALUE"\n'
-                "    |- clients <class 'project.conf.ClientConfigurationsSchema'>:\n"
-                "    |    |- clientA <class 'project.submodule.client.MyClient.Config'>:\n"
-                '    |    |    |- key1: "config.ini: clientA.key1"\n'
-                '    |    |    |- key2: "DEFAULT VALUE"\n'
-                "    |    |- clientB <class 'project.submodule.client.MyClient.Config'>:\n"
-                '    |    |    |- key1: "config.ini: clientB.key1"\n'
-                '    |    |    |- key2: "DEFAULT VALUE"\n'
-                'SourceList=[\n'
-            )
-            + rf'    <batconf\.sources\.env\.EnvConfig object at {mem}>,\n'
-            + rf'    <batconf\.sources\.ini\.IniConfig object at {mem}>,\n'
-            + r'\]$',
+        cfg = get_config()
+        t.assertEqual(
+            "project <class 'project.conf.ProjectConfigSchema'>:\n"
+            "    |- submodule <class 'project.conf.SubmoduleConfigSchema'>:\n"
+            "    |    |- client <class 'project.submodule.client.MyClient.Config'>:\n"
+            '    |    |    |- key1: "Config.ini: test.project.submodule.client.key1"\n'
+            '    |    |    |- key2: "DEFAULT VALUE"\n'
+            "    |- clients <class 'project.conf.ClientConfigurationsSchema'>:\n"
+            "    |    |- clientA <class 'project.submodule.client.MyClient.Config'>:\n"
+            '    |    |    |- key1: "config.ini: clientA.key1"\n'
+            '    |    |    |- key2: "DEFAULT VALUE"\n'
+            "    |    |- clientB <class 'project.submodule.client.MyClient.Config'>:\n"
+            '    |    |    |- key1: "config.ini: clientB.key1"\n'
+            '    |    |    |- key2: "DEFAULT VALUE"\n'
+            'SourceList=[\n'
+            f'    Environment Variables: EnvConfig(),\n'
+            f'    Ini File: IniConfig(file_path={CONFIG_FILE_NAME}, '
+            'config_env=test, missing_file_option=warn, '
+            'file_format=environments),\n'
+            ']',
+            str(cfg),
         )
 
 

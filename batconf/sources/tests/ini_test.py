@@ -311,6 +311,26 @@ class IniConfigTests(TestCase):
                 )
                 t.assertIs(ic._get_impl, _getter_methods[fmt])
 
+    def test___str__(t) -> None:
+        ic = IniConfig(
+            file_path=t.config_file_str,
+            # Default: config_env=* loads default from file
+            # Default: file_format='environments',
+            # Default: missing_file_option='warn',
+        )
+        t.assertEqual(
+            f'Ini File: {repr(ic)}',
+            str(ic),
+        )
+
+    def test___repr__(t) -> None:
+        ic = IniConfig(file_path=t.config_file_str)
+        t.assertEqual(
+            'IniConfig(file_path=testconfig.ini, config_env=development, '
+            'missing_file_option=warn, file_format=environments)',
+            repr(ic),
+        )
+
 
 class GetConfigFunctionsTests(TestCase):
     def setUp(t):

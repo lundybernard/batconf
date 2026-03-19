@@ -36,4 +36,4 @@ class SourceList(SourceInterfaceProto):
         return f'SourceList=[\n    {srs_strs}\n]'
 
     def __repr__(self) -> str:
-        return f'SourceList(sources={self._sources})'
+        return f'{self.__class__.__name__}(sources={self._sources})'

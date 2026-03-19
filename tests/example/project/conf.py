@@ -52,8 +52,10 @@ based on OS standards useful.
 """
 
 # Get the absolute path to the test config.yaml file
-_example_project_dir = path.dirname(path.realpath(__file__))
-CONFIG_FILE_NAME = path.join(_example_project_dir, '../config.ini')
+_example_project_dir = path.dirname(path.abspath(__file__))
+CONFIG_FILE_NAME = path.abspath(
+    path.join(_example_project_dir, '../config.ini')
+)
 
 
 def get_config(

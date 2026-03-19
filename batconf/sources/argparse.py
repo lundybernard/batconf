@@ -28,3 +28,9 @@ class NamespaceConfig(SourceInterface):
     def get(self, key: str, module: str | None = None) -> str | None:
         path = '.'.join((module, key)) if module else key
         return getattr(self._data, path, None)
+
+    def __str__(self):
+        return f'Namespace Source: {repr(self)}'
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}(namespace={self._data})'

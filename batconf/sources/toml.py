@@ -11,7 +11,7 @@ from .file import (
     load_file_warn_when_missing,
     load_file_ignore_when_missing,
     load_file_error_when_missing,
-    # EmptyConfigDict,
+    file_config_repr,
 )
 
 
@@ -34,13 +34,13 @@ class TomlConfig:
         config_env: _OptStr = None,
         missing_file_option: _MissingFileOption = 'warn',
     ):
-        self._file_path = Path(file_path)
+        self._config_file_path = Path(file_path)
         self._file_format = file_format
         self._config_env = config_env
         self._missing_file_option = missing_file_option
 
         self._data = _load_toml(
-            file_path=self._file_path,
+            file_path=self._config_file_path,
             when_missing=self._missing_file_option,
         )
 
@@ -79,7 +79,7 @@ class TomlConfig:
             except KeyError as err:
                 raise ValueError(
                     f'Config Environment "{self._config_env}" '
-                    f'not found in {self._file_path}'
+                    f'not found in {self._config_file_path}'
                 ) from err
 
         else:
@@ -97,6 +97,11 @@ class TomlConfig:
             return
         else:
             self.__config_env = env
+
+    def __str__(self):
+        return f'Toml File: {repr(self)}'
+
+    __repr__ = file_config_repr
 
 
 EmptyConfigDict: dict[None, None] = dict()
