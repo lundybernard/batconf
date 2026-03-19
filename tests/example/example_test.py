@@ -10,11 +10,15 @@ from project.conf import (
     ProjectConfigSchema,
     SubmoduleConfigSchema,
     CONFIG_FILE_NAME,
+    NamespaceConfig,
+    CFG as GLOBAL_CFG,
+    insert_source,
 )
 from project.cli import BATCLI
 from project.lib import (
     hello_world,
     get_data_from_server,
+    get_data_from_server_config,
 )
 from project.submodule.client import KEY2_DEFAULT
 
@@ -39,25 +43,49 @@ class ModuleConfigTests(TestCase):
     the CLI from Library code
     """
 
-    def test_module_cfg(t):
+    def setUp(t):
+        # Reimport the CFG singleton
         from project.conf import CFG
 
-        t.assertEqual(CFG.clients.clientA.key1, 'config.ini: clientA.key1')
-        t.assertEqual(CFG.clients.clientB.key1, 'config.ini: clientB.key1')
+        t.CFG = CFG
 
-    def test_set_source_on_module_cfg(t):
-        from project.conf import CFG, NamespaceConfig
-        from batconf import insert_source
+    def tearDown(t):
+        """One downside of using a shared Configuration object
+        is that it breaks isolation in testing, so we need to reset it after
+        each test that depends on it runs.
+        """
+        GLOBAL_CFG._reset()
 
+    def test_global_cfg_is_a_singleton(t):
+        """Regardless of where it is imported, the CFG singleton is the same
+        object
+        """
+        t.assertIs(t.CFG, GLOBAL_CFG)
+
+        GLOBAL_CFG.testkey = '+testkey+'
+        t.assertEqual(t.CFG.testkey, GLOBAL_CFG.testkey)
+
+    def test_module_cfg(t):
+        t.assertEqual(t.CFG.clients.clientA.key1, 'config.ini: clientA.key1')
+        t.assertEqual(t.CFG.clients.clientB.key1, 'config.ini: clientB.key1')
+
+    def test_insert_source_on_module_cfg(t):
         args = Namespace()
         setattr(args, 'project.clients.clientA.key1', 'K1')
         setattr(args, 'project.clients.clientB.key1', 'K2')
 
         # Set the default/first/index=0 source to a NamespaceSource
-        insert_source(cfg=CFG, source=NamespaceConfig(args))
+        insert_source(cfg=t.CFG, source=NamespaceConfig(args))
 
-        t.assertEqual(CFG.clients.clientA.key1, 'K1')
-        t.assertEqual(CFG.clients.clientB.key1, 'K2')
+        t.assertEqual(t.CFG.clients.clientA.key1, 'K1')
+        t.assertEqual(t.CFG.clients.clientB.key1, 'K2')
+
+    def test_manual_config_setting_and_reset(t):
+        t.assertEqual(t.CFG.clients.clientA.key1, 'config.ini: clientA.key1')
+        t.CFG.clients.clientA.key1 = 'new key'
+        t.assertEqual(t.CFG.clients.clientA.key1, 'new key')
+        t.CFG._reset()
+        t.assertEqual(t.CFG.clients.clientA.key1, 'config.ini: clientA.key1')
 
 
 class GetIniConfigFunctionTests(TestCase):
@@ -183,6 +211,9 @@ class CLITests(TestCase):
 
     SRC = 'project.cli'
 
+    def tearDown(t):
+        GLOBAL_CFG._reset()
+
     @patch(f'{SRC}.exit', autospec=True)
     def test_hello_world(t, exit: Mock):
         ARGS = 'hello'.split(' ')
@@ -220,9 +251,14 @@ class LibTests(TestCase):
         t.assertEqual('Hello World!', ret)
 
     def test_get_data_from_server(t):
-        # This example has not set a default config file,
-        # so we need to tell get_config where to find the test config file.
-        ret = get_data_from_server(clientid='clientB')
+        ret = get_data_from_server(key1='+v1+', key2='+v2+')
+        t.assertEqual(
+            "MyClient data: self.key1='+v1+', self.key2='+v2+'",
+            ret,
+        )
+
+    def test_get_data_from_server_config(t):
+        ret = get_data_from_server_config(clientid='clientB')
         t.assertEqual(
             "MyClient data: self.key1='config.ini:"
             " clientB.key1', self.key2='DEFAULT VALUE'",
