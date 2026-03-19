@@ -1,75 +1,101 @@
 """
 This example library module,
-which demonstrates use of batconf's Configuration manager.
+demonstrates use of batconf's Configuration manager.
 
-A few notes:
-* This example assumes that your UI code (CLI, GUI, Rest API, etc.),
-  will rely on batconf exclusively for configuration options.
-  * Note how the CLI in cli.py passes cli_args to get_config.
-    A similar approach can be used for other UIs.
-  * This approach keeps config access usage in the library,
-    so does not get scattered throughout your codebase.
-  * While this is a useful pattern, it is not required by batconf.
-    You are free to use the Configuration manager as best suits your project.
+Notes
+-----
+- Conf.py provides a Global CFG object
+- The application UI (CLI, GUI, Rest API, etc.) is responsible for updating
+  the global Configuration, using insert_source as needed.
+- While this is a useful pattern, it is not required by batconf.
+  You are free to use the Configuration manager as best suits your project.
+  get_config() can be used directly without the need for a Global CFG.
 """
 
-from typing import Callable
-from functools import wraps
-from argparse import Namespace
+from typing import overload
 
-from .conf import get_config, Configuration, CONFIG_FILE_NAME
+from .conf import CFG
 from .submodule.client import MyClient
-
-
-def configurable(func: Callable) -> Callable:
-    """
-    configurable is a decorator for library functions.
-    It modifies the functon signature to accept parameters
-    needed for the get_config function.
-    """
-
-    @wraps(func)
-    def wrapper(
-        cli_args: Namespace | None = None,
-        config_file_name: str = CONFIG_FILE_NAME,
-        config_env: str | None = None,
-        **kwargs,
-    ):
-        # Fetch the configuration using get_config
-        cfg = get_config(
-            cli_args=cli_args,
-            config_file_name=config_file_name,
-            config_env=config_env,
-        )
-        # Pass the configuration as the first argument to the wrapped function
-        return func(cfg=cfg, **kwargs)
-
-    return wrapper
 
 
 def hello_world() -> str:
     return 'Hello World!'
 
 
-@configurable
-def get_config_str(cfg: Configuration) -> str:
-    return str(cfg)
+def get_config_str() -> str:
+    return str(CFG)
 
 
-@configurable
-def get_data_from_server(clientid: str, cfg: Configuration) -> str:
-    """Get data from the specified client"""
+@overload
+def get_data_from_server(clientid: str) -> str:
+    """Fetch data for a configured client.
+
+    Parameters
+    ----------
+    clientid : str
+        Client identifier from configuration.
+
+    Returns
+    -------
+    str
+        Data returned by the selected client.
+    """
+    pass
+
+
+@overload
+def get_data_from_server(*, key1: str, key2: str) -> str:
+    """
+    Get data using explicit client credentials.
+
+    Parameters
+    ----------
+    key1 : str
+        First client credential.
+    key2 : str
+        Second client credential.
+
+    Returns
+    -------
+    str
+        Retrieved data.
+    """
+    pass
+
+
+def get_data_from_server(
+    clientid: str | None = None,
+    key1: str | None = None,
+    key2: str | None = None,
+) -> str:
+    """Get data for a client.
+
+    Parameters
+    ----------
+    clientid : str, optional
+        Client identifier.
+    key1 : str, optional
+        First client credential.
+    key2 : str, optional
+        Second client credential.
+
+    Returns
+    -------
+    str
+        Retrieved data.
+    """
     # get the configuration for the specified clientid from your configuration
-    my_client_config = getattr(cfg.clients, clientid)
+    if clientid:
+        my_client_config = getattr(CFG.clients, clientid)
+        return MyClient.from_config(my_client_config).fetch_data()
 
-    client = MyClient.from_config(my_client_config)
+    client = MyClient(key1=key1, key2=key2)
     return client.fetch_data()
 
 
-@configurable
-def get_opt(cfg: Configuration) -> str:
+def get_opt() -> str:
     return (
-        f'cfg.opt was set to `{cfg.opt}`\n'
-        f'cfg.opt2 was set to `{cfg.opt2}`\n'
-        f'cfg.clients.ClientA.key1 was set to `{cfg.clients.clientA.key1}`'
+        f'cfg.opt was set to `{CFG.opt}`\n'
+        f'cfg.opt2 was set to `{CFG.opt2}`\n'
+        f'cfg.clients.ClientA.key1 was set to `{CFG.clients.clientA.key1}`'
     )
