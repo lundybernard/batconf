@@ -6,7 +6,7 @@ from typing import (
     Iterable,
 )
 
-from .source import SourceList, SourceInterfaceProto
+from .source import SourceListProto, SourceList
 
 
 class FieldProtocol(Protocol):
@@ -45,7 +45,7 @@ class Configuration:
 
     def __init__(
         self,
-        source_list: SourceList,
+        source_list: SourceListProto,
         config_class: ConfigProtocol | Any,
         path: str | None = None,
     ):
@@ -111,14 +111,6 @@ class Configuration:
             f'source_list={repr(self._config_sources)}, '
             f'config_class={repr(self._config_class)})'
         )
-
-
-def insert_source(
-    cfg: Configuration,
-    source: SourceInterfaceProto,
-    index: int = 0,
-) -> None:
-    cfg._config_sources.insert_source(source=source, index=index)
 
 
 # Replacement for dataclasses.fields, typed for ConfigProtocol

@@ -13,7 +13,13 @@ class SourceInterface(SourceInterfaceProto, metaclass=ABCMeta):
         pass
 
 
-class SourceList(SourceInterfaceProto):
+class SourceListProto(SourceInterfaceProto, Protocol):
+    def insert_source(
+        self, source: SourceInterfaceProto, index: int = 0
+    ) -> None: ...
+
+
+class SourceList:
     def __init__(self, sources: Sequence[SourceInterfaceProto | None]) -> None:
         self._sources: list[SourceInterfaceProto] = list(filter(None, sources))
 
