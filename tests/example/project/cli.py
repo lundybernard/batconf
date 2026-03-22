@@ -5,7 +5,7 @@ import logging
 from argparse import ArgumentParser, Namespace, Action
 
 from .lib import hello_world, get_config_str, get_data_from_server, get_opt
-
+from .conf import CFG, NamespaceConfig, insert_source
 
 log = logging.getLogger('root')
 
@@ -17,6 +17,7 @@ def BATCLI(ARGS: Sequence[str] | None = None):
     args = p.parse_args(args=ARGS)
     # post-processing to collect arbitrary extra arguments
     args = _parse_overrides(args)
+    insert_source(cfg=CFG, source=NamespaceConfig(args))
     Commands.set_log_level(args)
     # execute function set for parsed command
     if not hasattr(Commands, args.func.__name__):  # pragma: no cover
@@ -164,11 +165,11 @@ class Commands:
         """
         print(args)
 
-        print(get_config_str(cli_args=args))
+        print(get_config_str())
 
     @staticmethod
     def get_data_from_server(args: Namespace):
-        print(get_data_from_server(clientid=args.clientid, cli_args=args))
+        print(get_data_from_server(clientid=args.clientid))
 
     @staticmethod
     def get_data_from_server_args(args: Namespace):
@@ -176,17 +177,14 @@ class Commands:
         Using a function with a traditional signature,
         we can pull individual keys off the config and pass them to the func.
         """
-        from .conf import get_config
-
-        cfg = get_config(cli_args=args)
         # Make this subscriptable, issue #91:
         # client_cfg = cfg.client[args.clientid]
-        client_cfg = getattr(cfg.clients, args.clientid)
+        client_cfg = getattr(CFG.clients, args.clientid)
         print(get_data_from_server(key1=client_cfg.key1, key2=client_cfg.key2))
 
     @staticmethod
     def set_cli_opt(args: Namespace):
-        print(get_opt(cli_args=args))
+        print(get_opt())
 
 
 def _parse_overrides(args: Namespace) -> Namespace:
