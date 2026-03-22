@@ -1,1 +1,1 @@
-from .lib import insert_source
+from .lib import insert_source, ConfigSingleton

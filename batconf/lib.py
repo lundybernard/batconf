@@ -1,7 +1,63 @@
-from typing import Protocol
+from typing import Callable, Protocol
+from functools import cached_property
 
 from .manager import Configuration
 from .source import SourceInterfaceProto, SourceListProto, SourceList
+
+
+class ConfigSingleton:
+    """Global singleton-style proxy for application configuration.
+
+    Provides a single shared :class:`Configuration` object
+    across the application. The configuration is initialized from
+    ``get_config_fn`` and then reused wherever the instance is imported.
+
+    Lazy loading is supported as a convenience: the underlying
+    :class:`Configuration` is created only when first accessed.
+
+    Parameters
+    ----------
+    get_config_fn : Callable
+        Zero-argument callable that returns a
+        :class:`~.manager.Configuration` instance.
+
+    Notes
+    -----
+    The cached configuration can be refreshed by calling :meth:`_reset`.
+
+    Examples
+    --------
+    >>> cfg = ConfigSingleton(get_config_fn=get_config)
+    >>> cfg.some_option
+    'value'
+
+    Using a partially applied config factory::
+
+    >>> from functools import partial
+
+    >>> CFG = ConfigSingleton(
+    >>>        get_config_fn=partial(get_config, env="prod", debug=False)
+    >>>    )
+    """
+
+    def __init__(self, get_config_fn: Callable) -> None:
+        self._get_cfg = get_config_fn
+
+    @cached_property
+    def _cfg(self) -> Configuration:
+        return self._get_cfg()
+
+    def _reset(self) -> None:
+        self._cfg = self._get_cfg()
+
+    def __getattr__(self, name: str):
+        return getattr(self._cfg, name)
+
+    def __str__(self) -> str:
+        return str(self._cfg)
+
+    def __repr__(self) -> str:
+        return repr(self._cfg)
 
 
 class _InsertableSourceList(Protocol):
@@ -61,5 +117,6 @@ def insert_source(
 
 
 __all__ = [
+    'ConfigSingleton',
     'insert_source',
 ]
