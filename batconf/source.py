@@ -1,22 +1,14 @@
 from abc import ABCMeta, abstractmethod
 
-from typing import Protocol, Sequence
+from typing import Sequence
 
-
-class SourceInterfaceProto(Protocol):
-    def get(self, key: str, path: str | None) -> str | None: ...
+from .types import SourceInterfaceProto, SourceListProto
 
 
 class SourceInterface(SourceInterfaceProto, metaclass=ABCMeta):
     @abstractmethod
     def get(self, key: str, path: str | None = None) -> str | None:
         pass
-
-
-class SourceListProto(SourceInterfaceProto, Protocol):
-    def insert_source(
-        self, source: SourceInterfaceProto, index: int = 0
-    ) -> None: ...
 
 
 class SourceList:

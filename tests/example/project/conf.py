@@ -2,15 +2,17 @@ from typing import Any, Sequence
 
 from os import path
 
-from batconf.lib import insert_source
-from batconf.manager import Configuration, ConfigProtocol
-from batconf.lib import ConfigSingleton, insert_source
-
-from batconf.source import SourceList, SourceInterface
-from batconf.sources.argparse import NamespaceConfig, Namespace
-
-from batconf.sources.env import EnvConfig
-from batconf.sources.ini import IniConfig
+from batconf import (
+    insert_source,
+    ConfigSingleton,
+    Configuration,
+    SourceList,
+    NamespaceSource,
+    Namespace,
+    EnvSource,
+    IniSource,
+)
+from batconf.types import ConfigProtocol, SourceInterfaceProto
 from .submodule import MyClient
 
 
@@ -63,7 +65,7 @@ def get_config(
     config_class: ConfigProtocol | Any = ProjectConfigSchema,
     cfg_path: str = 'project',
     cli_args: Namespace | None = None,
-    config_file: SourceInterface | None = None,
+    config_file: SourceInterfaceProto | None = None,
     config_file_name: str = CONFIG_FILE_NAME,
     config_env: str | None = None,
 ) -> Configuration:
@@ -87,13 +89,13 @@ def get_config(
     """
 
     # Build a prioritized config source list
-    config_sources: Sequence[SourceInterface | None] = [
-        NamespaceConfig(cli_args) if cli_args else None,
-        EnvConfig(),
+    config_sources: Sequence[SourceInterfaceProto | None] = [
+        NamespaceSource(cli_args) if cli_args else None,
+        EnvSource(),
         (
             config_file
             if config_file
-            else IniConfig(config_file_name, config_env=config_env)
+            else IniSource(config_file_name, config_env=config_env)
         ),
     ]
 
@@ -110,4 +112,5 @@ __all__ = [
     'CFG',
     'get_config',
     'insert_source',
+    'NamespaceSource',
 ]
