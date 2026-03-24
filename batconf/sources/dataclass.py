@@ -8,7 +8,7 @@ from typing import (
 from dataclasses import _MISSING_TYPE
 
 from ..source import SourceInterface
-from ..manager import ConfigProtocol, FieldProtocol
+from ..types import ConfigProtocol, FieldProtocol
 
 
 class DataclassConfig(SourceInterface):

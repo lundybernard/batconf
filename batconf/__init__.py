@@ -15,7 +15,7 @@ __all__ = [
     'insert_source',
     # Sources
     'NamespaceSource',
-    'Namespace',
+    'Namespace',  # argparse.Namespace, paired with NamespaceSource
     'EnvSource',
     'IniSource',
     'TomlSource',
