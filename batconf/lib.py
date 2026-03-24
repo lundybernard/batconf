@@ -2,7 +2,8 @@ from typing import Callable, Protocol
 from functools import cached_property
 
 from .manager import Configuration
-from .source import SourceInterfaceProto, SourceListProto, SourceList
+from .source import SourceList
+from .types import SourceInterfaceProto, SourceListProto
 
 
 class ConfigSingleton:
