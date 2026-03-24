@@ -4,6 +4,7 @@ from os import path
 
 from batconf.lib import insert_source
 from batconf.manager import Configuration, ConfigProtocol
+from batconf.lib import ConfigSingleton, insert_source
 
 from batconf.source import SourceList, SourceInterface
 from batconf.sources.argparse import NamespaceConfig, Namespace
@@ -103,4 +104,10 @@ def get_config(
 
 # Create a default configuration that can be imported and updated
 # you may want to guard this in a build function, so it's not created on import
-CFG = get_config()
+CFG = ConfigSingleton(get_config)
+
+__all__ = [
+    'CFG',
+    'get_config',
+    'insert_source',
+]
