@@ -1,14 +1,16 @@
 # Postpones evaluation of type hints for compatibility
 from __future__ import annotations
-from typing import Any
+from typing import Any, Literal
 
 import logging as log
 
 from pathlib import Path
 
 from .file import file_config_repr
-from .types import MissingFileOption as _MissingFileOption
 from ..source import SourceInterface
+
+
+_MissingFileOption = Literal['ignore', 'warn', 'error']
 
 
 class YamlConfig(SourceInterface):

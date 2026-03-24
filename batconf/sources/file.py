@@ -1,12 +1,7 @@
-from typing import Protocol, Any
+from typing import Protocol, Literal, Any
 from logging import getLogger
 
 from pathlib import Path
-
-from .types import ConfigFileFormats, MissingFileOption
-
-# backwards-compatible internal alias
-_MissingFileOption = MissingFileOption
 
 
 log = getLogger(__name__)
@@ -17,6 +12,10 @@ log = getLogger(__name__)
 
 class FileLoaderP(Protocol):
     def __call__(self, file_path: Path) -> Any: ...
+
+
+ConfigFileFormats = Literal['flat', 'sections', 'environments']
+_MissingFileOption = Literal['ignore', 'warn', 'error']
 EmptyConfigurationSentinel = object()
 
 

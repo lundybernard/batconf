@@ -1,4 +1,3 @@
-import warnings
 from argparse import Namespace
 
 from ..source import SourceInterface
@@ -31,12 +30,6 @@ class CliArgsConfig(SourceInterface):
     """
 
     def __init__(self, args: Namespace) -> None:
-        warnings.warn(
-            'CliArgsConfig is deprecated and will be removed in a future release. '
-            'Use NamespaceConfig from batconf.sources.argparse instead.',
-            DeprecationWarning,
-            stacklevel=2,
-        )
         self._data = args
 
     def get(self, key: str, module: str | None = None) -> str | None:

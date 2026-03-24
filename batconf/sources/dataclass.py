@@ -1,5 +1,8 @@
 from typing import (
+    Type,
     Iterable,
+    Protocol,
+    runtime_checkable,
     Any,
     cast,
     TypeAlias,
@@ -8,7 +11,22 @@ from typing import (
 from dataclasses import _MISSING_TYPE
 
 from ..source import SourceInterface
-from ..types import ConfigProtocol, FieldProtocol
+
+
+class FieldProtocol(Protocol):
+    type: 'ConfigProtocol | Type[str]'
+    name: str
+    default: str | _MISSING_TYPE
+
+
+@runtime_checkable
+class ConfigProtocol(Protocol):
+    """
+    In most cases this should be a dataclass,
+    However, any object that provides `__dataclass_fields__` will work
+    """
+
+    __dataclass_fields__: dict[str, FieldProtocol]
 
 
 class DataclassConfig(SourceInterface):

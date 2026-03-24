@@ -1,47 +1,46 @@
 from typing import (
+    Protocol,
+    runtime_checkable,
+    Type,
     Any,
     Iterable,
 )
 
-from .source import SourceList
-from .types import ConfigProtocol, FieldProtocol, SourceListProto
+from .source import SourceListProto, SourceList
+
+
+class FieldProtocol(Protocol):
+    type: 'ConfigProtocol | Type[str]'
+    name: str
+    default: str
+
+
+@runtime_checkable
+class ConfigProtocol(Protocol):
+    __dataclass_fields__: dict[str, FieldProtocol]
 
 
 ConfigRet = 'Configuration | str'
 
 
 class Configuration:
-    """Resolves configuration values from an ordered :class:`SourceList`.
+    """
+    Input: an application config in dictionary form
 
-    Values are looked up by walking the ``config_class`` dataclass schema to
-    determine the dotted path, then querying each source in the
-    :class:`SourceList` in priority order until a value is found.
-
-    Configuration hierarchy (highest to lowest priority):
-
-    1. **Command-line arguments** — passed in via a :class:`NamespaceSource`
-    2. **Environment variables** — via :class:`EnvSource`
-    3. **Config file** — via :class:`IniSource`, :class:`TomlSource`, etc.
-    4. **Dataclass defaults** — values declared on the config schema
-
-    Parameters
-    ----------
-    source_list : SourceListProto
-        Ordered collection of configuration sources to query.
-    config_class : ConfigProtocol
-        Dataclass whose fields define the configuration schema.
-    path : str or None, default=None
-        Dotted namespace path for this configuration node. Defaults to the
-        module of ``config_class`` when not provided.
-
-    Examples
-    --------
-    >>> cfg = Configuration(
-    ...     source_list=SourceList(sources=[EnvSource(), IniSource(file_path='config.ini')]),
-    ...     config_class=AppConfigSchema,
-    ... )
-    >>> cfg.database.host
-    'localhost'
+    Configuration Hierarchy:
+    1. Command line arguments
+        any argument passed in via command line superseeds all other configs
+        this must be passed to the Configuration object by the cli parser
+    2. Environment Variables
+        Any environment variable with the format BAT_SECTION_SUBSECTION_KEY
+        will override the value of configuration.section.subsection.key
+    3. Config File
+        User defined config file,
+        a default file in the current working directory may be set
+        the config file may be specified as a cli arg
+        the config file path may be set to the BAT_CONFIG_FILE ENV variable
+    4. Default Values
+        default values may be set in the config specification
     """
 
     def __init__(
