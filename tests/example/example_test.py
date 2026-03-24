@@ -132,6 +132,17 @@ class GetIniConfigFunctionTests(TestCase):
         t.assertEqual(cfg.clients.clientA.key2, KEY2_DEFAULT)
         t.assertEqual(cfg.clients.clientB.key2, KEY2_DEFAULT)
 
+    def test_subscript_access(t):
+        """Subscript notation allows dynamic lookup of sub-configurations.
+
+        cfg['key'] is equivalent to getattr(cfg, 'key'), enabling patterns
+        like cfg.clients[clientid] where clientid is a runtime variable.
+        """
+        cfg = get_config()
+        clientid = 'clientB'
+        t.assertEqual(cfg.clients[clientid].key1, 'config.ini: clientB.key1')
+        t.assertEqual(cfg.clients[clientid].key2, KEY2_DEFAULT)
+
     def test_environment_variable(t):
         """Setting an environment variable, using the project namespace
 

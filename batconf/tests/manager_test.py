@@ -118,6 +118,22 @@ class ConfigurationTests(TestCase):
             with t.assertRaises(AttributeError):
                 t.conf.AModule.no_default_arg
 
+    def test___getitem__(t) -> None:
+        with t.subTest('sub-config lookup'):
+            t.assertIsInstance(t.conf['AModule'], Configuration)
+
+        with t.subTest('value lookup via key'):
+            t.assertEqual(t.conf['AModule'].arg_1, 's1_a_arg_1')
+        
+        with t.subTest('lookup value via variable'):
+            module = 'AModule'
+            key = 'arg_1'
+            t.assertEqual(t.conf[module][key], 's1_a_arg_1')
+
+        with t.subTest('missing key raises AttributeError'):
+            with t.assertRaises(AttributeError):
+                t.conf['_sir_not_appearing_in_this_film']
+
     def test___str__(t):
         exp = (
             f"bat <class '{t.mod}.GlobalConfig'>:\n"

@@ -41,7 +41,7 @@ def get_data_from_server_config(clientid: str) -> str:
         Data retrieved from the server.
     """
     # get the configuration for the specified clientid from your configuration
-    my_client_config = getattr(CFG.clients, clientid)
+    my_client_config = CFG.clients[clientid]
     return MyClient.from_config(my_client_config).fetch_data()
 
 
