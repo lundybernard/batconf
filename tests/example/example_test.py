@@ -10,7 +10,7 @@ from project.conf import (
     ProjectConfigSchema,
     SubmoduleConfigSchema,
     CONFIG_FILE_NAME,
-    NamespaceConfig,
+    NamespaceSource,
     CFG as GLOBAL_CFG,
     insert_source,
 )
@@ -22,7 +22,7 @@ from project.lib import (
 )
 from project.submodule.client import KEY2_DEFAULT
 
-from batconf.sources.yaml import YamlConfig
+from batconf import YamlSource
 
 
 _PYYAML_INSTALLED = True
@@ -75,7 +75,7 @@ class ModuleConfigTests(TestCase):
         setattr(args, 'project.clients.clientB.key1', 'K2')
 
         # Set the default/first/index=0 source to a NamespaceSource
-        insert_source(cfg=t.CFG, source=NamespaceConfig(args))
+        insert_source(cfg=t.CFG, source=NamespaceSource(args))
 
         t.assertEqual(t.CFG.clients.clientA.key1, 'K1')
         t.assertEqual(t.CFG.clients.clientB.key1, 'K2')
@@ -315,7 +315,7 @@ def set_environ(key: str, value: str):
 class GetYamlConfigFunctionTests(TestCase):
     def setUp(t):
         # Inject a YamlConfig file source, to overwrite the default .ini
-        t.yaml_config = YamlConfig(config_file_name=yaml_config_file_name)
+        t.yaml_config = YamlSource(config_file_name=yaml_config_file_name)
 
     def test_get_config(t):
         """get_config() returns a Project-level Configuration object.
