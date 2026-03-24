@@ -12,6 +12,23 @@ class SourceInterface(SourceInterfaceProto, metaclass=ABCMeta):
 
 
 class SourceList:
+    """An ordered list of configuration sources.
+
+    Sources are queried in order; the first non-``None`` value returned wins.
+    ``None`` entries in the constructor sequence are silently filtered out,
+    making it easy to conditionally include sources.
+
+    Parameters
+    ----------
+    sources : Sequence[SourceInterfaceProto | None]
+        Ordered sequence of configuration sources. Earlier entries take
+        precedence over later ones.
+
+    Examples
+    --------
+    >>> source_list = SourceList(sources=[NamespaceSource(args), EnvSource(), IniSource(file_path='config.ini')])
+    """
+
     def __init__(self, sources: Sequence[SourceInterfaceProto | None]) -> None:
         self._sources: list[SourceInterfaceProto] = list(filter(None, sources))
 

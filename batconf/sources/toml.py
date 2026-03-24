@@ -27,6 +27,28 @@ class _DEFAULTS(Enum):
 
 
 class TomlConfig:
+    """Configuration source backed by a TOML file.
+
+    Parameters
+    ----------
+    file_path : str
+        Path to the TOML configuration file.
+    file_format : {'environments', 'sections', 'flat'}, default='environments'
+        TOML file layout. ``'environments'`` expects a ``[batconf]`` table
+        with a ``default_env`` key and per-environment top-level tables;
+        ``'sections'`` uses tables as config namespaces; ``'flat'`` reads
+        all keys from the top-level table.
+    config_env : str or None, default=read from file
+        Active configuration environment. When not provided, the value of
+        ``batconf.default_env`` in the TOML file is used.
+    missing_file_option : {'warn', 'ignore', 'error'}, default='warn'
+        Behaviour when the specified file is missing.
+
+    Examples
+    --------
+    >>> src = TomlSource(file_path='config.toml', config_env='dev')
+    """
+
     def __init__(
         self,
         file_path: str,

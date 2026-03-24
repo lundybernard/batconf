@@ -7,38 +7,32 @@ from .types import SourceInterfaceProto, SourceListProto
 
 
 class ConfigSingleton:
-    """Global singleton-style proxy for application configuration.
+    """Lazy singleton proxy for a :class:`~.manager.Configuration` instance.
 
-    Provides a single shared :class:`Configuration` object
-    across the application. The configuration is initialized from
-    ``get_config_fn`` and then reused wherever the instance is imported.
-
-    Lazy loading is supported as a convenience: the underlying
-    :class:`Configuration` is created only when first accessed.
+    Wraps a ``get_config_fn`` factory and creates the underlying
+    :class:`~.manager.Configuration` on first attribute access, then caches
+    it for subsequent accesses. Importing the same ``ConfigSingleton``
+    instance in multiple modules shares a single configuration object across
+    the application.
 
     Parameters
     ----------
-    get_config_fn : Callable
-        Zero-argument callable that returns a
-        :class:`~.manager.Configuration` instance.
-
-    Notes
-    -----
-    The cached configuration can be refreshed by calling :meth:`_reset`.
+    get_config_fn : Callable[[], Configuration]
+        Callable that returns a :class:`~.manager.Configuration` instance.
+        Use :func:`functools.partial` to pre-fill any arguments.
 
     Examples
     --------
-    >>> cfg = ConfigSingleton(get_config_fn=get_config)
-    >>> cfg.some_option
+    >>> CFG = ConfigSingleton(get_config_fn=get_config)
+    >>> CFG.some_option
     'value'
 
-    Using a partially applied config factory::
+    Using a partially applied config factory:
 
     >>> from functools import partial
-
     >>> CFG = ConfigSingleton(
-    >>>        get_config_fn=partial(get_config, env="prod", debug=False)
-    >>>    )
+    ...     get_config_fn=partial(get_config, config_env='prod')
+    ... )
     """
 
     def __init__(self, get_config_fn: Callable) -> None:
@@ -98,15 +92,15 @@ def insert_source(
     --------
     Insert CLI arguments as the highest priority source:
 
-    >>> from batconf.sources.argparse import NamespaceConfig
+    >>> from batconf import NamespaceSource
     >>> from argparse import Namespace
     >>> args = Namespace()
     >>> setattr(args, 'project.key', 'value')
-    >>> insert_source(cfg=CFG, source=NamespaceConfig(args))
+    >>> insert_source(cfg=CFG, source=NamespaceSource(namespace=args))
 
     Insert a lower priority source:
 
-    >>> insert_source(cfg=CFG, source=env_config, index=2)
+    >>> insert_source(cfg=CFG, source=env_source, index=2)
 
     See Also
     --------
