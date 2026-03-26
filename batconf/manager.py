@@ -74,6 +74,9 @@ class Configuration:
             return cfg
         return self._get_config_opt(name)
 
+    def __getitem__(self, name: str) -> Any:
+        return self.__getattr__(name)
+
     def _get_config_opt(self, key: str) -> str:
         if value := self._config_sources.get(key, path=self._path):
             return value
