@@ -88,10 +88,15 @@ Most projects can copy this example with minimal modification.
 .. code-block:: python
     :caption: {yourmodule}/conf.py
 
-    from batconf import Configuration, ConfigProtocol, SourceList
-    from batconf.sources.argparse import NamespaceConfig, Namespace
-    from batconf.sources.env import EnvConfig
-    from batconf.sources.file import FileConfig
+    from batconf import (
+        Configuration,
+        SourceList,
+        NamespaceSource,
+        Namespace,
+        EnvSource,
+        IniSource,
+    )
+    from batconf.types import ConfigProtocol, SourceInterfaceProto
 
     # Default config file path,
     # look for config.ini in the current working directory
@@ -104,23 +109,59 @@ Most projects can copy this example with minimal modification.
     def get_config(
         config_class: ConfigProtocol = ConfigSchema,  # type: ignore
         cfg_path: str = 'yourmodule',
-        cli_args: Namespace = None,
-        config_file: FileConfig = None,
+        cli_args: Namespace | None = None,
+        config_file: SourceInterfaceProto | None = None,
         config_file_name: str = CONFIG_FILE_NAME,
-        config_env: str = None,
+        config_env: str | None = None,
     ) -> Configuration:
 
         # Build a prioritized config source list
         config_sources = [
-            NamespaceConfig(cli_args) if cli_args else None,
-            EnvConfig(),
-            config_file if config_file else IniConfig(
+            NamespaceSource(cli_args) if cli_args else None,
+            EnvSource(),
+            config_file if config_file else IniSource(
                 config_file_name, config_env=config_env
             ),
         ]
 
         source_list = SourceList(config_sources)
         return Configuration(source_list, config_class, path=cfg_path)
+
+
+Global Configuration Singleton
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Use :class:`~batconf.lib.ConfigSingleton` to share a single
+:class:`~batconf.manager.Configuration` instance across your application.
+The underlying ``Configuration`` is created lazily on first access.
+
+.. code-block:: python
+    :caption: yourmodule/conf.py
+
+    from batconf import ConfigSingleton
+    from .conf import get_config
+
+    # Create once — import CFG anywhere in your application
+    CFG = ConfigSingleton(get_config)
+
+Call :meth:`~batconf.lib.ConfigSingleton._reset` to rebuild the configuration
+(e.g. in tests or after changing sources):
+
+.. code-block:: python
+
+    CFG._reset()
+
+To add a source at runtime — for example after CLI args have been parsed —
+use :func:`~batconf.lib.insert_source`.
+New sources are inserted at index 0 (highest priority) by default:
+
+.. code-block:: python
+    :caption: yourmodule/cli.py
+
+    from batconf import insert_source, NamespaceSource
+    from .conf import CFG
+
+    def cli_entry(args):
+        insert_source(cfg=CFG, source=NamespaceSource(args))
 
 
 Defaults
@@ -166,12 +207,12 @@ Access config option values using python's attribute(``.``) notation.
 
     In [2]: print(cfg)
     yourproject <class 'yourproject.conf.ConfigSchema'>:
-        |- server = <class 'yourproject.server.ServerConfiguration'>:
+        |- server <class 'yourproject.server.ServerConfiguration'>:
         |    |- host: "0.0.0.0"
         |    |- port: "5000"
     SourceList=[
-        <batconf.sources.env.EnvConfig object at 0x7faf102ed4f0>,
-        <batconf.sources.ini.IniConfig object at 0x7faf102e7440>,
+        Environment Variables: EnvConfig(),
+        Ini File: IniConfig(file_path=config.ini, config_env=None, missing_file_option=warn, file_format=environments),
     ]
 
     In [3]: cfg.server.host

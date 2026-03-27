@@ -54,17 +54,15 @@ on our Developer's Blog.
 :ref:`supplychain_security_blog`
 
 
-New Dev Blog!
--------------
+What's new in v0.4.0
+--------------------
 
-Check out the :ref:`upcoming_changes_in_02x`
+- :class:`~batconf.lib.ConfigSingleton` — share a single configuration instance across your application
+- :func:`~batconf.lib.insert_source` — add sources at runtime (e.g. after CLI arg parsing)
+- Subscript access: ``cfg['key']`` as an alternative to ``cfg.key``
+- Cleaner public API: import common classes directly from ``batconf``
 
-- Optional pyyaml dependency
-- More flexible config structures
-- New config file sources (.ini, .toml)
-
-We have provided a :doc:`migration` to help you through any breaking changes
-in the upgrade from 0.1.x to 0.2.x, and future updates.
+See the :doc:`migration` guide for upgrade instructions.
 
 
 Professional Support
@@ -88,11 +86,6 @@ Contributing
 
 All contributions, bug reports, bug fixes, documentation improvements,
 enhancements, and ideas are welcome.
-
-Check out one of these good first issues to help with:
-
-* `Cleanup Sphinx documentation <https://github.com/lundybernard/batconf/issues/32>`__
-* `Add support for Python 3.13 <https://github.com/lundybernard/batconf/issues/53>`__
 
 Issues
 ------
