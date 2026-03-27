@@ -23,7 +23,7 @@ The following names are now importable directly from ``batconf``:
 * :class:`~batconf.source.SourceList`
 * :class:`~batconf.lib.ConfigSingleton`
 * :func:`~batconf.lib.insert_source`
-* ``NamespaceSource``, ``Namespace``
+* ``NamespaceSource``
 * ``EnvSource``
 * ``IniSource``
 * ``TomlSource``
