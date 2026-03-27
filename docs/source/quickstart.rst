@@ -199,7 +199,7 @@ as the root.
 Usage
 -----
 
-Access config option values using python's attribute(``.``) notation.
+Access config option values using python's attribute (``.``) notation.
 
 .. code-block:: python
 
@@ -217,6 +217,23 @@ Access config option values using python's attribute(``.``) notation.
 
     In [3]: cfg.server.host
     Out[3]: '0.0.0.0'
+
+
+Subscript Access
+~~~~~~~~~~~~~~~~
+:class:`~batconf.manager.Configuration` also supports subscript (``[]``)
+notation, which is equivalent to attribute access. This is useful when the
+key is a runtime variable.
+
+.. code-block:: python
+
+    In [4]: cfg['server']['host']
+    Out[4]: '0.0.0.0'
+
+    # Practical use case: select a sub-config by a runtime variable
+    In [5]: client_id = 'clientB'
+    In [6]: cfg.clients[client_id].host
+    Out[6]: '192.168.1.2'
 
 
 CLI Args
@@ -251,8 +268,20 @@ configuration options for the ``client`` found in ``yourproject.example.client``
 Ini
 ^^^
 
+:class:`~batconf.sources.ini.IniConfig` supports three file formats,
+controlled by the ``file_format`` parameter (default: ``'environments'``):
+
+* **``'environments'``** *(default)* — sections are prefixed with an
+  environment name (e.g. ``[dev.yourproject.example.client]``).
+  A ``[batconf]`` section can declare the default environment via
+  ``default_env``. Intermediate parent sections must be present even
+  if empty (e.g. ``[dev]``, ``[dev.yourproject]``).
+* **``'sections'``** — sections use the dotted config path directly
+  (e.g. ``[yourproject.example.client]``), with no environment prefix.
+* **``'flat'``** — a single flat key/value file with no sections.
+
 .. code-block:: ini
-    :caption: config.ini
+    :caption: config.ini (environments format — default)
 
     [batconf]
     default_env = dev
@@ -276,6 +305,10 @@ Ini
 Yaml
 ^^^^
 
+:class:`~batconf.sources.yaml.YamlConfig` uses an environment-based
+structure by default. The top-level ``default`` key sets the active
+environment when ``config_env`` is not specified at runtime.
+
 .. code-block:: yaml
     :caption: config.yaml
 
@@ -298,15 +331,41 @@ Yaml
             address: 192.168.1.1
 
 
-
 Setting the configuration file
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Choosing default config file names and locations bears careful consideration,
-and we will cover options and best-practices in an advanced usage guide.
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The example assumes ``config.ini`` is in the current working directory.
+Choosing sensible default file names and locations depends on your
+application — common choices are ``~/.config/yourapp/config.ini`` for
+user-level config and ``/etc/yourapp/config.ini`` for system-level config.
 
-The example assumes 'config.ini' is in the current working directory.
+I recommend adding ``--config-file`` and ``--env`` options to your CLI
+for convenience:
 
-* **Default**: If the specified config file is not found,
-  the default behavior is to raise a warning.
-* **CLI args**: I recommend adding config file path and environment to your CLI
-  for convenience. ex: ``> yourcli --config_file=~/mycfg.yaml --env=staging ...``
+.. code-block:: bash
+
+    > yourcli --config-file=~/mycfg.ini --env=staging ...
+
+
+Missing file behaviour
+^^^^^^^^^^^^^^^^^^^^^^
+Both :class:`~batconf.sources.ini.IniConfig` and
+:class:`~batconf.sources.yaml.YamlConfig` accept a ``missing_file_option``
+parameter that controls what happens when the config file is not found:
+
+* **``'warn'``** *(default)* — logs a warning and continues. Safe for
+  development where a config file may not always be present.
+* **``'ignore'``** — silently skips the file. Useful when the file is
+  genuinely optional and other sources (ENV, defaults) are sufficient.
+* **``'error'``** — raises an exception. Recommended for production
+  deployments where a missing config file should be a hard failure.
+
+.. code-block:: python
+
+    IniSource('config.ini', missing_file_option='error')
+
+
+Testing
+-------
+
+See :doc:`guide` for guidance on testing code that uses BatConf,
+including patterns for ``ConfigSingleton`` isolation.
