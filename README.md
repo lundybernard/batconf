@@ -15,7 +15,7 @@ and microservices.
 
 
 Compose structured hierarchical configurations from multiple sources.
-Enable your code to adapt seemlessly to the current context.
+Enable your code to adapt seamlessly to the current context.
 Allow users in different contexts to use the config source that works best for
 them.
 
@@ -28,6 +28,9 @@ them.
 * Easily extendable, add new sources to serve your needs.
 * Set reasonable defaults, and override them as needed.
 * Designed for 12-factor applications (config via Environment Variables)
+* `ConfigSingleton`: share a single `Configuration` instance across your application
+* `insert_source`: dynamically add configuration sources at runtime
+* Subscript access: `cfg['key']` as an alternative to `cfg.key`, enabling dynamic lookups like `cfg.clients[client_id]`
 
 Users can create their own config sources
 by creating classes that satisfy `batconf.source.SourceInterfaceProto`
@@ -69,8 +72,48 @@ https://tidelift.com/subscription/pkg/pypi-batconf?utm_source=pypi-batconf&utm_m
 ## [Example Configuration](tests/example/)
 Check out our [Quick Start Guide](https://batconf.readthedocs.io/en/latest/quickstart.html)
 
-and the example project in [tests/example/](/tests/example) 
-  which includes tests and documentation.
+and the example project in [tests/example/](/tests/example)
+which includes tests and documentation.
+
+### Quick Example
+
+```python
+from dataclasses import dataclass
+from batconf import (
+    ConfigSingleton,
+    insert_source,
+    Configuration,
+    SourceList,
+    EnvSource,
+    IniSource,
+    NamespaceSource,
+    Namespace,
+)
+
+@dataclass
+class AppConfig:
+    host: str = 'localhost'
+    port: str = '8080'
+
+def get_config() -> Configuration:
+    sources = SourceList([EnvSource(), IniSource('config.ini')])
+    return Configuration(sources, AppConfig, path='app')
+
+# A shared singleton — import CFG anywhere in your application
+CFG = ConfigSingleton(get_config)
+
+# Attribute access
+host = CFG.host
+
+# Subscript access — useful for dynamic keys
+key = 'host'
+host = CFG[key]
+
+# Add a source at runtime (e.g. after CLI args are parsed)
+args = Namespace()
+setattr(args, 'app.host', 'example.com')
+insert_source(cfg=CFG, source=NamespaceSource(args))
+```
 
 
 ## Install Instructions
@@ -83,7 +126,7 @@ Install with Yaml support:
 
 `pip install .[yaml]`
 
-Install with Toml support, for python<=3.11:
+Install with Toml support, for python<=3.10:
 
 `pip install .[toml]`
 
@@ -104,6 +147,14 @@ dependencies = [
 ]
 ```
 
+
+## Migrating to v0.4.0
+
+### Breaking Changes
+
+* `batconf.sources.file.FileConfig` has been removed.
+  See the [migration guide](https://batconf.readthedocs.io/en/latest/migration.html)
+  for details.
 
 ## Dev Guide
 
