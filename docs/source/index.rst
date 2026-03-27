@@ -117,6 +117,7 @@ Indices and tables
 
    intro
    quickstart
+   guide
    devguide
 
 .. toctree::
