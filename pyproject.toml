@@ -72,6 +72,11 @@ docs = [
 ]
 
 
+# === Package Management === #
+[tool.uv]
+exclude-newer = "7 days"
+
+
 # === Testing === #
 [tool.pytest.ini_options]
 log_level = "INFO"
