@@ -18,8 +18,60 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
 
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.13'
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
+
+      - name: Install dependencies
+        run: uv sync --only-group lint --frozen
+
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          uv run flake8 batconf tests --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings.
+          uv run flake8 batconf tests --count --exit-zero --statistics
+
+  typecheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      matrix:
+        python-version: [
+          '3.10', '3.11', '3.12', '3.13', '3.14',
+        ]
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
+
+      - name: Install dependencies
+        run: uv sync --only-group typecheck --frozen
+
+      - name: Type checking with mypy
+        run: |
+          uv run mypy batconf
+          uv run mypy tests
+
+  test:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
     strategy:
@@ -52,43 +104,31 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install --group dev 
+      - name: Set up uv
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
 
-      - name: Lint with flake8
-        run: |
-          # stop the build if there are Python syntax errors or undefined names
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          # exit-zero treats all errors as warnings. 
-          flake8 . --count --exit-zero --statistics
+      - name: Install dependencies
+        run: uv sync --only-group test --frozen --no-install-project
 
       - name: Unit Tests
         run: |
-          pytest batconf
+          uv run pytest batconf
 
       - name: Install the module
         run: |
-          pip install .${{ matrix.install-opts }}
+          uv pip install .${{ matrix.install-opts }}
 
       - name: Integration Tests
         run: |
-          pytest --no-cov tests
-
-      - name: Type checking with mypy
-        if: "!startsWith(matrix.python-version, 'pypy')"
-        run: |
-          mypy batconf
-          mypy tests
+          uv run pytest --no-cov tests
 
   all-checks:
     if: always()
-    needs: [build]
+    needs: [test]
     runs-on: ubuntu-latest
     steps:
       - name: All checks passed
         run: |
-          if [[ "${{ needs.build.result }}" != "success" ]]; then
+          if [[ "${{ needs.test.result }}" != "success" ]]; then
             exit 1
           fi

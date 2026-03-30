@@ -43,14 +43,26 @@ yaml = ['pyyaml']
 toml = ['toml ; python_version <= "3.10"']
 
 [dependency-groups]
-# optional dev dependencies:
-dev = [
+test = [
     "coverage",
-    "flake8",
-    "mypy",
     "pytest",
     "pytest-cov",
+]
+
+lint = [
+    "flake8",
+]
+
+typecheck = [
+    "mypy",
     "types-PyYAML",
+]
+
+# convenience group for local development:
+dev = [
+    {include-group = "test"},
+    {include-group = "lint"},
+    {include-group = "typecheck"},
 ]
 
 build = [
@@ -104,3 +116,7 @@ ignore = ['F401']
 # === Type Checking === #
 [tool.mypy]
 exclude = "runcli.py"
+
+# === UV === #
+[tool.uv]
+exclude-newer = "7 days"
