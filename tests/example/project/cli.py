@@ -11,7 +11,7 @@ from .lib import (
     get_opt,
     get_data_from_server_config,
 )
-from .conf import CFG, NamespaceConfig, insert_source
+from .conf import CFG, NamespaceSource, insert_source
 
 log = logging.getLogger('root')
 
@@ -23,7 +23,7 @@ def BATCLI(ARGS: Sequence[str] | None = None):
     args = p.parse_args(args=ARGS)
     # post-processing to collect arbitrary extra arguments
     args = _parse_overrides(args)
-    insert_source(cfg=CFG, source=NamespaceConfig(args))
+    insert_source(cfg=CFG, source=NamespaceSource(args))
     Commands.set_log_level(args)
     # execute function set for parsed command
     if not hasattr(Commands, args.func.__name__):  # pragma: no cover
