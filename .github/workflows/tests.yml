@@ -79,3 +79,14 @@ jobs:
         run: |
           mypy batconf
           mypy tests
+
+  all-checks:
+    if: always()
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: All checks passed
+        run: |
+          if [[ "${{ needs.build.result }}" != "success" ]]; then
+            exit 1
+          fi
