@@ -22,7 +22,8 @@ Provides builtin support for hierarchical configuration via:
 Users can create their own config sources
 by creating classes that satisfy
 :py:class:`SourceInterfaceProto <batconf.source.SourceInterfaceProto>`
-(or subclass :py:class:`SourceInterface <batconf.source.SourceInterface>`)
+(or subclass :py:class:`SourceInterface <batconf.source.SourceInterface>`).
+See :doc:`guide` for a worked example.
 
 The config lookup order is determined by the
 :py:class:`SourceList <batconf.source.SourceList>` instance,

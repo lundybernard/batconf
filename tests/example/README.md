@@ -21,25 +21,23 @@ In [1]: from project.conf import get_config
 
 In [2]: cfg = get_config()
 
-In [3]: cfg.submodule.sub
+In [3]: cfg.submodule.client
 Out[3]: Configuration(source_list=SourceList(sources=[<batconf.sources.env.
-    EnvConfig object at 0x7b45d1b6fed0>, <batconf.sources.file.FileConfig 
-    object at 0x7b45d057b290>, <batconf.sources.dataclass.DataclassConfig object
-    at 0x7b45d08f4790>]), config_class=<class
-    'project.submodule.sub.MyClient.Config'>)
-    
-In [4]: print(cfg.submodule.sub)
-Root <class 'project.submodule.sub.MyClient.Config'>:
-    |- key1: "Config.yaml: test.project.submodule.sub.key1"
+    EnvConfig object at 0x7b45d1b6fed0>, <batconf.sources.ini.IniConfig
+    object at 0x7b45d057b290>]), config_class=<class
+    'project.submodule.client.MyClient.Config'>)
+
+In [4]: print(cfg.submodule.client)
+project.submodule.client <class 'project.submodule.client.MyClient.Config'>:
+    |- key1: "Config.ini: test.project.submodule.client.key1"
     |- key2: "DEFAULT VALUE"
 SourceList=[
     <batconf.sources.env.EnvConfig object at 0x7b45d1b6fed0>,
-    <batconf.sources.file.FileConfig object at 0x7b45d057b290>,
-    <batconf.sources.dataclass.DataclassConfig object at 0x7b45d08f4790>,
+    <batconf.sources.ini.IniConfig object at 0x7b45d057b290>,
 ]
 
-In [5]: cfg.submodule.sub.key1
-Out[5]: 'Config.yaml: test.project.submodule.sub.key1'
+In [5]: cfg.submodule.client.key1
+Out[5]: 'Config.ini: test.project.submodule.client.key1'
 ```
 
 ### Example CLI

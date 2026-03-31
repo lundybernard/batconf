@@ -9,9 +9,9 @@ import sys
 from datetime import datetime
 
 
-sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(0, os.path.abspath('..'))
-sys.path.insert(0, os.path.abspath('../batconf'))
+_here = os.path.dirname(__file__)
+sys.path.insert(0, os.path.abspath(os.path.join(_here, '../..')))
+
 
 from diagram_config_comp import create_config_diagram
 
@@ -23,7 +23,7 @@ project = 'BatConf'
 current_year = datetime.now().year
 copyright = f'{current_year}, Lundy Bernard, Lauren Moore'
 author = 'Lundy Bernard, Lauren Moore'
-release = '0.1.8'
+release = '0.4.0'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

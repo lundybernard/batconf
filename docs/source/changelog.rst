@@ -19,6 +19,30 @@ BatConf 0.x
 
     .. include:: ../RELEASE.rst
 
+.. _v0.4.0:
+
+------------------
+0.4.0 - TBD
+------------------
+
+Breaking changes:
+
+* Remove ``batconf.sources.file.FileConfig``
+  (deprecated since 0.2.0 — use :class:`~batconf.sources.ini.IniConfig`
+  or :class:`~batconf.sources.yaml.YamlConfig` instead)
+
+Features:
+
+* :class:`~batconf.lib.ConfigSingleton`: global singleton proxy for sharing
+  a :class:`~batconf.manager.Configuration` instance across an application
+* :func:`~batconf.lib.insert_source`: add a configuration source to a running
+  ``Configuration`` or ``ConfigSingleton`` at runtime
+* Subscript access on :class:`~batconf.manager.Configuration`:
+  ``cfg['key']`` is equivalent to ``cfg.key``
+* New top-level public API — ``Configuration``, ``SourceList``,
+  ``NamespaceSource``, ``EnvSource``, ``IniSource``, ``YamlSource``
+  are now importable directly from ``batconf``
+
 .. _v0.3.1:
 
 ------------------
