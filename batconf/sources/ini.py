@@ -117,6 +117,27 @@ class EmptyConfigParser:
 
 
 class IniConfig(SourceInterface):
+    """Configuration source backed by an INI file.
+
+    Parameters
+    ----------
+    file_path : str
+        Path to the INI configuration file.
+    config_env : str or None, default=read from file
+        Active configuration environment. When not provided, the value of
+        ``batconf.default_env`` in the INI file is used.
+    missing_file_option : {'warn', 'ignore', 'error'}, default='warn'
+        Behaviour when the specified file is missing.
+    file_format : {'environments', 'sections', 'flat'}, default='environments'
+        INI file layout. ``'environments'`` expects top-level sections named
+        after environments; ``'sections'`` uses sections as config namespaces;
+        ``'flat'`` reads all keys from a single ``[root]`` section.
+
+    Examples
+    --------
+    >>> src = IniSource(file_path='config.ini', config_env='dev')
+    """
+
     _data: ConfigParser | EmptyConfigParser = EmptyConfigParser()
     _get_impl: Callable
     __config_env: str
