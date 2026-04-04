@@ -58,7 +58,7 @@ def _get_envs(
         section, key = key.rsplit(sep='.', maxsplit=1)
     except ValueError:
         # Type checking should be fixed in the next MyPy release
-        section = self._config_env  # type: ignore[assignment]
+        section = self._config_env
     else:
         section = f'{self._config_env}.{section}'
 
@@ -159,7 +159,7 @@ class IniConfig(SourceInterface):
             when_missing=self._missing_file_option,
         )
 
-        self._config_env = config_env  # type: ignore[assignment]
+        self._config_env = config_env
         # This mypy error will be fixed by
         # https://github.com/python/mypy/pull/18510
 
@@ -177,16 +177,16 @@ class IniConfig(SourceInterface):
 
     # TODO: Fix type-hints when the next version of MyPy is released
     @property
-    def _config_env(self):  # -> str:
+    def _config_env(self) -> str:
         return self.__config_env
 
     @_config_env.setter
-    def _config_env(self, env):  # _EnvOpts):
+    def _config_env(self, env: _EnvOpts):
         if (
             self._file_format != 'environments'
             or self._data is EmptyConfigParser
         ):
-            self.__config_env = None  # type: ignore[assignment]
+            self.__config_env = None
             return
 
         if env is _DEFAULTS.environment or env is None:
