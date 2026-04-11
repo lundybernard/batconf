@@ -5,8 +5,12 @@ from pathlib import Path as _PathClass
 
 from ..yaml import (
     YamlConfig,
+    YamlSource,
+    EmptyYamlConfig,
+    warnings,
     get_file_path,
     _load_yaml,
+    _load_yaml_source,
     _load_yaml_file_warn_when_missing,
     _load_yaml_file_ignore_when_missing,
     _load_yaml_file,
@@ -64,6 +68,13 @@ class YamlConfigTests(TestCase):
     _load_yaml: Mock
 
     def setUp(t):
+        # Suppress DeprecationWarning from YamlConfig across all tests in this
+        # class; test_deprecation_warning covers the warning explicitly.
+        _wm = warnings.catch_warnings()
+        _wm.__enter__()
+        t.addCleanup(_wm.__exit__, None, None, None)
+        warnings.simplefilter('ignore', DeprecationWarning)
+
         patches = [
             'get_file_path',
             '_load_yaml',
@@ -98,6 +109,17 @@ class YamlConfigTests(TestCase):
         t.assertEqual(EXAMPLE_CONFIG_DICT['default'], t.yc._config_env)
         # Enable multi-environment support by default
         t.assertEqual(True, t.yc._enable_config_environments)
+
+    @patch(f'{SRC}.warnings')
+    def test_deprecation_warning(t, mock_warnings: Mock):
+        """YamlConfig emits a DeprecationWarning pointing callers to YamlSource."""
+        _ = YamlConfig(config_file_name=t.config_file_name)
+        mock_warnings.warn.assert_called_once_with(
+            'YamlConfig is deprecated, use YamlSource instead.'
+            ' YamlConfig will be removed in a future release.',
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
     def test__data(t):
         t.yc._config_env = 'new_config_env'
@@ -430,3 +452,111 @@ class YamlLoaderFunctionsTests(TestCase):
             t.open.side_effect = FileNotFoundError
             with t.assertRaises(FileNotFoundError):
                 _ = _load_yaml_file(file_path=t.file_path)
+
+
+class YamlSourceTests(TestCase):
+    _load_yaml_source: Mock
+
+    def setUp(t) -> None:
+        patcher = patch(f'{SRC}._load_yaml_source', autospec=True)
+        t._load_yaml_source = patcher.start()
+        t.addCleanup(patcher.stop)
+
+        t._load_yaml_source.return_value = EXAMPLE_CONFIG_DICT
+
+        t.file_path = 'example.config.yaml'
+        t.subject = YamlSource(file_path=t.file_path)
+
+    def test___init__(t) -> None:
+        t.assertEqual('warn', t.subject._missing_file_option)
+        t.assertEqual('environments', t.subject._file_format)
+        t._load_yaml_source.assert_called_with(
+            file_path=t.subject._config_file_path,
+            when_missing='warn',
+        )
+        # Default environment is read from the config dict.
+        t.assertEqual(EXAMPLE_CONFIG_DICT['default'], t.subject._config_env)
+
+    @patch(f'{SRC}.warnings')
+    def test_no_deprecation_warning(t, mock_warnings: Mock) -> None:
+        """YamlSource must not emit a DeprecationWarning."""
+        _ = YamlSource(file_path=t.file_path)
+        mock_warnings.warn.assert_not_called()
+
+    def test__data(t) -> None:
+        with t.subTest('environments: selects active env from config_env'):
+            ys = YamlSource(file_path=t.file_path)
+            ys._config_env = 'example'
+            ys._data = {'example': {'k': 'v'}}
+            t.assertDictEqual({'k': 'v'}, ys._data)
+
+        with t.subTest('environments: reads default key when config_env is None'):
+            ys = YamlSource(file_path=t.file_path)
+            ys._config_env = None
+            ys._data = {'default': 'my_env', 'my_env': {'k': 'v'}}
+            t.assertDictEqual({'k': 'v'}, ys._data)
+            t.assertEqual('my_env', ys._config_env)
+
+        with t.subTest('environments: missing environment raises KeyError'):
+            ys = YamlSource(file_path=t.file_path)
+            ys._config_env = 'missing'
+            with t.assertRaises(KeyError):
+                ys._data = {'other': {}}
+
+        with t.subTest('sections: stores the whole dict'):
+            ys = YamlSource(file_path=t.file_path, file_format='sections')
+            config = {'sec0': {'key': 'val'}}
+            ys._data = config
+            t.assertDictEqual(config, ys._data)
+
+        with t.subTest('flat: stores the whole dict'):
+            ys = YamlSource(file_path=t.file_path, file_format='flat')
+            config = {'key': 'val'}
+            ys._data = config
+            t.assertDictEqual(config, ys._data)
+
+        with t.subTest('empty sentinel passes through unchanged'):
+            ys = YamlSource(file_path=t.file_path)
+            ys._data = EmptyYamlConfig
+            t.assertIs(EmptyYamlConfig, ys._data)
+
+    def test__file_format_stored(t) -> None:
+        """_file_format is a stored attribute, not a computed property."""
+        for fmt in ('environments', 'sections', 'flat'):
+            with t.subTest(file_format=fmt):
+                ys = YamlSource(file_path=t.file_path, file_format=fmt)
+                t.assertEqual(fmt, ys._file_format)
+
+    def test_get(t) -> None:
+        with t.subTest('single key'):
+            t.assertEqual(
+                EXAMPLE_CONFIG_DICT['example']['bat']['key'],
+                t.subject.get('bat.key'),
+            )
+
+        with t.subTest('key with path argument'):
+            t.assertEqual(
+                EXAMPLE_CONFIG_DICT['example']['bat']['remote_host']['api_key'],
+                t.subject.get('api_key', 'bat.remote_host'),
+            )
+
+        with t.subTest('missing key returns None'):
+            t.assertIsNone(t.subject.get('_sir_not_appearing_in_this_film'))
+
+        with t.subTest('result is a dict returns None'):
+            # Unlike YamlConfig, YamlSource is consistent with Toml/IniSource.
+            t.assertIsNone(t.subject.get('bat'))
+
+    def test___str__(t) -> None:
+        t.assertEqual(f'Yaml File: {repr(t.subject)}', str(t.subject))
+
+    def test___repr__(t) -> None:
+        t.assertEqual(
+            f'YamlSource('
+            f'file_path={t.subject._config_file_path}, '
+            f'config_env={t.subject._config_env}, '
+            f'missing_file_option={t.subject._missing_file_option}, '
+            f'file_format={t.subject._file_format}'
+            f')',
+            repr(t.subject),
+        )
