@@ -1,5 +1,5 @@
 from unittest import TestCase
-from unittest.mock import patch, mock_open, Mock, MagicMock, sentinel
+from unittest.mock import patch, mock_open, Mock, MagicMock, create_autospec, sentinel
 
 from pathlib import Path as _PathClass
 
@@ -8,9 +8,6 @@ from ..toml import (
     EmptyConfigDict,
     _load_toml,
     _load_toml_file,
-    load_file_warn_when_missing,
-    load_file_ignore_when_missing,
-    load_file_error_when_missing,
     _missing_file_handlers,
     _import_toml_load_function,
     _TOML_IMPORT_ERROR_MSG,
@@ -288,9 +285,9 @@ class TomlLoaderFunctionsTests(TestCase):
 
     @patch.dict(
         f'{SRC}._missing_file_handlers',
-        warn=MagicMock(load_file_warn_when_missing, autospec=True),
-        ignore=MagicMock(load_file_ignore_when_missing, autospec=True),
-        error=MagicMock(load_file_error_when_missing, autospec=True),
+        warn=create_autospec(_missing_file_handlers['warn']),
+        ignore=create_autospec(_missing_file_handlers['ignore']),
+        error=create_autospec(_missing_file_handlers['error']),
     )
     def test__load_toml__when_missing_option(t):
         """Test that calling the _load_toml function
