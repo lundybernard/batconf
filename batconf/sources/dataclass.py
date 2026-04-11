@@ -8,23 +8,23 @@ from typing import (
 from dataclasses import _MISSING_TYPE
 
 from ..source import SourceInterface
-from ..types import ConfigProtocol, FieldProtocol
+from ..types import ConfigP, FieldP
 
 
 class DataclassConfig(SourceInterface):
     def __init__(
-        self, ConfigClass: ConfigProtocol | Any, path: str | None = None
+        self, ConfigClass: ConfigP | Any, path: str | None = None
     ):
         """Extract default values from the Config dataclass.
         Properties without defaults are set to None.
 
-        :param ConfigClass: a Config dataclass or :class:`ConfigProtocol` obj
+        :param ConfigClass: a Config dataclass or :class:`ConfigP` obj
         """
         self._root = path if path else ConfigClass.__module__
         self._data: _DATA_DICT_TYPE = {}
 
         for field in _fields(ConfigClass):
-            if isinstance(field.type, ConfigProtocol):
+            if isinstance(field.type, ConfigP):
                 self._data[field.name] = DataclassConfig(field.type)
             elif type(field.default) is _MISSING_TYPE:
                 self._data[field.name] = None
@@ -51,7 +51,7 @@ class DataclassConfig(SourceInterface):
         return conf  # type: ignore
 
 
-def _fields(dataclass: ConfigProtocol) -> Iterable[FieldProtocol]:
+def _fields(dataclass: ConfigP) -> Iterable[FieldP]:
     for _, v in dataclass.__dataclass_fields__.items():
         yield v
 

@@ -4,7 +4,7 @@ from typing import (
 )
 
 from .source import SourceList
-from .types import ConfigProtocol, FieldProtocol, SourceListProto
+from .types import ConfigP, FieldP, SourceListP
 
 
 ConfigRet = 'Configuration | str'
@@ -26,9 +26,9 @@ class Configuration:
 
     Parameters
     ----------
-    source_list : SourceListProto
+    source_list : SourceListP
         Ordered collection of configuration sources to query.
-    config_class : ConfigProtocol
+    config_class : ConfigP
         Dataclass whose fields define the configuration schema.
     path : str or None, default=None
         Dotted namespace path for this configuration node. Defaults to the
@@ -46,8 +46,8 @@ class Configuration:
 
     def __init__(
         self,
-        source_list: SourceListProto,
-        config_class: ConfigProtocol | Any,
+        source_list: SourceListP,
+        config_class: ConfigP | Any,
         path: str | None = None,
     ):
         self._config_sources = source_list
@@ -61,7 +61,7 @@ class Configuration:
                 path=f'{self._path}.{f.name}',
             )
             for f in _fields(self._config_class)
-            if isinstance(f.type, ConfigProtocol)
+            if isinstance(f.type, ConfigP)
         }
 
         self._default_values: dict[str, str] = {
@@ -117,8 +117,8 @@ class Configuration:
         )
 
 
-# Replacement for dataclasses.fields, typed for ConfigProtocol
-def _fields(dataclass: ConfigProtocol) -> Iterable[FieldProtocol]:
+# Replacement for dataclasses.fields, typed for ConfigP
+def _fields(dataclass: ConfigP) -> Iterable[FieldP]:
     for _, v in dataclass.__dataclass_fields__.items():
         yield v
 
@@ -131,7 +131,7 @@ def _configuration_repr(
     children = []
 
     for field in _fields(configuration._config_class):
-        if isinstance(field.type, ConfigProtocol):
+        if isinstance(field.type, ConfigP):
             children.append(
                 ''.join(('    |' * level, f'- {field.name} {field.type}:'))
             )

@@ -2,10 +2,10 @@ from abc import ABCMeta, abstractmethod
 
 from typing import Sequence
 
-from .types import SourceInterfaceProto, SourceListProto
+from .types import SourceInterfaceP, SourceListP
 
 
-class SourceInterface(SourceInterfaceProto, metaclass=ABCMeta):
+class SourceInterface(SourceInterfaceP, metaclass=ABCMeta):
     @abstractmethod
     def get(self, key: str, path: str | None = None) -> str | None:
         pass
@@ -20,7 +20,7 @@ class SourceList:
 
     Parameters
     ----------
-    sources : Sequence[SourceInterfaceProto | None]
+    sources : Sequence[SourceInterfaceP | None]
         Ordered sequence of configuration sources. Earlier entries take
         precedence over later ones.
 
@@ -29,8 +29,8 @@ class SourceList:
     >>> source_list = SourceList(sources=[NamespaceSource(args), EnvSource(), IniSource(file_path='config.ini')])
     """
 
-    def __init__(self, sources: Sequence[SourceInterfaceProto | None]) -> None:
-        self._sources: list[SourceInterfaceProto] = list(filter(None, sources))
+    def __init__(self, sources: Sequence[SourceInterfaceP | None]) -> None:
+        self._sources: list[SourceInterfaceP] = list(filter(None, sources))
 
     def get(self, key: str, path: str | None = None) -> str | None:
         for source in self._sources:
@@ -40,7 +40,7 @@ class SourceList:
 
     def insert_source(
         self,
-        source: SourceInterfaceProto,
+        source: SourceInterfaceP,
         index: int = 0,
     ) -> None:
         self._sources.insert(index, source)

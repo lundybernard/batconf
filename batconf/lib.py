@@ -3,7 +3,7 @@ from functools import cached_property
 
 from .manager import Configuration
 from .source import SourceList
-from .types import SourceInterfaceProto, SourceListProto
+from .types import SourceInterfaceP, SourceListP
 
 
 class ConfigSingleton:
@@ -58,18 +58,18 @@ class ConfigSingleton:
 class _InsertableSourceList(Protocol):
     def insert_source(
         self,
-        source: SourceInterfaceProto,
+        source: SourceInterfaceP,
         index: int = 0,
     ) -> None: ...
 
 
 class _HasConfigSources(Protocol):
-    _config_sources: SourceListProto
+    _config_sources: SourceListP
 
 
 def insert_source(
     cfg: _HasConfigSources,
-    source: SourceInterfaceProto,
+    source: SourceInterfaceP,
     index: int = 0,
 ) -> None:
     """Insert a configuration source into the configuration's source list.
@@ -82,7 +82,7 @@ def insert_source(
     ----------
     cfg : Configuration or ConfigSingleton
         Configuration object or singleton to modify.
-    source : SourceInterfaceProto
+    source : SourceInterfaceP
         Configuration source to insert (e.g., CLI args, environment
         variables, config file).
     index : int, default=0
