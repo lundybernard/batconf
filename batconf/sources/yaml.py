@@ -7,8 +7,14 @@ import warnings
 
 from pathlib import Path
 
-from .file import file_config_repr
-from .types import MissingFileOption as _MissingFileOption
+from .file import (
+    MissingFileHandlerP,
+    load_file_warn_when_missing,
+    load_file_ignore_when_missing,
+    load_file_error_when_missing,
+    file_config_repr,
+)
+from .types import ConfigFileFormats, MissingFileOption as _MissingFileOption
 from ..source import SourceInterface
 
 
@@ -200,14 +206,104 @@ _YAML_IMPORT_ERROR_MSG = (
 )
 
 
-# === Stubs — replaced by full implementation in the next step === #
+# === YamlSource === #
 
-EmptyYamlConfig: dict = NotImplemented  # type: ignore[assignment]
-
-
-def _load_yaml_source(*args, **kwargs):
-    raise NotImplementedError
+EmptyYamlConfig: dict = dict()
 
 
-class YamlSource:
-    pass
+class YamlSource(SourceInterface):
+    """Configuration source backed by a YAML file.
+
+    Parameters
+    ----------
+    file_path : str
+        Path to the YAML configuration file.
+    file_format : {'environments', 'sections', 'flat'}, default='environments'
+        YAML file layout. ``'environments'`` expects a top-level ``default``
+        key identifying the active environment and a mapping for each
+        environment; ``'sections'`` and ``'flat'`` read the document as a
+        plain nested mapping.
+    config_env : str or None, default=None
+        Active configuration environment. Only used when
+        ``file_format='environments'``. When not provided, the value of the
+        top-level ``default`` key in the YAML file is used.
+    missing_file_option : {'warn', 'ignore', 'error'}, default='warn'
+        Behaviour when the specified file is missing.
+
+    Examples
+    --------
+    >>> src = YamlSource(file_path='config.yaml', config_env='dev')
+    """
+
+    __data: Any
+
+    def __init__(
+        self,
+        file_path: str,
+        file_format: ConfigFileFormats = 'environments',
+        config_env: str | None = None,
+        missing_file_option: _MissingFileOption = 'warn',
+    ):
+        self._config_file_path = Path(file_path)
+        self._file_format = file_format
+        self._config_env = config_env
+        self._missing_file_option = missing_file_option
+
+        self._data = _load_yaml_source(
+            file_path=self._config_file_path,
+            when_missing=self._missing_file_option,
+        )
+
+    @property
+    def _data(self) -> Any:
+        return self.__data
+
+    @_data.setter
+    def _data(self, config: dict) -> None:
+        if config is EmptyYamlConfig:
+            self.__data = config
+            return
+
+        if self._file_format == 'environments':
+            if not self._config_env:
+                self._config_env = config['default']
+            self.__data = config[self._config_env]
+        else:
+            self.__data = config
+
+    def get(self, key: str, path: str | None = None) -> str | None:
+        if path:
+            pth = path.split('.') + key.split('.')
+        else:
+            pth = key.split('.')
+
+        conf = self._data
+        for k in pth:
+            if not (conf := conf.get(k)):
+                return conf
+        return conf if type(conf) is not dict else None
+
+    def __str__(self) -> str:
+        return f'Yaml File: {repr(self)}'
+
+    __repr__ = file_config_repr
+
+
+# === YamlSource file loader === #
+
+_yaml_source_missing_handlers: dict[str, MissingFileHandlerP] = {
+    'warn': load_file_warn_when_missing,
+    'ignore': load_file_ignore_when_missing,
+    'error': load_file_error_when_missing,
+}
+
+
+def _load_yaml_source(
+    file_path: Path,
+    when_missing: _MissingFileOption = 'warn',
+) -> dict:
+    return _yaml_source_missing_handlers[when_missing](
+        loader_fn=_load_yaml_file,
+        file_path=file_path,
+        empty_fallback=EmptyYamlConfig,
+    )
