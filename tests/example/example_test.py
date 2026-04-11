@@ -293,7 +293,7 @@ class LibTests(TestCase):
             '    |    |    |- key2: "DEFAULT VALUE"\n'
             'SourceList=[\n'
             f'    Environment Variables: EnvConfig(),\n'
-            f'    Ini File: IniConfig(file_path={CONFIG_FILE_NAME}, '
+            f'    Ini File: IniSource(file_path={CONFIG_FILE_NAME}, '
             'config_env=test, missing_file_option=warn, '
             'file_format=environments),\n'
             ']',

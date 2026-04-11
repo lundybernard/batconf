@@ -95,7 +95,7 @@ def get_config(
         (
             config_file
             if config_file
-            else IniSource(config_file_name, config_env=config_env)
+            else IniSource(file_path=config_file_name, config_env=config_env)
         ),
     ]
 
