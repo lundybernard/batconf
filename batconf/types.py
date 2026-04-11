@@ -12,11 +12,7 @@ Examples
 
 from typing import Protocol, Type, runtime_checkable
 
-from .sources.types import ConfigFileFormats, MissingFileOption
-
-
-class SourceInterfaceProto(Protocol):
-    def get(self, key: str, path: str | None) -> str | None: ...
+from .sources.types import ConfigFileFormats, MissingFileOption, SourceInterfaceProto
 
 
 class SourceListProto(SourceInterfaceProto, Protocol):

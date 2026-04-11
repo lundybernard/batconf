@@ -10,11 +10,11 @@ from .file import (
     missing_file_handlers as _missing_file_handlers,
     file_config_repr,
 )
+from .types import FileSourceP
 
 
 _OptStr = str | None
 TomlDictT = dict[str, Any]
-
 
 log = getLogger(__name__)
 
@@ -23,7 +23,7 @@ class _DEFAULTS(Enum):
     environment = auto()
 
 
-class TomlConfig:
+class TomlConfig(FileSourceP):
     """Configuration source backed by a TOML file.
 
     Parameters
@@ -149,7 +149,6 @@ def _load_toml_file(file_path: Path) -> TomlDictT:
         config = load(cfg_file.read())
 
     return config
-
 
 
 def _import_toml_load_function():
