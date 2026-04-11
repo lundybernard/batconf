@@ -507,9 +507,9 @@ class YamlSourceTests(TestCase):
 
         with t.subTest('flat: stores the whole dict'):
             ys = YamlSource(file_path=t.file_path, file_format='flat')
-            config = {'key': 'val'}
-            ys._data = config
-            t.assertDictEqual(config, ys._data)
+            flat_config = {'key': 'val'}
+            ys._data = flat_config
+            t.assertDictEqual(flat_config, ys._data)
 
         with t.subTest('empty sentinel passes through unchanged'):
             ys = YamlSource(file_path=t.file_path)
@@ -574,9 +574,9 @@ class _load_yaml_sourceTests(TestCase):
                     file_path=file_path,
                     when_missing=when_missing,
                 )
-                _missing_file_handlers[when_missing].assert_called_with(
+                _missing_file_handlers[when_missing].assert_called_with(  # type: ignore[attr-defined]
                     loader_fn=_load_yaml_file,
                     file_path=file_path,
                     empty_fallback=EmptyYamlConfig,
                 )
-                t.assertIs(_missing_file_handlers[when_missing].return_value, ret)
+                t.assertIs(_missing_file_handlers[when_missing].return_value, ret)  # type: ignore[attr-defined]

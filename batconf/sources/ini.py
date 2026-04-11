@@ -187,8 +187,8 @@ class IniConfig(SourceInterface):
     @_config_env.setter
     def _config_env(self, env):  # _EnvOpts):
         if (
-            self._file_format != 'environments'
-            or self._data is EmptyConfigParser
+                self._file_format != 'environments'
+                or self._data is EmptyConfigParser
         ):
             self.__config_env = None  # type: ignore[assignment]
             return
@@ -249,13 +249,11 @@ _file_type_loaders: dict[str, FileLoaderP] = {
     'flat': _load_ini_file_flat,
 }
 
-
 _file_loader_map = {
     (ini_format, when_missing): (loader_fn, handler_fn)
     for ini_format, loader_fn in _file_type_loaders.items()
     for when_missing, handler_fn in _missing_file_handlers.items()
 }
-
 
 _MOD_PARAM_DEPRECATION_WARNING = (
     'The module argument is deprecated and will be removed'
@@ -287,7 +285,7 @@ class IniSource(SourceInterface):
 
     _data: ConfigParser | EmptyConfigParser = EmptyConfigParser()
     _get_impl: Callable
-    __config_env: str
+    __config_env: str | None
 
     def __init__(
         self,
@@ -306,7 +304,7 @@ class IniSource(SourceInterface):
             when_missing=self._missing_file_option,
         )
 
-        self._config_env = config_env  # type: ignore[assignment]
+        self._config_env = config_env
 
         if self._data is EmptyConfigParser:
             self._get_impl = _getter_methods['empty']
@@ -320,24 +318,29 @@ class IniSource(SourceInterface):
         return self._get_impl(self, key=key, path=path)
 
     @property
-    def _config_env(self):  # -> str | None:
+    def _config_env(self) -> str | None:
         return self.__config_env
 
     @_config_env.setter
-    def _config_env(self, env: str | None):
+    def _config_env(self, env: str | None) -> None:
         if (
-            self._file_format != 'environments'
-            or self._data is EmptyConfigParser
+                self._file_format != 'environments'
+                or self._data is EmptyConfigParser
         ):
-            self.__config_env = None  # type: ignore[assignment]
+            self.__config_env = None
             return
 
         if env is None:
-            self.__config_env = self._data.get('batconf', 'default_env')
+            self.__config_env = self._data.get(
+                'batconf',
+                'default_env'
+            )  # type: ignore[union-attr, assignment]
         else:
             self.__config_env = env
 
-        if not self._data.has_section(self._config_env):
+        if not self._data.has_section(
+                self._config_env
+        ):  # type: ignore[union-attr]
             raise ValueError(
                 f'Config Environment "{self._config_env}" '
                 f'not found in {self._config_file_path}'

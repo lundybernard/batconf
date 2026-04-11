@@ -15,7 +15,6 @@ from .file import (
 _OptStr = str | None
 TomlDictT = dict[str, Any]
 
-
 log = getLogger(__name__)
 
 
@@ -106,7 +105,7 @@ class TomlConfig:
 
     # TODO: Fix type-hints when the next version of MyPy is released
     @property
-    def _config_env(self):  # -> str:
+    def _config_env(self) -> str:
         return self.__config_env
 
     @_config_env.setter
@@ -149,7 +148,6 @@ def _load_toml_file(file_path: Path) -> TomlDictT:
         config = load(cfg_file.read())
 
     return config
-
 
 
 def _import_toml_load_function():
