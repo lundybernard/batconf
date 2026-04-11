@@ -11,6 +11,7 @@ from ..yaml import (
     get_file_path,
     _load_yaml,
     _load_yaml_source,
+    _missing_file_handlers,
     _load_yaml_file_warn_when_missing,
     _load_yaml_file_ignore_when_missing,
     _load_yaml_file,
@@ -560,3 +561,27 @@ class YamlSourceTests(TestCase):
             f')',
             repr(t.subject),
         )
+
+
+class _load_yaml_sourceTests(TestCase):
+    mock_missing_file_handlers = {
+        'warn': Mock(spec=_missing_file_handlers['warn']),
+        'ignore': Mock(spec=_missing_file_handlers['ignore']),
+        'error': Mock(spec=_missing_file_handlers['error']),
+    }
+
+    @patch.dict(f'{SRC}._missing_file_handlers', mock_missing_file_handlers)
+    def test__load_yaml_source(t) -> None:
+        file_path = _PathClass('./example.config.yaml')
+        for when_missing in ('warn', 'ignore', 'error'):
+            with t.subTest(when_missing=when_missing):
+                ret = _load_yaml_source(
+                    file_path=file_path,
+                    when_missing=when_missing,
+                )
+                _missing_file_handlers[when_missing].assert_called_with(
+                    loader_fn=_load_yaml_file,
+                    file_path=file_path,
+                    empty_fallback=EmptyYamlConfig,
+                )
+                t.assertIs(_missing_file_handlers[when_missing].return_value, ret)

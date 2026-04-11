@@ -1,7 +1,6 @@
 from unittest import TestCase
 from unittest.mock import patch, create_autospec, MagicMock, Mock, sentinel
 
-
 from ..file import (
     # missing file handlers
     MissingFileHandlerP,
@@ -14,7 +13,6 @@ from ..file import (
 
 
 SRC = 'batconf.sources.file'
-
 
 EXAMPLE_CONFIG_YAML = """
 default: example
@@ -31,7 +29,6 @@ alt:
         module:
             key: alt_value
 """
-
 
 EXAMPLE_CONFIG_DICT: dict = {
     'default': 'example',
@@ -122,9 +119,17 @@ class MissingFileHandlersTests(TestCase):
 
     def test_keys(t):
         """Each key maps to the correct handler function."""
-        t.assertIs(missing_file_handlers['warn'], load_file_warn_when_missing)
-        t.assertIs(missing_file_handlers['ignore'], load_file_ignore_when_missing)
-        t.assertIs(missing_file_handlers['error'], load_file_error_when_missing)
+        t.assertIs(
+            missing_file_handlers['warn'],
+            load_file_warn_when_missing, )
+        t.assertIs(
+            missing_file_handlers['ignore'],
+            load_file_ignore_when_missing,
+        )
+        t.assertIs(
+            missing_file_handlers['error'],
+            load_file_error_when_missing,
+        )
 
     @patch.dict(
         f'{SRC}.missing_file_handlers',
@@ -133,7 +138,8 @@ class MissingFileHandlersTests(TestCase):
         error=MagicMock(spec=load_file_error_when_missing),
     )
     def test_dispatch(t):
-        """Calling an entry by key delegates to the handler with the right args."""
+        """Calling an entry by key delegates to the correct handler.
+        """
         for option in ('warn', 'ignore', 'error'):
             with t.subTest(option=option):
                 ret = missing_file_handlers[option](

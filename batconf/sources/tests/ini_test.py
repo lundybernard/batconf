@@ -19,11 +19,6 @@ from ..ini import (
     EmptyConfigParser,
     Path,
 )
-from ..file import (
-    load_file_warn_when_missing,
-    load_file_ignore_when_missing,
-    load_file_error_when_missing,
-)
 
 
 SRC = 'batconf.sources.ini'
@@ -513,9 +508,9 @@ class _load_ini_Tests(TestCase):
     """Tests for the _load_ini function"""
 
     mock_missing_file_handlers = {
-        'warn': Mock(load_file_warn_when_missing, autospec=True),
-        'ignore': Mock(load_file_ignore_when_missing, autospec=True),
-        'error': Mock(load_file_error_when_missing, autospec=True),
+        'warn': Mock(spec=_missing_file_handlers['warn']),
+        'ignore': Mock(spec=_missing_file_handlers['ignore']),
+        'error': Mock(spec=_missing_file_handlers['error']),
     }
 
     @patch.dict(f'{SRC}._missing_file_handlers', mock_missing_file_handlers)

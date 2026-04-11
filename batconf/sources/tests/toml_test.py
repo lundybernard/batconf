@@ -13,11 +13,6 @@ from ..toml import (
     _TOML_IMPORT_ERROR_MSG,
     Path,
 )
-from ..file import (
-    load_file_warn_when_missing,
-    load_file_ignore_when_missing,
-    load_file_error_when_missing,
-)
 
 
 SRC = 'batconf.sources.toml'
@@ -290,9 +285,9 @@ class TomlLoaderFunctionsTests(TestCase):
 
     @patch.dict(
         f'{SRC}._missing_file_handlers',
-        warn=MagicMock(load_file_warn_when_missing, autospec=True),
-        ignore=MagicMock(load_file_ignore_when_missing, autospec=True),
-        error=MagicMock(load_file_error_when_missing, autospec=True),
+        warn=MagicMock(spec=_missing_file_handlers['warn']),
+        ignore=MagicMock(spec=_missing_file_handlers['ignore']),
+        error=MagicMock(spec=_missing_file_handlers['error']),
     )
     def test__load_toml__when_missing_option(t):
         """Test that calling the _load_toml function
