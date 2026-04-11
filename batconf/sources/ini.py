@@ -1,3 +1,4 @@
+import warnings
 from typing import Literal, Protocol, Callable
 from logging import getLogger
 
@@ -254,3 +255,8 @@ _MOD_PARAM_DEPRECATION_WARNING = (
     'The module argument is deprecated and will be removed'
     ' from the SourceInterface.get interface in a future release.'
 )
+
+
+class IniSource(IniConfig):
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError
