@@ -660,6 +660,16 @@ class IniSourceTests(TestCase):
                 t.assertEqual(fmt, src._file_format)
                 t.assertIs(src._get_impl, _getter_methods[fmt])
 
+    def test___init__catches_invalid_file_format(t):
+        with t.assertRaises(ValueError):
+            _ = IniSource(file_path=t.config_file_str, file_format='invalid')
+
+    def test_config_env_section_missing_raises(t):
+        with t.assertRaises(ValueError):
+            _ = IniSource(
+                file_path=t.config_file_str, config_env='MissingEnvironment'
+            )
+
     def test_get(t):
         """get delegates to _get_impl."""
         mock_impl = Mock(spec=_get_envs)
