@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 import logging as log
+import warnings
 
 from pathlib import Path
 
@@ -50,6 +51,12 @@ class YamlConfig(SourceInterface):
         enable_config_environments: bool = True,
         missing_file_option: _MissingFileOption = 'warn',
     ):
+        warnings.warn(
+            'YamlConfig is deprecated, use YamlSource instead.'
+            ' YamlConfig will be removed in a future release.',
+            DeprecationWarning,
+            stacklevel=2,
+        )
         self._missing_file_option = missing_file_option
         self._config_file_path = get_file_path(
             file_name=config_file_name,
@@ -191,3 +198,16 @@ _YAML_IMPORT_ERROR_MSG = (
     'Please install it using `pip install pyyaml`.'
     'Or as an optional extra using `pip install batconf[yaml]`.'
 )
+
+
+# === Stubs — replaced by full implementation in the next step === #
+
+EmptyYamlConfig: dict = NotImplemented  # type: ignore[assignment]
+
+
+def _load_yaml_source(*args, **kwargs):
+    raise NotImplementedError
+
+
+class YamlSource:
+    pass
