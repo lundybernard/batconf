@@ -67,18 +67,13 @@ DEFAULT_EMPTY_CONFIGFILE_DICT = {'default': 'none', 'none': {}}
 class YamlConfigTests(TestCase):
     get_file_path: Mock
     _load_yaml: Mock
+    warnings: Mock
 
     def setUp(t):
-        # Suppress DeprecationWarning from YamlConfig across all tests in this
-        # class; test_deprecation_warning covers the warning explicitly.
-        _wm = warnings.catch_warnings()
-        _wm.__enter__()
-        t.addCleanup(_wm.__exit__, None, None, None)
-        warnings.simplefilter('ignore', DeprecationWarning)
-
         patches = [
             'get_file_path',
             '_load_yaml',
+            'warnings',
         ]
         for target in patches:
             patcher = patch(f'{SRC}.{target}', autospec=True)
@@ -111,11 +106,11 @@ class YamlConfigTests(TestCase):
         # Enable multi-environment support by default
         t.assertEqual(True, t.yc._enable_config_environments)
 
-    @patch(f'{SRC}.warnings')
-    def test_deprecation_warning(t, mock_warnings: Mock):
+    def test_deprecation_warning(t):
         """YamlConfig emits a DeprecationWarning pointing callers to YamlSource."""
+        t.warnings.reset_mock()
         _ = YamlConfig(config_file_name=t.config_file_name)
-        mock_warnings.warn.assert_called_once_with(
+        t.warnings.warn.assert_called_once_with(
             'YamlConfig is deprecated, use YamlSource instead.'
             ' YamlConfig will be removed in a future release.',
             DeprecationWarning,
