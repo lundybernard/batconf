@@ -6,7 +6,10 @@ import logging as log
 
 from pathlib import Path
 
-from .file import file_config_repr
+from .file import (
+    file_config_repr,
+    missing_file_handlers as _missing_file_handlers,
+)
 from .types import MissingFileOption as _MissingFileOption
 from ..source import SourceInterface
 
@@ -143,37 +146,19 @@ def get_file_path(
 
 # === Yaml File Loader === #
 
+# TODO: replace when we implement YamlSource
+_empty_yaml_config: dict = {'default': 'none', 'none': {}}
+
 
 def _load_yaml(
     file_path: Path,
     when_missing: _MissingFileOption,
 ) -> dict:
-    # TODO: Replace with a match statement when support for py3.9 is dropped
-    loader_map = {
-        'ignore': _load_yaml_file_ignore_when_missing,
-        'warn': _load_yaml_file_warn_when_missing,
-        'error': _load_yaml_file,
-    }
-    return loader_map[when_missing](file_path=file_path)
-
-
-def _load_yaml_file_warn_when_missing(file_path: Path) -> dict:
-    try:
-        config = _load_yaml_file(file_path)
-    except FileNotFoundError:
-        log.warning(_missing_config_warning)
-        return {'default': 'none', 'none': {}}
-
-    return config
-
-
-def _load_yaml_file_ignore_when_missing(file_path: Path) -> dict:
-    try:
-        config = _load_yaml_file(file_path)
-    except FileNotFoundError:
-        return {'default': 'none', 'none': {}}
-
-    return config
+    return _missing_file_handlers[when_missing](
+        loader_fn=_load_yaml_file,
+        file_path=file_path,
+        empty_fallback=_empty_yaml_config,
+    )
 
 
 def _load_yaml_file(file_path: Path) -> dict:
