@@ -8,13 +8,15 @@ from ..toml import (
     EmptyConfigDict,
     _load_toml,
     _load_toml_file,
-    load_file_warn_when_missing,
-    load_file_ignore_when_missing,
-    load_file_error_when_missing,
     _missing_file_handlers,
     _import_toml_load_function,
     _TOML_IMPORT_ERROR_MSG,
     Path,
+)
+from ..file import (
+    load_file_warn_when_missing,
+    load_file_ignore_when_missing,
+    load_file_error_when_missing,
 )
 
 

@@ -8,10 +8,7 @@ import warnings
 from pathlib import Path
 
 from .file import (
-    MissingFileHandlerP,
-    load_file_warn_when_missing,
-    load_file_ignore_when_missing,
-    load_file_error_when_missing,
+    missing_file_handlers as _missing_file_handlers,
     file_config_repr,
 )
 from .types import ConfigFileFormats, MissingFileOption as _MissingFileOption
@@ -291,18 +288,11 @@ class YamlSource(SourceInterface):
 
 # === YamlSource file loader === #
 
-_yaml_source_missing_handlers: dict[str, MissingFileHandlerP] = {
-    'warn': load_file_warn_when_missing,
-    'ignore': load_file_ignore_when_missing,
-    'error': load_file_error_when_missing,
-}
-
-
 def _load_yaml_source(
     file_path: Path,
     when_missing: _MissingFileOption = 'warn',
 ) -> dict:
-    return _yaml_source_missing_handlers[when_missing](
+    return _missing_file_handlers[when_missing](
         loader_fn=_load_yaml_file,
         file_path=file_path,
         empty_fallback=EmptyYamlConfig,

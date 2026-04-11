@@ -1,5 +1,5 @@
 from unittest import TestCase
-from unittest.mock import patch, create_autospec, sentinel
+from unittest.mock import patch, create_autospec, MagicMock, Mock, sentinel
 
 
 from ..file import (
@@ -8,6 +8,7 @@ from ..file import (
     load_file_warn_when_missing,
     load_file_ignore_when_missing,
     load_file_error_when_missing,
+    missing_file_handlers,
     Path,
 )
 
@@ -112,3 +113,37 @@ class FileLoaderFunctionTests(TestCase):
                     loader_fn=t.loader_fn,
                     file_path=t.file_path,
                 )
+
+
+class MissingFileHandlersTests(TestCase):
+    def setUp(t):
+        t.file_path = Path('example.config.file')
+        t.loader_fn = Mock()
+
+    def test_keys(t):
+        """Each key maps to the correct handler function."""
+        t.assertIs(missing_file_handlers['warn'], load_file_warn_when_missing)
+        t.assertIs(missing_file_handlers['ignore'], load_file_ignore_when_missing)
+        t.assertIs(missing_file_handlers['error'], load_file_error_when_missing)
+
+    @patch.dict(
+        f'{SRC}.missing_file_handlers',
+        warn=MagicMock(spec=load_file_warn_when_missing),
+        ignore=MagicMock(spec=load_file_ignore_when_missing),
+        error=MagicMock(spec=load_file_error_when_missing),
+    )
+    def test_dispatch(t):
+        """Calling an entry by key delegates to the handler with the right args."""
+        for option in ('warn', 'ignore', 'error'):
+            with t.subTest(option=option):
+                ret = missing_file_handlers[option](
+                    loader_fn=t.loader_fn,
+                    file_path=t.file_path,
+                    empty_fallback=sentinel.EmptyConfig,
+                )
+                missing_file_handlers[option].assert_called_with(
+                    loader_fn=t.loader_fn,
+                    file_path=t.file_path,
+                    empty_fallback=sentinel.EmptyConfig,
+                )
+                t.assertIs(missing_file_handlers[option].return_value, ret)
