@@ -88,10 +88,15 @@ Most projects can copy this example with minimal modification.
 .. code-block:: python
     :caption: {yourmodule}/conf.py
 
-    from batconf import Configuration, ConfigProtocol, SourceList
-    from batconf.sources.argparse import NamespaceConfig, Namespace
-    from batconf.sources.env import EnvConfig
-    from batconf.sources.file import FileConfig
+    from batconf import (
+        Configuration,
+        SourceList,
+        NamespaceSource,
+        Namespace,
+        EnvSource,
+        IniSource,
+    )
+    from batconf.types import ConfigProtocol, SourceInterfaceProto
 
     # Default config file path,
     # look for config.ini in the current working directory
@@ -104,23 +109,59 @@ Most projects can copy this example with minimal modification.
     def get_config(
         config_class: ConfigProtocol = ConfigSchema,  # type: ignore
         cfg_path: str = 'yourmodule',
-        cli_args: Namespace = None,
-        config_file: FileConfig = None,
+        cli_args: Namespace | None = None,
+        config_file: SourceInterfaceProto | None = None,
         config_file_name: str = CONFIG_FILE_NAME,
-        config_env: str = None,
+        config_env: str | None = None,
     ) -> Configuration:
 
         # Build a prioritized config source list
         config_sources = [
-            NamespaceConfig(cli_args) if cli_args else None,
-            EnvConfig(),
-            config_file if config_file else IniConfig(
+            NamespaceSource(cli_args) if cli_args else None,
+            EnvSource(),
+            config_file if config_file else IniSource(
                 config_file_name, config_env=config_env
             ),
         ]
 
         source_list = SourceList(config_sources)
         return Configuration(source_list, config_class, path=cfg_path)
+
+
+Global Configuration Singleton
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Use :class:`~batconf.lib.ConfigSingleton` to share a single
+:class:`~batconf.manager.Configuration` instance across your application.
+The underlying ``Configuration`` is created lazily on first access.
+
+.. code-block:: python
+    :caption: yourmodule/conf.py
+
+    from batconf import ConfigSingleton
+    from .conf import get_config
+
+    # Create once — import CFG anywhere in your application
+    CFG = ConfigSingleton(get_config)
+
+Call :meth:`~batconf.lib.ConfigSingleton._reset` to rebuild the configuration
+(e.g. in tests or after changing sources):
+
+.. code-block:: python
+
+    CFG._reset()
+
+To add a source at runtime — for example after CLI args have been parsed —
+use :func:`~batconf.lib.insert_source`.
+New sources are inserted at index 0 (highest priority) by default:
+
+.. code-block:: python
+    :caption: yourmodule/cli.py
+
+    from batconf import insert_source, NamespaceSource
+    from .conf import CFG
+
+    def cli_entry(args):
+        insert_source(cfg=CFG, source=NamespaceSource(args))
 
 
 Defaults
@@ -158,7 +199,7 @@ as the root.
 Usage
 -----
 
-Access config option values using python's attribute(``.``) notation.
+Access config option values using python's attribute (``.``) notation.
 
 .. code-block:: python
 
@@ -166,16 +207,33 @@ Access config option values using python's attribute(``.``) notation.
 
     In [2]: print(cfg)
     yourproject <class 'yourproject.conf.ConfigSchema'>:
-        |- server = <class 'yourproject.server.ServerConfiguration'>:
+        |- server <class 'yourproject.server.ServerConfiguration'>:
         |    |- host: "0.0.0.0"
         |    |- port: "5000"
     SourceList=[
-        <batconf.sources.env.EnvConfig object at 0x7faf102ed4f0>,
-        <batconf.sources.ini.IniConfig object at 0x7faf102e7440>,
+        Environment Variables: EnvConfig(),
+        Ini File: IniConfig(file_path=config.ini, config_env=None, missing_file_option=warn, file_format=environments),
     ]
 
     In [3]: cfg.server.host
     Out[3]: '0.0.0.0'
+
+
+Subscript Access
+~~~~~~~~~~~~~~~~
+:class:`~batconf.manager.Configuration` also supports subscript (``[]``)
+notation, which is equivalent to attribute access. This is useful when the
+key is a runtime variable.
+
+.. code-block:: python
+
+    In [4]: cfg['server']['host']
+    Out[4]: '0.0.0.0'
+
+    # Practical use case: select a sub-config by a runtime variable
+    In [5]: client_id = 'clientB'
+    In [6]: cfg.clients[client_id].host
+    Out[6]: '192.168.1.2'
 
 
 CLI Args
@@ -210,8 +268,20 @@ configuration options for the ``client`` found in ``yourproject.example.client``
 Ini
 ^^^
 
+:class:`~batconf.sources.ini.IniConfig` supports three file formats,
+controlled by the ``file_format`` parameter (default: ``'environments'``):
+
+* **``'environments'``** *(default)* — sections are prefixed with an
+  environment name (e.g. ``[dev.yourproject.example.client]``).
+  A ``[batconf]`` section can declare the default environment via
+  ``default_env``. Intermediate parent sections must be present even
+  if empty (e.g. ``[dev]``, ``[dev.yourproject]``).
+* **``'sections'``** — sections use the dotted config path directly
+  (e.g. ``[yourproject.example.client]``), with no environment prefix.
+* **``'flat'``** — a single flat key/value file with no sections.
+
 .. code-block:: ini
-    :caption: config.ini
+    :caption: config.ini (environments format — default)
 
     [batconf]
     default_env = dev
@@ -235,6 +305,10 @@ Ini
 Yaml
 ^^^^
 
+:class:`~batconf.sources.yaml.YamlConfig` uses an environment-based
+structure by default. The top-level ``default`` key sets the active
+environment when ``config_env`` is not specified at runtime.
+
 .. code-block:: yaml
     :caption: config.yaml
 
@@ -257,15 +331,41 @@ Yaml
             address: 192.168.1.1
 
 
-
 Setting the configuration file
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Choosing default config file names and locations bears careful consideration,
-and we will cover options and best-practices in an advanced usage guide.
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The example assumes ``config.ini`` is in the current working directory.
+Choosing sensible default file names and locations depends on your
+application — common choices are ``~/.config/yourapp/config.ini`` for
+user-level config and ``/etc/yourapp/config.ini`` for system-level config.
 
-The example assumes 'config.ini' is in the current working directory.
+I recommend adding ``--config-file`` and ``--env`` options to your CLI
+for convenience:
 
-* **Default**: If the specified config file is not found,
-  the default behavior is to raise a warning.
-* **CLI args**: I recommend adding config file path and environment to your CLI
-  for convenience. ex: ``> yourcli --config_file=~/mycfg.yaml --env=staging ...``
+.. code-block:: bash
+
+    > yourcli --config-file=~/mycfg.ini --env=staging ...
+
+
+Missing file behaviour
+^^^^^^^^^^^^^^^^^^^^^^
+Both :class:`~batconf.sources.ini.IniConfig` and
+:class:`~batconf.sources.yaml.YamlConfig` accept a ``missing_file_option``
+parameter that controls what happens when the config file is not found:
+
+* **``'warn'``** *(default)* — logs a warning and continues. Safe for
+  development where a config file may not always be present.
+* **``'ignore'``** — silently skips the file. Useful when the file is
+  genuinely optional and other sources (ENV, defaults) are sufficient.
+* **``'error'``** — raises an exception. Recommended for production
+  deployments where a missing config file should be a hard failure.
+
+.. code-block:: python
+
+    IniSource('config.ini', missing_file_option='error')
+
+
+Testing
+-------
+
+See :doc:`guide` for guidance on testing code that uses BatConf,
+including patterns for ``ConfigSingleton`` isolation.
