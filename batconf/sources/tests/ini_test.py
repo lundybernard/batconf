@@ -4,6 +4,8 @@ from unittest.mock import Mock, patch, mock_open
 from ..ini import (
     # Under Test
     IniConfig,
+    IniSource,
+    warnings,
     ConfigFileFormats,
     _load_ini_file,
     _load_ini_file_flat,
@@ -18,9 +20,6 @@ from ..ini import (
     ConfigParser,
     EmptyConfigParser,
     Path,
-    load_file_warn_when_missing,
-    load_file_ignore_when_missing,
-    load_file_error_when_missing,
 )
 
 
@@ -93,10 +92,12 @@ CONFIG_PARSER_ENVS.read_string(INI_ENV_STR)
 
 class IniConfigTests(TestCase):
     _load_ini: Mock
+    warnings: Mock
 
     def setUp(t):
         patches = [
             '_load_ini',
+            'warnings',
         ]
         for target in patches:
             patcher = patch(f'{SRC}.{target}', autospec=True)
@@ -106,6 +107,15 @@ class IniConfigTests(TestCase):
         t._load_ini.return_value = CONFIG_PARSER_ENVS
 
         t.config_file_str = 'testconfig.ini'
+
+    def test_deprecation_warning(t):
+        _ = IniConfig(file_path=t.config_file_str)
+        t.warnings.warn.assert_called_once_with(
+            'IniConfig is deprecated, use IniSource instead.'
+            ' IniConfig will be removed in a future release.',
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
     def test___init__defaults(t):
         ic = IniConfig(
@@ -511,9 +521,9 @@ class _load_ini_Tests(TestCase):
     """Tests for the _load_ini function"""
 
     mock_missing_file_handlers = {
-        'warn': Mock(load_file_warn_when_missing, autospec=True),
-        'ignore': Mock(load_file_ignore_when_missing, autospec=True),
-        'error': Mock(load_file_error_when_missing, autospec=True),
+        'warn': Mock(spec=_missing_file_handlers['warn']),
+        'ignore': Mock(spec=_missing_file_handlers['ignore']),
+        'error': Mock(spec=_missing_file_handlers['error']),
     }
 
     @patch.dict(f'{SRC}._missing_file_handlers', mock_missing_file_handlers)
@@ -611,3 +621,81 @@ class GlobalsTests(TestCase):
                 CONFIG_PARSER_ENVS['production.project.user'],
                 'Morgan B.',
             )
+
+
+class IniSourceTests(TestCase):
+    _load_ini: Mock
+
+    def setUp(t):
+        patches = ['_load_ini']
+        for target in patches:
+            patcher = patch(f'{SRC}.{target}', autospec=True)
+            setattr(t, target, patcher.start())
+            t.addCleanup(patcher.stop)
+
+        t._load_ini.return_value = CONFIG_PARSER_ENVS
+        t.config_file_str = 'testconfig.ini'
+        t.subject = IniSource(file_path=t.config_file_str)
+
+    def test___init__defaults(t):
+        t.assertEqual('environments', t.subject._file_format)
+        t.assertEqual('warn', t.subject._missing_file_option)
+        t.assertEqual(Path(t.config_file_str), t.subject._config_file_path)
+        t._load_ini.assert_called_with(
+            file_path=Path(t.config_file_str),
+            file_format='environments',
+            when_missing='warn',
+        )
+        # Default environment is read from the config file.
+        t.assertEqual(
+            CONFIG_PARSER_ENVS.get('batconf', 'default_env'),
+            t.subject._config_env,
+        )
+        t.assertIs(t.subject._get_impl, _getter_methods['environments'])
+
+    def test_file_format_options(t):
+        for fmt in ('environments', 'sections', 'flat'):
+            with t.subTest(file_format=fmt):
+                src = IniSource(file_path=t.config_file_str, file_format=fmt)
+                t.assertEqual(fmt, src._file_format)
+                t.assertIs(src._get_impl, _getter_methods[fmt])
+
+    def test___init__catches_invalid_file_format(t):
+        with t.assertRaises(ValueError):
+            _ = IniSource(file_path=t.config_file_str, file_format='invalid')
+
+    def test_config_env_section_missing_raises(t):
+        with t.assertRaises(ValueError):
+            _ = IniSource(
+                file_path=t.config_file_str, config_env='MissingEnvironment'
+            )
+
+    def test_get(t):
+        """get delegates to _get_impl."""
+        mock_impl = Mock(spec=_get_envs)
+        t.subject._get_impl = mock_impl
+
+        ret = t.subject.get(key='section.key')
+        mock_impl.assert_called_with(t.subject, key='section.key', path=None)
+        t.assertIs(ret, mock_impl.return_value)
+
+        with t.subTest('path parameter'):
+            ret = t.subject.get(key='key', path='section.sub')
+            mock_impl.assert_called_with(
+                t.subject, key='key', path='section.sub'
+            )
+            t.assertIs(ret, mock_impl.return_value)
+
+    def test___str__(t) -> None:
+        t.assertEqual(f'Ini File: {repr(t.subject)}', str(t.subject))
+
+    def test___repr__(t) -> None:
+        t.assertEqual(
+            f'IniSource('
+            f'file_path={t.subject._config_file_path}, '
+            f'config_env={t.subject._config_env}, '
+            f'missing_file_option={t.subject._missing_file_option}, '
+            f'file_format={t.subject._file_format}'
+            f')',
+            repr(t.subject),
+        )

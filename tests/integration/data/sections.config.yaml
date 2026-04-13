@@ -1,0 +1,11 @@
+sec0:
+  sub0:
+    value0: 'sections.config.yaml :: sec0.sub0 :: value0'
+
+sec1:
+  value0: 'sections.config.yaml :: sec1 :: value0'
+
+configuration_test:
+  opt1: 'sections.config.yaml :: configuration_test :: opt1'
+  sub0:
+    doc: 'sections.config.yaml :: configuration_test.sub0 :: doc'

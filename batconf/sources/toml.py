@@ -7,17 +7,13 @@ from enum import Enum, auto
 from .file import (
     ConfigFileFormats,
     _MissingFileOption,
-    MissingFileHandlerP,
-    load_file_warn_when_missing,
-    load_file_ignore_when_missing,
-    load_file_error_when_missing,
+    missing_file_handlers as _missing_file_handlers,
     file_config_repr,
 )
 
 
 _OptStr = str | None
 TomlDictT = dict[str, Any]
-
 
 log = getLogger(__name__)
 
@@ -109,7 +105,7 @@ class TomlConfig:
 
     # TODO: Fix type-hints when the next version of MyPy is released
     @property
-    def _config_env(self):  # -> str:
+    def _config_env(self) -> str:
         return self.__config_env
 
     @_config_env.setter
@@ -152,13 +148,6 @@ def _load_toml_file(file_path: Path) -> TomlDictT:
         config = load(cfg_file.read())
 
     return config
-
-
-_missing_file_handlers: dict[str, MissingFileHandlerP] = {
-    'warn': load_file_warn_when_missing,
-    'ignore': load_file_ignore_when_missing,
-    'error': load_file_error_when_missing,
-}
 
 
 def _import_toml_load_function():

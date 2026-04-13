@@ -3,11 +3,15 @@ from __future__ import annotations
 from typing import Any
 
 import logging as log
+import warnings
 
 from pathlib import Path
 
-from .file import file_config_repr
-from .types import MissingFileOption as _MissingFileOption
+from .file import (
+    missing_file_handlers as _missing_file_handlers,
+    file_config_repr,
+)
+from .types import ConfigFileFormats, MissingFileOption as _MissingFileOption
 from ..source import SourceInterface
 
 
@@ -50,6 +54,12 @@ class YamlConfig(SourceInterface):
         enable_config_environments: bool = True,
         missing_file_option: _MissingFileOption = 'warn',
     ):
+        warnings.warn(
+            'YamlConfig is deprecated, use YamlSource instead.'
+            ' YamlConfig will be removed in a future release.',
+            DeprecationWarning,
+            stacklevel=2,
+        )
         self._missing_file_option = missing_file_option
         self._config_file_path = get_file_path(
             file_name=config_file_name,
@@ -191,3 +201,99 @@ _YAML_IMPORT_ERROR_MSG = (
     'Please install it using `pip install pyyaml`.'
     'Or as an optional extra using `pip install batconf[yaml]`.'
 )
+
+
+# === YamlSource === #
+
+EmptyYamlConfig: dict = dict()
+
+
+class YamlSource(SourceInterface):
+    """Configuration source backed by a YAML file.
+
+    Parameters
+    ----------
+    file_path : str
+        Path to the YAML configuration file.
+    file_format : {'environments', 'sections', 'flat'}, default='environments'
+        YAML file layout. ``'environments'`` expects a top-level ``default``
+        key identifying the active environment and a mapping for each
+        environment; ``'sections'`` and ``'flat'`` read the document as a
+        plain nested mapping.
+    config_env : str or None, default=None
+        Active configuration environment. Only used when
+        ``file_format='environments'``. When not provided, the value of the
+        top-level ``default`` key in the YAML file is used.
+    missing_file_option : {'warn', 'ignore', 'error'}, default='warn'
+        Behaviour when the specified file is missing.
+
+    Examples
+    --------
+    >>> src = YamlSource(file_path='config.yaml', config_env='dev')
+    """
+
+    __data: Any
+
+    def __init__(
+        self,
+        file_path: str,
+        file_format: ConfigFileFormats = 'environments',
+        config_env: str | None = None,
+        missing_file_option: _MissingFileOption = 'warn',
+    ):
+        self._config_file_path = Path(file_path)
+        self._file_format = file_format
+        self._config_env = config_env
+        self._missing_file_option = missing_file_option
+
+        self._data = _load_yaml_source(
+            file_path=self._config_file_path,
+            when_missing=self._missing_file_option,
+        )
+
+    @property
+    def _data(self) -> Any:
+        return self.__data
+
+    @_data.setter
+    def _data(self, config: dict) -> None:
+        if config is EmptyYamlConfig:
+            self.__data = config
+            return
+
+        if self._file_format == 'environments':
+            if not self._config_env:
+                self._config_env = config['default']
+            self.__data = config[self._config_env]
+        else:
+            self.__data = config
+
+    def get(self, key: str, path: str | None = None) -> str | None:
+        if path:
+            pth = path.split('.') + key.split('.')
+        else:
+            pth = key.split('.')
+
+        conf = self._data
+        for k in pth:
+            if not (conf := conf.get(k)):
+                return conf
+        return conf if type(conf) is not dict else None
+
+    def __str__(self) -> str:
+        return f'Yaml File: {repr(self)}'
+
+    __repr__ = file_config_repr
+
+
+# === YamlSource file loader === #
+
+def _load_yaml_source(
+    file_path: Path,
+    when_missing: _MissingFileOption = 'warn',
+) -> dict:
+    return _missing_file_handlers[when_missing](
+        loader_fn=_load_yaml_file,
+        file_path=file_path,
+        empty_fallback=EmptyYamlConfig,
+    )

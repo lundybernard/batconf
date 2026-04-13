@@ -1,0 +1,14 @@
+default: test
+
+test:
+  doc: 'our testing environment'
+  project:
+    submodule:
+      sub:
+        key1: 'envs.config.yaml: test.project.submodule.sub.key1'
+        integer: '0'
+
+production:
+  doc: 'Options for the production environment'
+  project:
+    doc: 'Python module specific options'
