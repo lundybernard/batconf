@@ -65,6 +65,13 @@ def load_file_error_when_missing(
     return loader_fn(file_path)
 
 
+missing_file_handlers: dict[str, MissingFileHandlerP] = {
+    'warn': load_file_warn_when_missing,
+    'ignore': load_file_ignore_when_missing,
+    'error': load_file_error_when_missing,
+}
+
+
 class FileConfigReprProtocol(Protocol):
     _config_file_path: Path | str | None
     _config_env: str | None

@@ -10,11 +10,8 @@ from ..source import SourceInterface
 from .file import (
     ConfigFileFormats,
     _MissingFileOption,
-    load_file_warn_when_missing,
-    load_file_ignore_when_missing,
-    load_file_error_when_missing,
     FileLoaderP,
-    MissingFileHandlerP,
+    missing_file_handlers as _missing_file_handlers,
     file_config_repr,
 )
 
@@ -245,12 +242,6 @@ _file_type_loaders: dict[str, FileLoaderP] = {
     'flat': _load_ini_file_flat,
 }
 
-
-_missing_file_handlers: dict[str, MissingFileHandlerP] = {
-    'warn': load_file_warn_when_missing,
-    'ignore': load_file_ignore_when_missing,
-    'error': load_file_error_when_missing,
-}
 
 _file_loader_map = {
     (ini_format, when_missing): (loader_fn, handler_fn)
