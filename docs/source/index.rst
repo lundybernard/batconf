@@ -46,7 +46,7 @@ Read about how BatConf supports free-threading/nogil in python 3.14+
 
 
 Security
-________
+--------
 
 Read about how BatConf helps to protect you against supply chain attacks
 on our Developer's Blog.
@@ -104,7 +104,7 @@ and Lauren Moore
 
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 

@@ -183,7 +183,7 @@ using your :ref:`ConfigSchema`
 
 
 Partial Configs
-^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^
 Given any valid ``config_class``, get_config will return a Configuration with it
 as the root.
 
@@ -237,7 +237,7 @@ key is a runtime variable.
 
 
 CLI Args
-~~~~~~~
+~~~~~~~~
 When running commands from a CLI, use the parsed args(``argparse.Namespace``).
 
 .. code-block:: python
@@ -271,14 +271,14 @@ Ini
 :class:`~batconf.sources.ini.IniConfig` supports three file formats,
 controlled by the ``file_format`` parameter (default: ``'environments'``):
 
-* **``'environments'``** *(default)* — sections are prefixed with an
+* ``'environments'`` *(default)* — sections are prefixed with an
   environment name (e.g. ``[dev.yourproject.example.client]``).
   A ``[batconf]`` section can declare the default environment via
   ``default_env``. Intermediate parent sections must be present even
   if empty (e.g. ``[dev]``, ``[dev.yourproject]``).
-* **``'sections'``** — sections use the dotted config path directly
+* ``'sections'`` — sections use the dotted config path directly
   (e.g. ``[yourproject.example.client]``), with no environment prefix.
-* **``'flat'``** — a single flat key/value file with no sections.
+* ``'flat'`` — a single flat key/value file with no sections.
 
 .. code-block:: ini
     :caption: config.ini (environments format — default)
@@ -352,11 +352,11 @@ Both :class:`~batconf.sources.ini.IniConfig` and
 :class:`~batconf.sources.yaml.YamlConfig` accept a ``missing_file_option``
 parameter that controls what happens when the config file is not found:
 
-* **``'warn'``** *(default)* — logs a warning and continues. Safe for
+* ``'warn'`` *(default)* — logs a warning and continues. Safe for
   development where a config file may not always be present.
-* **``'ignore'``** — silently skips the file. Useful when the file is
+* ``'ignore'`` — silently skips the file. Useful when the file is
   genuinely optional and other sources (ENV, defaults) are sufficient.
-* **``'error'``** — raises an exception. Recommended for production
+* ``'error'`` — raises an exception. Recommended for production
   deployments where a missing config file should be a hard failure.
 
 .. code-block:: python

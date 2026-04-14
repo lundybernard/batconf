@@ -114,7 +114,8 @@ Code:
 * Freeform Schemas: Config schemas no longer depend on module names.
 * Add :py:class:`YamlConfig <batconf.sources.yaml.YamlConfig>` to replace
   :py:class:`FileConfig <batconf.sources.file.FileConfig>`
-    * Deprecate `FileConfig <batconf.sources.file.FileConfig>`
+
+  * Deprecate `FileConfig <batconf.sources.file.FileConfig>`
 * Add .ini config source :py:class:`IniConfig <batconf.sources.ini.IniConfig>`
 * Add .toml config source :py:class:`TomlConfig <batconf.sources.toml.TomlConfig>`
 * Make the pyyaml dependency optional
@@ -126,11 +127,12 @@ Code:
 * Update `Example Project <https://github.com/lundybernard/batconf/tree/main/tests/example>`_
   to use freeform Schemas, instead of schemas bound to module namespaces.
 * Add default parameters to Configuration class:
-    * The Configuration class now handles default values set in Config
-      dataclasses.  As a result, we no longer need the DataclassConfig source
-      to lookup default values.
-    * Improve Configuration repr for paths and child-configs
-    * Remove DataclassConfig from example code and docs
+
+  * The Configuration class now handles default values set in Config
+    dataclasses.  As a result, we no longer need the DataclassConfig source
+    to lookup default values.
+  * Improve Configuration repr for paths and child-configs
+  * Remove DataclassConfig from example code and docs
 * Add _path attribute to :py:class:`Configuration <batconf.manager.Configuration>`
 * Lint with Ruff
 
