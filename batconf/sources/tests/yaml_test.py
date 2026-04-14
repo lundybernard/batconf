@@ -1,5 +1,12 @@
-from unittest import TestCase, skipIf
-from unittest.mock import patch, mock_open, Mock, MagicMock, PropertyMock
+from unittest import TestCase
+from unittest.mock import (
+    patch,
+    mock_open,
+    Mock,
+    MagicMock,
+    PropertyMock,
+    create_autospec,
+)
 
 from pathlib import Path as _PathClass
 
@@ -7,16 +14,15 @@ from ..yaml import (
     YamlConfig,
     get_file_path,
     _load_yaml,
-    _load_yaml_file_warn_when_missing,
-    _load_yaml_file_ignore_when_missing,
     _load_yaml_file,
+    _empty_yaml_config,
+    _missing_file_handlers,
     _missing_config_warning,
     _YAML_IMPORT_ERROR_MSG,
 )
 
 
 SRC = 'batconf.sources.yaml'
-
 
 EXAMPLE_CONFIG_YAML = """
 default: example
@@ -39,7 +45,6 @@ bat:
     key: envless_value
 """
 
-
 EXAMPLE_CONFIG_DICT: dict = {
     'default': 'example',
     'example': {
@@ -53,7 +58,6 @@ EXAMPLE_CONFIG_DICT: dict = {
     },
     'alt': {'bat': {'module': {'key': 'alt_value'}}},
 }
-
 
 EXAMPLE_CONFIG_WITHOUT_ENV_DICT = {'bat': {'key': 'envless_value'}}
 DEFAULT_EMPTY_CONFIGFILE_DICT = {'default': 'none', 'none': {}}
@@ -173,16 +177,12 @@ class YamlConfigTests(TestCase):
         with t.subTest('missing item'):
             t.assertEqual(conf.get('_sir_not_appearing_in_this_film'), None)
 
-    def test_loads_given_config_file(t):
+    @patch.object(YamlConfig, '_data', new_callable=PropertyMock)
+    def test_loads_given_config_file(t, _data_prop: Mock):
         filename = './test_example.config.yaml'
-
-        # some patch magic to mock the _data property
-        with patch.object(
-            YamlConfig, '_data', new_callable=PropertyMock
-        ) as _data_prop:
-            yc = YamlConfig(config_file_name=filename)
-            # The loaded data is sent to the _data property setter
-            _data_prop.assert_called_with(t._load_yaml.return_value)
+        _ = YamlConfig(config_file_name=filename)
+        # The loaded data is sent to the _data property setter
+        _data_prop.assert_called_with(t._load_yaml.return_value)
 
         t.get_file_path.assert_called_with(
             file_name=filename,
@@ -193,7 +193,6 @@ class YamlConfigTests(TestCase):
             file_path=pth,
             when_missing=t.default_missing_file_option,
         )
-        yc._data = t._load_yaml.return_value
 
     def test_config_env_argument(t):
         yc = YamlConfig('./example.config.yaml', config_env='alt')
@@ -342,64 +341,38 @@ class YamlLoaderFunctionsTests(TestCase):
         t.addCleanup(open_patcher.stop)
 
         t.file_path = _PathClass('./example.config.yaml')
-        t.empy_config_dict = {'default': 'none', 'none': {}}
 
     def test__load_yaml(t):
+        """Default behavior: file is found and loaded."""
         ret = _load_yaml(file_path=t.file_path, when_missing='error')
         t.assertEqual(ret, EXAMPLE_CONFIG_DICT)
 
-    def test__load_yaml_ignore(t):
-        t.open.side_effect = FileNotFoundError  # this error will be ignored
-        ret = _load_yaml(file_path=t.file_path, when_missing='ignore')
-        t.assertEqual(ret, t.empy_config_dict)
-
-    @patch(f'{SRC}._load_yaml_file_warn_when_missing', autospec=True)
-    def test__load_yaml_warn(t, _load_yaml_file_warn_when_missing: Mock):
-        ret = _load_yaml(file_path=t.file_path, when_missing='warn')
-        _load_yaml_file_warn_when_missing.assert_called_with(
-            file_path=t.file_path,
-        )
-        t.assertIs(_load_yaml_file_warn_when_missing.return_value, ret)
+    @patch.dict(
+        f'{SRC}._missing_file_handlers',
+        warn=create_autospec(_missing_file_handlers['warn']),
+        ignore=create_autospec(_missing_file_handlers['ignore']),
+        error=create_autospec(_missing_file_handlers['error']),
+    )
+    def test__load_yaml__when_missing_option(t):
+        """Dispatches to the correct handler with the right arguments."""
+        for opt in ('warn', 'ignore', 'error'):
+            with t.subTest(f'when_missing={opt}'):
+                ret = _load_yaml(file_path=t.file_path, when_missing=opt)
+                _missing_file_handlers[opt].assert_called_with(
+                    loader_fn=_load_yaml_file,
+                    file_path=t.file_path,
+                    empty_fallback=_empty_yaml_config,
+                )
+                t.assertIs(_missing_file_handlers[opt].return_value, ret)
 
     @patch(f'{SRC}._load_yaml_file', autospec=True)
-    def test__load_yaml_error(t, _load_yaml_file: Mock):
+    def test__load_yaml__error(t, _load_yaml_file: Mock):
         _load_yaml_file.side_effect = FileNotFoundError
+
         with t.assertRaises(FileNotFoundError):
             _ = _load_yaml(file_path=t.file_path, when_missing='error')
 
-        _load_yaml_file.assert_called_with(file_path=t.file_path)
-
-    @patch(f'{SRC}.log', autospec=True)
-    def test__load_yaml_file_warn_when_missing(t, log: Mock):
-        """Logs a warning if the file is missing"""
-        with t.subTest('file found'):
-            ret = _load_yaml_file_warn_when_missing(file_path=t.file_path)
-            t.assertEqual(ret, EXAMPLE_CONFIG_DICT)
-
-        with t.subTest('file not found'):
-            t.open.side_effect = FileNotFoundError
-
-            ret = _load_yaml_file_warn_when_missing(file_path=t.file_path)
-
-            t.open.assert_called_with(t.file_path)
-            log.warning.assert_called_with(_missing_config_warning)
-            t.assertEqual(ret, t.empy_config_dict)
-
-    @patch(f'{SRC}.log', autospec=True)
-    def test__load_yaml_file_ignore_when_missing(t, log):
-        """Logs a warning if the file is missing"""
-        with t.subTest('file found'):
-            ret = _load_yaml_file_ignore_when_missing(file_path=t.file_path)
-            t.assertEqual(ret, EXAMPLE_CONFIG_DICT)
-
-        with t.subTest('file not found'):
-            t.open.side_effect = FileNotFoundError
-
-            ret = _load_yaml_file_ignore_when_missing(file_path=t.file_path)
-
-            t.open.assert_called_with(t.file_path)
-            log.warning.assert_not_called()
-            t.assertEqual(ret, t.empy_config_dict)
+        _load_yaml_file.assert_called_with(t.file_path)
 
     # patch out the pyyaml module, as if it is not installed.
     @patch.dict('sys.modules', {'yaml': None})
