@@ -11,6 +11,9 @@ class SourcesTypesTests(TestCase):
         t.assertTrue(hasattr(types, 'ConfigFileFormats'))
         t.assertTrue(hasattr(types, 'MissingFileOption'))
 
+    def test_file_source_protocol(t):
+        t.assertTrue(hasattr(types, 'FileSourceP'))
+
     def test_all_is_complete(t):
         """Every symbol in __all__ must be importable from batconf.sources.types."""
         for name in types.__all__:
