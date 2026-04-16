@@ -1,3 +1,5 @@
+import warnings
+
 from unittest import TestCase
 from unittest.mock import patch, Mock
 
@@ -8,8 +10,17 @@ from batconf.sources.ini import IniConfig, IniSource
 
 class IniConfigIntegrationTests(TestCase):
     def setUp(t):
-        # Get the absolute path to the test config.yaml file
         t.this_dir = path.dirname(path.realpath(__file__))
+
+        w = warnings.catch_warnings()
+        w.__enter__()
+        warnings.simplefilter('ignore', DeprecationWarning)
+        t.addCleanup(w.__exit__, None, None, None)
+
+    def test_is_deprecated(t):
+        t.config_file_path = path.join(t.this_dir, 'data/envs.config.ini')
+        with t.assertWarns(DeprecationWarning):
+            IniConfig(file_path=t.config_file_path)
 
     def test_ini_file_source_defaults(t):
         """Test the Default behavior of the IniConfig configuration source"""
@@ -65,6 +76,11 @@ class IniConfigMissingFileTests(TestCase):
     def setUp(t):
         t.filename = 'sir.not.appearing.in.this.film'
 
+        w = warnings.catch_warnings()
+        w.__enter__()
+        warnings.simplefilter('ignore', DeprecationWarning)
+        t.addCleanup(w.__exit__, None, None, None)
+
     def test_warning_default(t):
         # The same behavior applies to all file formats
         for file_format in ['environments', 'sections', 'flat']:
@@ -75,11 +91,11 @@ class IniConfigMissingFileTests(TestCase):
                         file_format=file_format,
                         # missing_file_option='warning', is the default value
                     )
+                    # and all calls to .get will return None
+                    t.assertIsNone(ic.get('root'))
                     log.warning.assert_called_with(
                         f'Config file not found: {t.filename}'
                     )
-                # and all calls to .get will return None
-                t.assertIsNone(ic.get('root'))
                 t.assertIsNone(ic.get('project.submodule.sub.key1'))
                 t.assertIsNone(ic.get('any.random.key'))
 
@@ -90,11 +106,12 @@ class IniConfigMissingFileTests(TestCase):
         for file_format in ['environments', 'sections', 'flat']:
             with t.subTest(file_format=file_format):
                 with t.assertRaises(FileNotFoundError):
-                    _ = IniConfig(
+                    ic = IniConfig(
                         file_path=t.filename,
                         missing_file_option='error',
                         file_format=file_format,
                     )
+                    ic.get('any_key')
 
     def test_missing_file_ignore(t):
         """when missing_file_option='ignore'
