@@ -2,7 +2,8 @@ from typing import Any, Sequence
 
 from pathlib import Path
 
-from batconf.manager import Configuration, ConfigProtocol
+from batconf.manager import Configuration
+from batconf.types import ConfigP
 from batconf.source import SourceList, SourceInterface
 from batconf.sources.ini import IniConfig
 
@@ -32,7 +33,7 @@ CONFIG_FILE_NAME = str(_notebooks_dir / 'config.ini')
 
 
 def get_config(
-    config_class: ConfigProtocol | Any = NotebooksConfigSchema,
+    config_class: ConfigP | Any = NotebooksConfigSchema,
     cfg_path: str = 'notebooks',
     config_file: SourceInterface | None = None,
     config_file_name: str = CONFIG_FILE_NAME,
@@ -47,7 +48,7 @@ def get_config(
     :param config_class: The BatConf configuration schema
     python builtin dataclass of type dataclass[dataclass | str].
     Type-hint includes :class:`Any` because mypy does not currently recognize
-    the dataclass produced by @dataclass as satisfying the ConfigProtocol.
+    the dataclass produced by @dataclass as satisfying the ConfigP.
     :param cfg_path: :class:`String` The name of the config tree root
     for your project.
     :param cli_args: :class:`Namespace` provided by python's builtin argparse

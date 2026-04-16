@@ -12,7 +12,7 @@ from batconf import (
     EnvSource,
     IniSource,
 )
-from batconf.types import ConfigProtocol, SourceInterfaceProto
+from batconf.types import ConfigP, FileSourceP, SourceInterfaceP
 from .submodule import MyClient
 
 
@@ -62,10 +62,10 @@ CONFIG_FILE_NAME = path.abspath(
 
 
 def get_config(
-    config_class: ConfigProtocol | Any = ProjectConfigSchema,
+    config_class: ConfigP | Any = ProjectConfigSchema,
     cfg_path: str = 'project',
     cli_args: Namespace | None = None,
-    config_file: SourceInterfaceProto | None = None,
+    config_file: FileSourceP | None = None,
     config_file_name: str = CONFIG_FILE_NAME,
     config_env: str | None = None,
 ) -> Configuration:
@@ -77,7 +77,7 @@ def get_config(
     :param config_class: python builtin dataclass
     of type dataclass[dataclass | str].
     Type-hint includes :class:`Any` because mypy does not currently recognize
-    the dataclass produced by @dataclass as satisfying the ConfigProtocol.
+    the dataclass produced by @dataclass as satisfying the ConfigP.
     :param cli_args: :class:`Namespace` provided by python's builtin argparse
     :param config_file:
     :param config_file_name:
@@ -89,7 +89,7 @@ def get_config(
     """
 
     # Build a prioritized config source list
-    config_sources: Sequence[SourceInterfaceProto | None] = [
+    config_sources: Sequence[SourceInterfaceP | None] = [
         NamespaceSource(cli_args) if cli_args else None,
         EnvSource(),
         (

@@ -5,38 +5,64 @@ objects, rather than importing implementation classes directly.
 
 Examples
 --------
->>> from batconf.types import ConfigProtocol, SourceInterfaceProto
->>> def get_config(config_class: ConfigProtocol, source: SourceInterfaceProto) -> Configuration:
+>>> from batconf.types import ConfigP, SourceInterfaceP
+>>> def get_config(config_class: ConfigP, source: SourceInterfaceP) -> Configuration:
 ...     ...
 """
 
 from typing import Protocol, Type, runtime_checkable
 
-from .sources.types import ConfigFileFormats, MissingFileOption, SourceInterfaceProto
+from .sources.types import (
+    ConfigFileFormats,
+    FileSourceP,
+    MissingFileOption,
+    SourceInterfaceP,
+)
 
 
-class SourceListProto(SourceInterfaceProto, Protocol):
+class SourceListP(SourceInterfaceP, Protocol):
     def insert_source(
-        self, source: SourceInterfaceProto, index: int = 0
+        self, source: SourceInterfaceP, index: int = 0
     ) -> None: ...
 
 
-class FieldProtocol(Protocol):
-    type: 'ConfigProtocol | Type[str]'
+class FieldP(Protocol):
+    type: 'ConfigP | Type[str]'
     name: str
     default: str
 
 
 @runtime_checkable
-class ConfigProtocol(Protocol):
-    __dataclass_fields__: dict[str, FieldProtocol]
+class ConfigP(Protocol):
+    __dataclass_fields__: dict[str, FieldP]
 
 
 __all__ = [
-    'ConfigProtocol',
-    'FieldProtocol',
-    'SourceInterfaceProto',
-    'SourceListProto',
+    'ConfigP',
+    'FieldP',
+    'FileSourceP',
+    'SourceInterfaceP',
+    'SourceListP',
     'ConfigFileFormats',
     'MissingFileOption',
 ]
+
+_deprecated: dict[str, str] = {
+    'ConfigProtocol': 'ConfigP',
+    'FieldProtocol': 'FieldP',
+    'SourceInterfaceProto': 'SourceInterfaceP',
+    'SourceListProto': 'SourceListP',
+}
+
+
+def __getattr__(name: str):
+    if name in _deprecated:
+        import warnings
+        new = _deprecated[name]
+        warnings.warn(
+            f'{name!r} is deprecated, use {new!r} instead.',
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return globals()[new]
+    raise AttributeError(f'module {__name__!r} has no attribute {name!r}')

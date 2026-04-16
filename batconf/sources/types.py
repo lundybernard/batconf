@@ -4,11 +4,11 @@ ConfigFileFormats = Literal['flat', 'sections', 'environments']
 MissingFileOption = Literal['ignore', 'warn', 'error']
 
 
-class SourceInterfaceProto(Protocol):
+class SourceInterfaceP(Protocol):
     def get(self, key: str, path: str | None) -> str | None: ...
 
 
-class FileSourceP(SourceInterfaceProto, Protocol):
+class FileSourceP(SourceInterfaceP, Protocol):
     """Protocol for file-backed configuration sources.
 
     Defines the standard constructor and query interface that all
@@ -42,5 +42,23 @@ __all__ = [
     'ConfigFileFormats',
     'FileSourceP',
     'MissingFileOption',
-    'SourceInterfaceProto',
+    'SourceInterfaceP',
 ]
+
+
+_deprecated: dict[str, str] = {
+    'SourceInterfaceProto': 'SourceInterfaceP',
+}
+
+
+def __getattr__(name: str):
+    if name in _deprecated:
+        import warnings
+        new = _deprecated[name]
+        warnings.warn(
+            f'{name!r} is deprecated, use {new!r} instead.',
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return globals()[new]
+    raise AttributeError(f'module {__name__!r} has no attribute {name!r}')

@@ -61,7 +61,7 @@ Custom Configuration Sources
 -----------------------------
 
 Any object with a ``get(key, path)`` method satisfies
-:py:class:`SourceInterfaceProto <batconf.source.SourceInterfaceProto>`,
+:py:class:`SourceInterfaceP <batconf.source.SourceInterfaceP>`,
 so you can pull config values from any backend — a secrets manager,
 a database, a remote API — without changing the rest of your config setup.
 
