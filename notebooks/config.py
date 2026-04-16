@@ -54,7 +54,7 @@ def get_config(
     :param cli_args: :class:`Namespace` provided by python's builtin argparse
     :param config_file: Optional config file source injection.  Initialize
     any `batconf.sources.` *Config class
-    [`IniConfig`, `TomlConfig`, `YamlConfig`],
+    [`IniConfig`, `TomlSource`, `YamlConfig`],
     and use it as the config file source
     :param config_file_name:
     :param config_env: Environment id string, ex: 'dev', 'staging', 'yourname'
