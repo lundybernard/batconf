@@ -1,10 +1,19 @@
 from unittest import TestCase
-from unittest.mock import patch, mock_open, Mock, MagicMock, create_autospec, sentinel
+from unittest.mock import (
+    patch,
+    mock_open,
+    Mock,
+    MagicMock,
+    create_autospec,
+    sentinel,
+)
 
 from pathlib import Path as _PathClass
 
+import warnings
+
 from ..toml import (
-    TomlConfig,
+    TomlSource,
     EmptyConfigDict,
     _load_toml,
     _load_toml_file,
@@ -12,11 +21,11 @@ from ..toml import (
     _import_toml_load_function,
     _TOML_IMPORT_ERROR_MSG,
     Path,
+    __getattr__,
 )
 
 
 SRC = 'batconf.sources.toml'
-
 
 EXAMPLE_ENVIRONMENTS_TOML = """
 [batconf]
@@ -79,8 +88,7 @@ LOAD_FLAT_DICT: dict = {'k0': 'v0', 'k1': 'v1'}
 # LOADED_FLAT_DICT = loads(EXAMPLE_FLAT_TOML)
 
 
-class TomlConfigTests(TestCase):
-    get_file_path: Mock
+class TomlSourceTests(TestCase):
     _load_toml: Mock
 
     def setUp(t):
@@ -99,116 +107,116 @@ class TomlConfigTests(TestCase):
         t.default_missing_file_option = 'warn'
 
     def test___init__defaults(t):
-        cs = TomlConfig(
+        ts = TomlSource(
             file_path=t.file_name,
             # Default: file_format='environments',
             # Default: config_env=* loads default from file
             # Default: missing_file_option='warn',
         )
 
-        t.assertEqual(cs._config_file_path, Path(t.file_name))
+        t.assertEqual(ts._config_file_path, Path(t.file_name))
         # Enable multi-environment support by default
-        t.assertEqual('environments', cs._file_format)
+        t.assertEqual('environments', ts._file_format)
 
-        t.assertEqual('test', cs._config_env)
-        t.assertEqual(t.default_missing_file_option, cs._missing_file_option)
+        t.assertEqual('test', ts._config_env)
+        t.assertEqual(t.default_missing_file_option, ts._missing_file_option)
 
-        t.assertDictEqual(cs._data, t._load_toml.return_value['test'])
+        t.assertDictEqual(ts._data, t._load_toml.return_value['test'])
         t._load_toml.assert_called_with(
-            file_path=cs._config_file_path,
+            file_path=ts._config_file_path,
             when_missing=t.default_missing_file_option,
         )
 
         # When no env is specified, select the default from the config file
         t.assertEqual(
             LOADED_ENV_DICT['batconf']['default_env'],
-            cs._config_env,
+            ts._config_env,
         )
         t.assertEqual(
             LOADED_ENV_DICT['test']['bat']['key'],
-            cs.get('bat.key'),
+            ts.get('bat.key'),
         )
 
     def test__data_with_environments(t):
-        sc = TomlConfig(file_path=t.file_name)
-        sc._config_env = 'new_config_env'
+        ts = TomlSource(file_path=t.file_name)
+        ts._config_env = 'new_config_env'
         env_cfg = {'k': 'v'}
 
         with t.subTest('defaults'):
-            config = {sc._config_env: env_cfg}
-            sc._data = config
-            t.assertDictEqual(env_cfg, sc._data)
+            config = {ts._config_env: env_cfg}
+            ts._data = config
+            t.assertDictEqual(env_cfg, ts._data)
 
         with t.subTest('defaults: missing environment'):
             config = {'batconf': {'default_env': 'missing'}, 'v': env_cfg}
             with t.assertRaises(ValueError):
-                sc._data = config
+                ts._data = config
 
         with t.subTest('no config_env specified'):
-            sc._config_env = None
+            ts._config_env = None
             config = {'batconf': {'default_env': 'my_env'}, 'my_env': env_cfg}
-            sc._data = config
-            t.assertDictEqual(env_cfg, sc._data)
+            ts._data = config
+            t.assertDictEqual(env_cfg, ts._data)
 
     def test__data_with_sections(t):
-        sc = TomlConfig(file_path=t.file_name, file_format='sections')
+        ts = TomlSource(file_path=t.file_name, file_format='sections')
         sec_config = {'section0': {'k0': 'v0'}, 'section9': {'k9': 'v9'}}
-        sc._data = sec_config
+        ts._data = sec_config
 
-        t.assertIs(sec_config, sc._data)
+        t.assertIs(sec_config, ts._data)
 
     def test__data_with_flat_format(t):
-        sc = TomlConfig(file_path=t.file_name, file_format='flat')
+        ts = TomlSource(file_path=t.file_name, file_format='flat')
         flat_config = {'k0': 'v0', 'k9': 'v9'}
 
-        sc._data = flat_config
+        ts._data = flat_config
 
-        t.assertIs(sc._data, flat_config)
+        t.assertIs(ts._data, flat_config)
 
     def test_get(t):
         """Trying to get a section value returns None, not a dict"""
-        sc = TomlConfig(file_path=t.file_name)
+        ts = TomlSource(file_path=t.file_name)
 
-        t.assertIsNone(sc.get('bat'))
-        t.assertIsNone(sc.get('bat.dict'))
+        t.assertIsNone(ts.get('bat'))
+        t.assertIsNone(ts.get('bat.dict'))
 
     def test_get__from_env(t) -> None:
-        conf = TomlConfig(file_path=t.file_name)
+        ts = TomlSource(file_path=t.file_name)
 
         with t.subTest('single key'):
             t.assertEqual(
-                conf.get('bat.key'),
+                ts.get('bat.key'),
                 LOADED_ENV_DICT['test']['bat']['key'],
             )
 
         with t.subTest('key from module'):
             t.assertEqual(
-                conf.get('api_key', path='bat.remote_host'),
+                ts.get('api_key', path='bat.remote_host'),
                 LOADED_ENV_DICT['test']['bat']['remote_host']['api_key'],
             )
         with t.subTest('missing item'):
-            t.assertEqual(conf.get('_sir_not_appearing_in_this_film'), None)
+            t.assertEqual(ts.get('_sir_not_appearing_in_this_film'), None)
 
     def test_get__from_sections(t):
-        sc = TomlConfig(file_path=t.file_name, file_format='sections')
+        ts = TomlSource(file_path=t.file_name, file_format='sections')
 
         with t.subTest('defaults'):
-            sc._data = LOAD_SEC_DICT
-            t.assertEqual(sc.get('section7.k7'), 'v7')
-            t.assertEqual(sc.get('section9.k9'), 'v9')
-            t.assertEqual(sc.get('root_key'), 'root value')
+            ts._data = LOAD_SEC_DICT
+            t.assertEqual(ts.get('section7.k7'), 'v7')
+            t.assertEqual(ts.get('section9.k9'), 'v9')
+            t.assertEqual(ts.get('root_key'), 'root value')
 
         with t.subTest('missing section returns None'):
-            t.assertIsNone(sc.get('section10'))
+            t.assertIsNone(ts.get('section10'))
 
         with t.subTest('missing key returns None'):
-            t.assertIsNone(sc.get('section0.k10'))
+            t.assertIsNone(ts.get('section0.k10'))
 
     def test_config_env_argument(t):
-        cs = TomlConfig('./example.config.toml', config_env='alt')
+        ts = TomlSource('./example.config.toml', config_env='alt')
         t.assertEqual(
             LOADED_ENV_DICT['alt']['bat']['module']['key'],
-            cs.get('key', path='bat.module'),
+            ts.get('key', path='bat.module'),
         )
 
     def test_missing_file_warning(t):
@@ -218,29 +226,46 @@ class TomlConfigTests(TestCase):
         """
         t._load_toml.return_value = EmptyConfigDict
 
-        cs = TomlConfig(file_path=t.file_name, missing_file_option='warn')
+        ts = TomlSource(file_path=t.file_name, missing_file_option='warn')
 
         t._load_toml.assert_called_with(
-            file_path=cs._config_file_path,
+            file_path=ts._config_file_path,
             when_missing='warn',
         )
-        t.assertIs(EmptyConfigDict, cs._data)
-        t.assertIsNone(cs.get('bat.key'))
+        t.assertIs(EmptyConfigDict, ts._data)
+        t.assertIsNone(ts.get('bat.key'))
 
     def test_keys(t):
-        sc = TomlConfig(file_path=t.file_name)
-        t.assertEqual(sc.keys(), {'bat': None}.keys())
+        ts = TomlSource(file_path=t.file_name)
+        t.assertEqual(ts.keys(), {'bat': None}.keys())
 
     def test___str__(t) -> None:
-        cs = TomlConfig(file_path=t.file_name)
-        t.assertEqual(f'Toml File: {repr(cs)}', str(cs))
+        ts = TomlSource(file_path=t.file_name)
+        t.assertEqual(f'Toml File: {repr(ts)}', str(ts))
 
     def test___repr__(t) -> None:
-        cs = TomlConfig(file_path=t.file_name)
+        ts = TomlSource(file_path=t.file_name)
         t.assertEqual(
-            'TomlConfig(file_path=mock.config.toml, config_env=test, '
+            'TomlSource(file_path=mock.config.toml, config_env=test, '
             'missing_file_option=warn, file_format=environments)',
-            repr(cs),
+            repr(ts),
+        )
+
+
+class DeprecationTests(TestCase):
+    def test_TomlConfig_returns_TomlSource(t):
+        with warnings.catch_warnings(record=True):
+            result = __getattr__('TomlConfig')
+        t.assertIs(result, TomlSource)
+
+    def test_TomlConfig_emits_deprecation_warning(t):
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+            __getattr__('TomlConfig')
+        t.assertIs(w[0].category, DeprecationWarning)
+        t.assertEqual(
+            "'TomlConfig' is deprecated, use 'TomlSource' instead.",
+            str(w[0].message),
         )
 
 
@@ -342,7 +367,7 @@ class ImportTomlLoadFunctionTests(TestCase):
             with t.assertRaises(ImportError):
                 from toml import load  # type: ignore  # noqa
 
-        with t.subTest('Instantiating TomlConfig raises ImportError'):
+        with t.subTest('Instantiating TomlSource raises ImportError'):
             with t.assertRaises(ImportError) as err:
                 _ = _import_toml_load_function()
 
