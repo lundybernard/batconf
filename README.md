@@ -33,7 +33,7 @@ them.
 * Subscript access: `cfg['key']` as an alternative to `cfg.key`, enabling dynamic lookups like `cfg.clients[client_id]`
 
 Users can create their own config sources
-by creating classes that satisfy `batconf.source.SourceInterfaceProto`
+by creating classes that satisfy `batconf.source.SourceInterfaceP`
 (or subclass `batconf.source.SourceInterface`)
 
 The config lookup order is determined by the `SourceList` instance,

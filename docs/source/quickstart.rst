@@ -96,7 +96,7 @@ Most projects can copy this example with minimal modification.
         EnvSource,
         IniSource,
     )
-    from batconf.types import ConfigProtocol, SourceInterfaceProto
+    from batconf.types import ConfigP, SourceInterfaceP
 
     # Default config file path,
     # look for config.ini in the current working directory
@@ -107,10 +107,10 @@ Most projects can copy this example with minimal modification.
         opt: str = 'default opt'
 
     def get_config(
-        config_class: ConfigProtocol = ConfigSchema,  # type: ignore
+        config_class: ConfigP = ConfigSchema,  # type: ignore
         cfg_path: str = 'yourmodule',
         cli_args: Namespace | None = None,
-        config_file: SourceInterfaceProto | None = None,
+        config_file: SourceInterfaceP | None = None,
         config_file_name: str = CONFIG_FILE_NAME,
         config_env: str | None = None,
     ) -> Configuration:
