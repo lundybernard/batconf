@@ -212,7 +212,7 @@ Access config option values using python's attribute (``.``) notation.
         |    |- port: "5000"
     SourceList=[
         Environment Variables: EnvConfig(),
-        Ini File: IniConfig(file_path=config.ini, config_env=None, missing_file_option=warn, file_format=environments),
+        Ini File: IniSource(file_path=config.ini, config_env=None, missing_file_option=warn, file_format=environments),
     ]
 
     In [3]: cfg.server.host
@@ -268,7 +268,7 @@ configuration options for the ``client`` found in ``yourproject.example.client``
 Ini
 ^^^
 
-:class:`~batconf.sources.ini.IniConfig` supports three file formats,
+:class:`~batconf.sources.ini.IniSource` supports three file formats,
 controlled by the ``file_format`` parameter (default: ``'environments'``):
 
 * ``'environments'`` *(default)* — sections are prefixed with an
@@ -378,8 +378,9 @@ for convenience:
 
 Missing file behaviour
 ^^^^^^^^^^^^^^^^^^^^^^
-Both :class:`~batconf.sources.ini.IniConfig` and
-:class:`~batconf.sources.yaml.YamlConfig` accept a ``missing_file_option``
+All file sources (:class:`~batconf.sources.ini.IniSource`,
+:class:`~batconf.sources.toml.TomlSource`,
+:class:`~batconf.sources.yaml.YamlSource`) accept a ``missing_file_option``
 parameter that controls what happens when the config file is not found:
 
 * ``'warn'`` *(default)* — logs a warning and continues. Safe for

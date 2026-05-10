@@ -39,6 +39,12 @@ Features:
   ``Configuration`` or ``ConfigSingleton`` at runtime
 * Subscript access on :class:`~batconf.manager.Configuration`:
   ``cfg['key']`` is equivalent to ``cfg.key``
+* :class:`~batconf.sources.ini.IniSource` — standardised INI file source
+  implementing :class:`~batconf.sources.types.FileSourceP`;
+  replaces :class:`~batconf.sources.ini.IniConfig`
+* :class:`~batconf.sources.toml.TomlSource` — standardised TOML file source
+  implementing :class:`~batconf.sources.types.FileSourceP`;
+  replaces :class:`~batconf.sources.toml.TomlConfig`
 * New top-level public API — ``Configuration``, ``SourceList``,
   ``NamespaceSource``, ``EnvSource``, ``IniSource``, ``TomlSource``,
   ``YamlSource`` are now importable directly from ``batconf``
