@@ -1,9 +1,11 @@
+import warnings
+
 from unittest import TestCase
 from unittest.mock import Mock, patch, mock_open, create_autospec, PropertyMock
 
 from ..ini import (
     # Under Test
-    IniConfig,
+    _IniConfig,
     IniSource,
     ConfigFileFormats,
     _load_ini_file,
@@ -85,246 +87,16 @@ CONFIG_PARSER_ENVS.read_string(INI_ENV_STR)
 
 
 class IniConfigTests(TestCase):
-    _load_ini: Mock
+    def test_is_IniSource_subclass(t):
+        t.assertTrue(issubclass(_IniConfig, IniSource))
 
-    def setUp(t):
-        patches = [
-            '_load_ini',
-        ]
-        for target in patches:
-            patcher = patch(f'{SRC}.{target}', autospec=True)
-            setattr(t, target, patcher.start())
-            t.addCleanup(patcher.stop)
+    def test___init__(t):
+        ic = _IniConfig(file_path='test.ini')
+        t.assertIsInstance(ic, IniSource)
 
-        t._load_ini.return_value = CONFIG_PARSER_ENVS
-
-        t.config_file_str = 'testconfig.ini'
-
-    def test___init__defaults(t):
-        ic = IniConfig(
-            file_path=t.config_file_str,
-            # Default: config_env=* loads default from file
-            # Default: file_format='environments',
-            # Default: missing_file_option='warn',
-        )
-
-        t.assertEqual(ic._file_format, 'environments')
-        t.assertEqual(ic._missing_file_option, 'warn')
-        t.assertEqual(ic._config_file_path, Path(t.config_file_str))
-
-        t.assertIs(ic._data, t._load_ini.return_value)
-        config_env = CONFIG_PARSER_ENVS.get('batconf', 'default_env')
-        t.assertEqual(config_env, 'development')
-        t.assertEqual(ic._config_env, config_env)
-        t.assertIs(ic._get_impl, _getter_methods['environments'])
-
-    def test___init__catches_invalid_file_format(t):
-        with t.assertRaises(ValueError):
-            _ = IniConfig(file_path=t.config_file_str, file_format='invalid')
-
-    def test_get(t):
-        """The get method calls the expected _get_config variant"""
-        ic = IniConfig(file_path=t.config_file_str)
-        _get_config_mock = Mock(_get_envs, autospec=True)
-
-        ic._get_impl = _get_config_mock
-
-        ret = ic.get(key='section.key')
-
-        _get_config_mock.assert_called_with(ic, key='section.key', path=None)
-        t.assertIs(ret, _get_config_mock.return_value)
-
-        with t.subTest('path parameter'):
-            ret = ic.get(key='key', path='section.sub')
-            _get_config_mock.assert_called_with(
-                ic,
-                key='key',
-                path='section.sub',
-            )
-            t.assertIs(ret, _get_config_mock.return_value)
-
-    def test_get_legacy_path_parameter(t):
-        """The path parameter is expected to be deprecated in the near future,
-        but we still need it to respect how the Configuration class
-        currently handles path lookups.
-        """
-        ic = IniConfig(file_path=t.config_file_str)
-        ret = ic.get(key='token', path='project.database')
-        t.assertEqual('*token-str*', ret)
-
-    # === .ini file format options === #
-    def test_file_format_sections(t):
-        ic = IniConfig(
-            file_path=t.config_file_str,
-            file_format='sections',
-            # Default: missing_file_option='warn',
-        )
-
-        t.assertEqual(ic._file_format, 'sections')
-        # _config_env is not set for 'sections' file format
-        t.assertEqual(ic._config_env, None)
-        t.assertIs(ic._get_impl, _getter_methods['sections'])
-
-    def test_environments_format(t):
-        file_format = 'environments'
-        config_env = 'production'
-
-        ic = IniConfig(
-            file_path=t.config_file_str,
-            config_env=config_env,
-            file_format=file_format,
-        )
-
-        t.assertEqual(ic._file_format, file_format)
-        t.assertEqual(ic._config_env, config_env)
-        t.assertIs(ic._get_impl, _getter_methods[file_format])
-
-    def test_flat_format(t):
-        file_format = 'flat'
-
-        ic = IniConfig(
-            file_path=t.config_file_str,
-            file_format=file_format,
-        )
-
-        t.assertEqual(ic._file_format, file_format)
-        # _config_env is not set for 'flat' file format
-        t.assertIsNone(ic._config_env)
-        t.assertIs(ic._get_impl, _getter_methods[file_format])
-
-    # === Missing File Handling === #
-
-    def test_missing_file_options(t):
-        """
-        The IniConfig class does not handle missing files directly.
-        'warn' is passed to the _load_ini function,
-        which handles emitting the warning message
-        _data cannot be loaded, so it is replaced with an EmptyConfigParser
-        _config_env cannot be set from the config file, so it is set to None
-        """
-        t._load_ini.return_value = EmptyConfigParser
-
-        for option in ('warn', 'ignore', 'error'):
-            with t.subTest(f'missing_file_option={option}'):
-                ic = IniConfig(
-                    file_path=t.config_file_str,
-                    missing_file_option=option,
-                )
-
-                t._load_ini.assert_called_with(
-                    file_path=Path(t.config_file_str),
-                    file_format='environments',
-                    when_missing=option,
-                )
-                t.assertIs(ic._data, EmptyConfigParser)
-                t.assertIsNone(ic._config_env)
-
-    def test_config_env_argument(t):
-        """Validate and set the config_env parameter
-        Code Smell: there's a log of complexity here, may need refactoring
-        """
-        config_env = 'production'
-
-        with t.subTest('default environments file format'):
-            """If the config_env is not specified,
-            extract it from the configuration file
-            """
-            ic = IniConfig(
-                file_path=t.config_file_str,
-                file_format='environments',
-            )
-            t.assertEqual(
-                ic._config_env,
-                CONFIG_PARSER_ENVS.get('batconf', 'default_env'),
-            )
-
-        with t.subTest('environments file format'):
-            """Given a config_env, when the file format is 'environments',
-            save the given environment
-            """
-            ic = IniConfig(
-                file_path=t.config_file_str,
-                config_env=config_env,
-            )
-            t.assertEqual(ic._config_env, config_env)
-
-        with t.subTest('config_env section missing from file'):
-            """raise a Value Error 
-            when the specified section is not in the config file
-            """
-            with t.assertRaises(ValueError) as err:
-                _ = IniConfig(
-                    file_path=t.config_file_str,
-                    config_env='MissingEnvironment',
-                )
-            t.assertEqual(
-                str(err.exception),
-                'Config Environment "MissingEnvironment" not found in '
-                'testconfig.ini',
-            )
-
-        with t.subTest('missing environments format file'):
-            """When the ini file is not found
-            set _config_env to None
-            """
-            t._load_ini.return_value = EmptyConfigParser
-            ic = IniConfig(
-                file_path=t.config_file_str,
-                config_env=config_env,
-                file_format='environments',
-            )
-            t.assertIsNone(ic._config_env)
-
-        # flat and sections formats set _config_env to None
-        for file_format, config_parser in (
-                (ff, p)
-                for ff in ('flat', 'sections')
-                for p in (ConfigParser, EmptyConfigParser)
-        ):
-            with t.subTest(
-                    f'_config_env is None when {file_format=} and '
-                    f'{config_parser=}'
-            ):
-                t._load_ini.return_value = config_parser
-                ic = IniConfig(
-                    file_path=t.config_file_str,
-                    file_format=file_format,
-                )
-                t.assertIsNone(ic._config_env)
-
-    def test_get_methods_for_file_formats(t) -> None:
-        formats: list[ConfigFileFormats] = [
-            'flat',
-            'sections',
-            'environments',
-        ]
-        for fmt in formats:
-            with t.subTest(f'get_impl for {fmt}'):
-                ic = IniConfig(
-                    file_path=t.config_file_str,
-                    file_format=fmt,
-                )
-                t.assertIs(ic._get_impl, _getter_methods[fmt])
-
-    def test___str__(t) -> None:
-        ic = IniConfig(
-            file_path=t.config_file_str,
-            # Default: config_env=* loads default from file
-            # Default: file_format='environments',
-            # Default: missing_file_option='warn',
-        )
-        t.assertEqual(
-            f'Ini File: {repr(ic)}',
-            str(ic),
-        )
-
-    def test___repr__(t) -> None:
-        ic = IniConfig(file_path=t.config_file_str)
-        t.assertEqual(
-            'IniConfig(file_path=testconfig.ini, config_env=development, '
-            'missing_file_option=warn, file_format=environments)',
-            repr(ic),
-        )
+    def test___init___with_config_env(t):
+        ic = _IniConfig(file_path='test.ini', config_env='production')
+        t.assertEqual(ic._IniSource__config_env, 'production')
 
 
 class IniSourceTests(TestCase):
@@ -537,7 +309,7 @@ class IniSourceTests(TestCase):
 
 class GetConfigFunctionsTests(TestCase):
     def setUp(t):
-        t.ic = Mock(IniConfig, autospec=True)
+        t.ic = Mock(_IniConfig, autospec=True)
         t.ic._config_env = 'testing'
         t.key = 'key'
 
