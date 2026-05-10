@@ -14,6 +14,7 @@ from typing import Protocol, Type, runtime_checkable
 
 from .sources.types import (
     ConfigFileFormats,
+    FILE_FORMATS,
     FileSourceP,
     MissingFileOption,
     SourceInterfaceP,
@@ -39,12 +40,13 @@ class ConfigP(Protocol):
 
 __all__ = [
     'ConfigP',
+    'ConfigFileFormats',
     'FieldP',
+    'FILE_FORMATS',
     'FileSourceP',
+    'MissingFileOption',
     'SourceInterfaceP',
     'SourceListP',
-    'ConfigFileFormats',
-    'MissingFileOption',
 ]
 
 _deprecated: dict[str, str] = {

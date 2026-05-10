@@ -1,3 +1,4 @@
+from functools import cached_property
 from typing import Any
 from logging import getLogger
 
@@ -11,6 +12,7 @@ from .file import (
     file_config_repr,
 )
 from .types import FileSourceP
+from ._compat import make_deprecated_getattr
 
 
 _OptStr = str | None
@@ -23,7 +25,7 @@ class _DEFAULTS(Enum):
     environment = auto()
 
 
-class TomlConfig(FileSourceP):
+class TomlSource(FileSourceP):
     """Configuration source backed by a TOML file.
 
     Parameters
@@ -58,55 +60,51 @@ class TomlConfig(FileSourceP):
         self._config_env = config_env
         self._missing_file_option = missing_file_option
 
-        self._data = _load_toml(
+    def get(self, key: str, path: _OptStr = None) -> _OptStr:
+        parts = path.split('.') + key.split('.') if path else key.split('.')
+        conf: Any = self._data
+        try:
+            for k in parts:
+                conf = conf.get(k)
+        except AttributeError:
+            log.warning(f'Config path {".".join(parts)} does not exist')
+            return None
+        return None if isinstance(conf, dict) else conf
+
+    def keys(self) -> list[str]:
+        return list(self._data.keys())
+
+    @cached_property
+    def _raw_data(self) -> TomlDictT:
+        return _load_toml(
             file_path=self._config_file_path,
             when_missing=self._missing_file_option,
         )
 
-    def get(self, key: str, path: _OptStr = None) -> _OptStr:
-        if path:
-            pth = path.split('.') + key.split('.')
-        else:
-            pth = key.split('.')
-
-        conf = self._data
-        for k in pth:
-            if not (conf := conf.get(k)):
-                return conf
-
-        return conf if type(conf) is not dict else None
-
-    def keys(self) -> list[str]:
-        return self._data.keys()
-
-    @property
-    def _data(self):
-        return self.__data
-
-    @_data.setter
-    def _data(self, config: dict):
-        if config is EmptyConfigDict:
-            self.__data = config
-            return
+    @cached_property
+    def _data(self) -> TomlDictT:
+        if self._raw_data is EmptyConfigDict:
+            return self._raw_data
 
         if self._file_format == 'environments':
-            if not self._config_env:
-                self._config_env = config['batconf']['default_env']
-            # Load only the specified config_env from the config dict
             try:
-                self.__data = config[self._config_env]
+                return self._raw_data[self._config_env]
             except KeyError as err:
                 raise ValueError(
                     f'Config Environment "{self._config_env}" '
                     f'not found in {self._config_file_path}'
                 ) from err
 
-        else:
-            self.__data = config
+        return self._raw_data
 
     # TODO: Fix type-hints when the next version of MyPy is released
     @property
-    def _config_env(self):  # -> str:
+    def _config_env(self):  # -> str | None:
+        if self._file_format != 'environments':
+            return None
+        if self.__config_env is None:
+            if self._raw_data is not EmptyConfigDict:
+                self.__config_env = self._raw_data['batconf']['default_env']
         return self.__config_env
 
     @_config_env.setter
@@ -153,11 +151,11 @@ def _load_toml_file(file_path: Path) -> TomlDictT:
 
 def _import_toml_load_function():
     try:
-        from tomllib import loads  # type: ignore  # noqa
+        from tomllib import loads  # type: ignore[import-not-found]
     except ImportError:
         log.debug('failed to import tomllib.load, is python < v3.11')
         try:
-            from toml import loads  # type: ignore  # noqa
+            from toml import loads  # type: ignore[assignment]
         except ImportError as e:
             raise ImportError(_TOML_IMPORT_ERROR_MSG) from e
 
@@ -168,4 +166,21 @@ _TOML_IMPORT_ERROR_MSG = (
     'Failed to import toml.load,'
     ' for python < 3.11, the toml package is required.'
     ' install the optional extra batconf[toml]'
+)
+
+# === TomlConfig (deprecated) === #
+
+
+class TomlConfig(TomlSource):
+    """Deprecated. Use TomlSource instead."""
+
+
+_TomlConfig = TomlConfig
+del TomlConfig
+
+__getattr__ = make_deprecated_getattr(
+    deprecated={'TomlConfig': 'TomlSource'},
+    module_globals=globals(),
+    module_name=__name__,
+    targets={'TomlConfig': '_TomlConfig'},
 )
