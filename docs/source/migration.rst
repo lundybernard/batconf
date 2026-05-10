@@ -26,6 +26,7 @@ The following names are now importable directly from ``batconf``:
 * ``NamespaceSource``, ``Namespace``
 * ``EnvSource``
 * ``IniSource``
+* ``TomlSource``
 * ``YamlSource`` (requires ``batconf[yaml]``)
 
 Old submodule imports still work but the top-level names are now preferred:

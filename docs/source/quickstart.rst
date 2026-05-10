@@ -302,6 +302,36 @@ controlled by the ``file_format`` parameter (default: ``'environments'``):
     password = lets-add-a-secure-source-for-this
     address = 192.168.1.1
 
+Toml
+^^^^
+
+:class:`~batconf.sources.toml.TomlSource` supports the same three file
+formats as :class:`~batconf.sources.ini.IniSource`, controlled by the
+``file_format`` parameter (default: ``'environments'``):
+
+* ``'environments'`` *(default)* — top-level tables are prefixed with an
+  environment name. A ``[batconf]`` table declares the default environment
+  via ``default_env``.
+* ``'sections'`` — tables use the dotted config path directly
+  (e.g. ``[yourproject.example.client]``), with no environment prefix.
+* ``'flat'`` — a single flat key/value file with no tables.
+
+.. code-block:: toml
+    :caption: config.toml (environments format — default)
+
+    [batconf]
+    default_env = 'dev'
+
+    [dev.yourproject.example.client]
+    username = 'devusr'
+    password = 'changeme'
+    address = '0.0.0.0'
+
+    [prod.yourproject.example.client]
+    username = 'produser'
+    password = 'lets-add-a-secure-source-for-this'
+    address = '192.168.1.1'
+
 Yaml
 ^^^^
 

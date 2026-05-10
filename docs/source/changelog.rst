@@ -40,8 +40,8 @@ Features:
 * Subscript access on :class:`~batconf.manager.Configuration`:
   ``cfg['key']`` is equivalent to ``cfg.key``
 * New top-level public API — ``Configuration``, ``SourceList``,
-  ``NamespaceSource``, ``EnvSource``, ``IniSource``, ``YamlSource``
-  are now importable directly from ``batconf``
+  ``NamespaceSource``, ``EnvSource``, ``IniSource``, ``TomlSource``,
+  ``YamlSource`` are now importable directly from ``batconf``
 
 .. _v0.3.1:
 
