@@ -11,8 +11,8 @@ v0.4.0
 FileConfig Removed
 ========================
 ``batconf.sources.file.FileConfig`` has been removed.
-Replace it with :class:`~batconf.sources.ini.IniConfig` or
-:class:`~batconf.sources.yaml.YamlConfig` as appropriate.
+Replace it with :class:`~batconf.sources.ini.IniSource` or
+:class:`~batconf.sources.yaml.YamlSource` as appropriate.
 
 ========================
 New Public API

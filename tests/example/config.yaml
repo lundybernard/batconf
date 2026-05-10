@@ -1,4 +1,5 @@
-default: "test"
+batconf:
+  default_env: test
 
 test:
   project:

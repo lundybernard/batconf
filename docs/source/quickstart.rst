@@ -335,14 +335,15 @@ formats as :class:`~batconf.sources.ini.IniSource`, controlled by the
 Yaml
 ^^^^
 
-:class:`~batconf.sources.yaml.YamlConfig` uses an environment-based
-structure by default. The top-level ``default`` key sets the active
-environment when ``config_env`` is not specified at runtime.
+:class:`~batconf.sources.yaml.YamlSource` supports the same three file
+formats as :class:`~batconf.sources.ini.IniSource`, controlled by the
+``file_format`` parameter (default: ``'environments'``).
 
 .. code-block:: yaml
-    :caption: config.yaml
+    :caption: config.yaml (environments format — default)
 
-    default: dev
+    batconf:
+      default_env: dev
 
     dev:
       yourproject:

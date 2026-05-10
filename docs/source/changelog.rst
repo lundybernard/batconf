@@ -45,6 +45,9 @@ Features:
 * :class:`~batconf.sources.toml.TomlSource` — standardised TOML file source
   implementing :class:`~batconf.sources.types.FileSourceP`;
   replaces :class:`~batconf.sources.toml.TomlConfig`
+* :class:`~batconf.sources.yaml.YamlSource` — standardised YAML file source
+  implementing :class:`~batconf.sources.types.FileSourceP`;
+  replaces :class:`~batconf.sources.yaml.YamlConfig`
 * New top-level public API — ``Configuration``, ``SourceList``,
   ``NamespaceSource``, ``EnvSource``, ``IniSource``, ``TomlSource``,
   ``YamlSource`` are now importable directly from ``batconf``

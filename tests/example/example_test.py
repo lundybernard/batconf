@@ -315,7 +315,7 @@ def set_environ(key: str, value: str):
 class GetYamlConfigFunctionTests(TestCase):
     def setUp(t):
         # Inject a YamlConfig file source, to overwrite the default .ini
-        t.yaml_config = YamlSource(config_file_name=yaml_config_file_name)
+        t.yaml_config = YamlSource(file_path=yaml_config_file_name)
 
     def test_get_config(t):
         """get_config() returns a Project-level Configuration object.
