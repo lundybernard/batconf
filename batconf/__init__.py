@@ -39,7 +39,7 @@ from .sources.argparse import NamespaceConfig as NamespaceSource, Namespace
 from .sources.env import EnvConfig as EnvSource
 from .sources.ini import IniSource
 from .sources.toml import TomlSource
-from .sources.yaml import YamlConfig as YamlSource
+from .sources.yaml import YamlSource
 
 __all__ = [
     # Core
