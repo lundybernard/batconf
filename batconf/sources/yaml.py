@@ -14,6 +14,7 @@ from .file import (
 )
 from .types import FileSourceP, MissingFileOption as _MissingFileOption
 from ..source import SourceInterface
+from ._compat import make_deprecated_getattr
 
 
 log = getLogger(__name__)
@@ -214,6 +215,17 @@ class YamlConfig(SourceInterface):
             if not (conf := conf.get(k)):
                 return conf
         return conf
+
+
+_YamlConfig = YamlConfig
+del YamlConfig
+
+__getattr__ = make_deprecated_getattr(
+    deprecated={'YamlConfig': 'YamlSource'},
+    module_globals=globals(),
+    module_name=__name__,
+    targets={'YamlConfig': '_YamlConfig'},
+)
 
 
 _missing_config_warning = 'Config File not found'

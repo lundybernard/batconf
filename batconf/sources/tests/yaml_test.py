@@ -1,3 +1,4 @@
+import warnings
 from unittest import TestCase
 from unittest.mock import (
     patch,
@@ -375,6 +376,25 @@ class YamlConfigTests(TestCase):
             f'file_format=environments)',
             repr(yc),
         )
+
+
+class YamlConfigDeprecationTests(TestCase):
+    def setUp(t):
+        for target in ('get_file_path', '_load_yaml'):
+            patcher = patch(f'{SRC}.{target}', autospec=True)
+            setattr(t, target, patcher.start())
+            t.addCleanup(patcher.stop)
+        t._load_yaml.return_value = EXAMPLE_CONFIG_DICT
+        t.config_file_name = 'example.config.yaml'
+
+    def test_enable_config_environments_maps_to_file_format(t):
+        yc_envs = YamlConfig(config_file_name=t.config_file_name)
+        yc_no_envs = YamlConfig(
+            config_file_name=t.config_file_name,
+            enable_config_environments=False,
+        )
+        t.assertEqual(yc_envs._file_format, 'environments')
+        t.assertEqual(yc_no_envs._file_format, 'sections')
 
 
 class get_file_pathTests(TestCase):
