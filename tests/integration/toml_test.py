@@ -85,6 +85,10 @@ class TomlSourceIntegrationTests(TestCase):
         t.assertIsNone(ts.get('section 001'))
         t.assertIsNone(ts.get('section.7'))
 
+        # Parity keys shared with ini and yaml section files
+        t.assertIsNotNone(ts.get('sec0.sub0.value0'))
+        t.assertIsNone(ts.get('sec0'))
+
     def test_flat_file(t):
         t.config_file_path = path.join(t.this_dir, 'data/flat.config.toml')
         ts = TomlSource(file_path=t.config_file_path, file_format='flat')
