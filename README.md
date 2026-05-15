@@ -156,6 +156,14 @@ dependencies = [
   See the [migration guide](https://batconf.readthedocs.io/en/latest/migration.html)
   for details.
 
+## Architecture Decision Records
+
+Significant design decisions are documented in
+[`docs/decisions/`](docs/decisions/). Start with the
+[foundational ADRs](docs/decisions/0000-foundational/) to understand the
+core philosophy, then read the per-feature groups for decisions made
+during specific refactors.
+
 ## Dev Guide
 
 ### Install dev dependencies (pytest, mypy, etc)
