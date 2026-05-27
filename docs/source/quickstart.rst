@@ -212,7 +212,7 @@ Access config option values using python's attribute (``.``) notation.
         |    |- port: "5000"
     SourceList=[
         Environment Variables: EnvConfig(),
-        Ini File: IniConfig(file_path=config.ini, config_env=None, missing_file_option=warn, file_format=environments),
+        Ini File: IniSource(file_path=config.ini, config_env=None, missing_file_option=warn, file_format=environments),
     ]
 
     In [3]: cfg.server.host
@@ -268,7 +268,7 @@ configuration options for the ``client`` found in ``yourproject.example.client``
 Ini
 ^^^
 
-:class:`~batconf.sources.ini.IniConfig` supports three file formats,
+:class:`~batconf.sources.ini.IniSource` supports three file formats,
 controlled by the ``file_format`` parameter (default: ``'environments'``):
 
 * ``'environments'`` *(default)* — sections are prefixed with an
@@ -302,17 +302,48 @@ controlled by the ``file_format`` parameter (default: ``'environments'``):
     password = lets-add-a-secure-source-for-this
     address = 192.168.1.1
 
+Toml
+^^^^
+
+:class:`~batconf.sources.toml.TomlSource` supports the same three file
+formats as :class:`~batconf.sources.ini.IniSource`, controlled by the
+``file_format`` parameter (default: ``'environments'``):
+
+* ``'environments'`` *(default)* — top-level tables are prefixed with an
+  environment name. A ``[batconf]`` table declares the default environment
+  via ``default_env``.
+* ``'sections'`` — tables use the dotted config path directly
+  (e.g. ``[yourproject.example.client]``), with no environment prefix.
+* ``'flat'`` — a single flat key/value file with no tables.
+
+.. code-block:: toml
+    :caption: config.toml (environments format — default)
+
+    [batconf]
+    default_env = 'dev'
+
+    [dev.yourproject.example.client]
+    username = 'devusr'
+    password = 'changeme'
+    address = '0.0.0.0'
+
+    [prod.yourproject.example.client]
+    username = 'produser'
+    password = 'lets-add-a-secure-source-for-this'
+    address = '192.168.1.1'
+
 Yaml
 ^^^^
 
-:class:`~batconf.sources.yaml.YamlConfig` uses an environment-based
-structure by default. The top-level ``default`` key sets the active
-environment when ``config_env`` is not specified at runtime.
+:class:`~batconf.sources.yaml.YamlSource` supports the same three file
+formats as :class:`~batconf.sources.ini.IniSource`, controlled by the
+``file_format`` parameter (default: ``'environments'``).
 
 .. code-block:: yaml
-    :caption: config.yaml
+    :caption: config.yaml (environments format — default)
 
-    default: dev
+    batconf:
+      default_env: dev
 
     dev:
       yourproject:
@@ -348,8 +379,9 @@ for convenience:
 
 Missing file behaviour
 ^^^^^^^^^^^^^^^^^^^^^^
-Both :class:`~batconf.sources.ini.IniConfig` and
-:class:`~batconf.sources.yaml.YamlConfig` accept a ``missing_file_option``
+All file sources (:class:`~batconf.sources.ini.IniSource`,
+:class:`~batconf.sources.toml.TomlSource`,
+:class:`~batconf.sources.yaml.YamlSource`) accept a ``missing_file_option``
 parameter that controls what happens when the config file is not found:
 
 * ``'warn'`` *(default)* — logs a warning and continues. Safe for

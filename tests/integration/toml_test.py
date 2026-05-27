@@ -1,9 +1,11 @@
+import warnings
 from unittest import TestCase, skipIf
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 from os import path
 
-from batconf.sources.toml import TomlConfig
+from batconf.sources.toml import TomlSource
+from batconf.types import FILE_FORMATS
 from batconf.sources.tests.toml_test import (
     EXAMPLE_ENVIRONMENTS_TOML,
     LOADED_ENV_DICT,
@@ -13,12 +15,13 @@ from batconf.sources.tests.toml_test import (
     LOAD_FLAT_DICT,
 )
 
+
 _TOML_INSTALLED = True
 try:
-    from tomllib import loads  # type: ignore  # noqa
+    from tomllib import loads  # type: ignore[import-not-found]
 except ImportError:
     try:
-        from toml import loads  # type: ignore  # noqa
+        from toml import loads  # type: ignore[assignment]
     except ImportError:
         _TOML_INSTALLED = False
 
@@ -44,111 +47,135 @@ class TomlUnittestStaticValuesTests(TestCase):
 
 
 @skipIf(not _TOML_INSTALLED, 'toml is not available, skipping')
-class TomlConfigIntegrationTests(TestCase):
+class TomlSourceIntegrationTests(TestCase):
     def setUp(t):
         # Get the absolute path to the test config.yaml file
         t.this_dir = path.dirname(path.realpath(__file__))
 
     def test_toml_file_source_defaults(t):
-        """Test the Default behavior of the TomlConfig configuration source"""
+        """Test the Default behavior of the TomlSource configuration source"""
         t.config_file_path = path.join(t.this_dir, 'data/envs.config.toml')
-        ic = TomlConfig(file_path=t.config_file_path)
+        ts = TomlSource(file_path=t.config_file_path)
 
         # selects default environment from the config file
         # get a value from the root of the default environment
-        t.assertEqual('our testing environment', ic.get('doc'))
+        t.assertEqual('our testing environment', ts.get('doc'))
         # get a deeply nested value, from the default environment
         t.assertEqual(
             'envs.config.toml: test.project.submodule.sub.key1',
-            ic.get('project.submodule.sub.key1'),
+            ts.get('project.submodule.sub.key1'),
         )
         # getting a section returns None
-        t.assertIsNone(ic.get('test.project.submodule'))
+        t.assertIsNone(ts.get('test.project.submodule'))
 
     def test_section_file(t):
         """Section files have no environment parameter,
         all sections of the file are available.
         """
         t.config_file_path = path.join(t.this_dir, 'data/sections.config.toml')
-        ic = TomlConfig(file_path=t.config_file_path, file_format='sections')
+        ts = TomlSource(file_path=t.config_file_path, file_format='sections')
 
         # Sections allow values to be "nested" by their path
-        t.assertEqual(ic.get('section 001.section.name'), 'section 1')
-        t.assertEqual(ic.get('section.9.key1'), 'val1')
+        t.assertEqual(ts.get('section 001.section.name'), 'section 1')
+        t.assertEqual(ts.get('section.9.key1'), 'val1')
 
         # Section files do support implicit root values without a section
-        t.assertEqual(ic.get('a_root_value'), 'is a valid key')
+        t.assertEqual(ts.get('a_root_value'), 'is a valid key')
         # getting a section returns None
-        t.assertIsNone(ic.get('section 001'))
-        t.assertIsNone(ic.get('section.7'))
+        t.assertIsNone(ts.get('section 001'))
+        t.assertIsNone(ts.get('section.7'))
+
+        # Parity keys shared with ini and yaml section files
+        t.assertIsNotNone(ts.get('sec0.sub0.value0'))
+        t.assertIsNone(ts.get('sec0'))
 
     def test_flat_file(t):
         t.config_file_path = path.join(t.this_dir, 'data/flat.config.toml')
-        ic = TomlConfig(file_path=t.config_file_path, file_format='flat')
+        ts = TomlSource(file_path=t.config_file_path, file_format='flat')
 
         # all keys are root values
-        t.assertEqual(ic.get('key0'), 'value0')
-        t.assertEqual(ic.get('int'), '0')
+        t.assertEqual(ts.get('key0'), 'value0')
+        t.assertEqual(ts.get('int'), '0')
         # undefined values return None
-        t.assertIsNone(ic.get('undefined-key'))
+        t.assertIsNone(ts.get('undefined-key'))
         # keys may have .'s in them, to simulate nested paths
-        t.assertEqual(ic.get('not.really.nested'), 'still a root value')
+        t.assertEqual(ts.get('not.really.nested'), 'still a root value')
         # root is a valid key, in spite of the default section name
-        t.assertEqual(ic.get('root'), 'is a valid key')
+        t.assertEqual(ts.get('root'), 'is a valid key')
 
 
 @skipIf(not _TOML_INSTALLED, 'toml is not available, skipping')
-class TomlConfigMissingFileTests(TestCase):
+class TomlSourceMissingFileTests(TestCase):
     """Test configurable behavior when the specified config file is missing."""
 
     def setUp(t):
         t.filename = 'sir.not.appearing.in.this.film'
 
-    def test_warning_default(t):
+    @patch('batconf.sources.file.log', autospec=True)
+    def test_warning_default(t, log: Mock):
         # The same behavior applies to all file formats
-        for file_format in ['environments', 'sections', 'flat']:
+        for file_format in FILE_FORMATS:
             with t.subTest(file_format=file_format):
-                with patch('batconf.sources.file.log') as log:
-                    ic = TomlConfig(
-                        file_path=t.filename,
-                        file_format=file_format,
-                        # missing_file_option='warning', is the default value
-                    )
-                    log.warning.assert_called_with(
-                        f'Config file not found: {t.filename}'
-                    )
-                # and all calls to .get will return None
-                t.assertIsNone(ic.get('root'))
-                t.assertIsNone(ic.get('project.submodule.sub.key1'))
-                t.assertIsNone(ic.get('any.random.key'))
+                ts = TomlSource(
+                    file_path=t.filename,
+                    file_format=file_format,
+                    # missing_file_option='warning', is the default value
+                )
+                # lazy: warning emitted on first data access, not construction
+                t.assertIsNone(ts.get('root'))
+                log.warning.assert_called_with(
+                    f'Config file not found: {t.filename}'
+                )
+            # and all calls to .get will return None
+            t.assertIsNone(ts.get('project.submodule.sub.key1'))
+            t.assertIsNone(ts.get('any.random.key'))
 
     def test_missing_file_error(t):
         """when missing_file_option='error'
         attempting to load a missing file will raise a FileNotFoundError
         """
-        for file_format in ['environments', 'sections', 'flat']:
+        for file_format in FILE_FORMATS:
             with t.subTest(file_format=file_format):
+                ts = TomlSource(
+                    file_path=t.filename,
+                    missing_file_option='error',
+                    file_format=file_format,
+                )
+                # lazy: error raised on first data access, not construction
                 with t.assertRaises(FileNotFoundError):
-                    _ = TomlConfig(
-                        file_path=t.filename,
-                        missing_file_option='error',
-                        file_format=file_format,
-                    )
+                    ts.get('root')
 
     def test_missing_file_ignore(t):
         """when missing_file_option='ignore'
         attempting to load a missing file will not raise an error
         """
-        file_formats = ['environments', 'sections', 'flat']
-        for file_format in file_formats:
+        for file_format in FILE_FORMATS:
             with t.subTest(file_format=file_format):
-                ic = TomlConfig(
+                ts = TomlSource(
                     file_path=t.filename,
                     missing_file_option='ignore',
                     file_format=file_format,
                 )
 
                 # and all calls to .get will return None
-                t.assertIsNone(ic.get('doc'))
-                t.assertIsNone(ic.get('project.submodule.sub.key1'))
-                t.assertIsNone(ic.get('any.random.key'))
+                t.assertIsNone(ts.get('doc'))
+                t.assertIsNone(ts.get('project.submodule.sub.key1'))
+                t.assertIsNone(ts.get('any.random.key'))
+
+
+class DeprecationTests(TestCase):
+    def test_TomlConfig_fires_warning_on_access(t):
+        import batconf.sources.toml as toml_module
+        with t.assertWarns(DeprecationWarning) as cm:
+            TomlConfig = toml_module.__getattr__('TomlConfig')
+        t.assertEqual(
+            "'TomlConfig' is deprecated, use 'TomlSource' instead.",
+            str(cm.warning),
+        )
+
+    def test_TomlConfig_is_TomlSource_subclass(t):
+        import batconf.sources.toml as toml_module
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', DeprecationWarning)
+            TomlConfig = toml_module.__getattr__('TomlConfig')
+        t.assertTrue(issubclass(TomlConfig, TomlSource))

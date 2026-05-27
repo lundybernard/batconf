@@ -1,3 +1,4 @@
+import warnings
 from unittest import TestCase
 from unittest.mock import (
     patch,
@@ -11,6 +12,8 @@ from unittest.mock import (
 from pathlib import Path as _PathClass
 
 from ..yaml import (
+    YamlSource,
+    EmptyYamlConfig,
     YamlConfig,
     get_file_path,
     _load_yaml,
@@ -61,6 +64,135 @@ EXAMPLE_CONFIG_DICT: dict = {
 
 EXAMPLE_CONFIG_WITHOUT_ENV_DICT = {'bat': {'key': 'envless_value'}}
 DEFAULT_EMPTY_CONFIGFILE_DICT = {'default': 'none', 'none': {}}
+
+EXAMPLE_ENVIRONMENTS_DICT = {
+    'batconf': {'default_env': 'example'},
+    'example': {'bat': {'key': 'value', 'remote_host': {
+        'api_key': 'example_api_key', 'url': 'https://api-example.host.io/'
+    }}},
+    'alt': {'bat': {'module': {'key': 'alt_value'}}},
+}
+
+
+class YamlSourceTests(TestCase):
+    def setUp(t):
+        patcher = patch(f'{SRC}._load_yaml', autospec=True)
+        t._load_yaml = patcher.start()
+        t.addCleanup(patcher.stop)
+
+        t._load_yaml.return_value = EXAMPLE_ENVIRONMENTS_DICT
+        t.ys = YamlSource(file_path='test.yaml')
+
+    def test___init__(t):
+        t._load_yaml.assert_not_called()  # lazy: file not read on construction
+        t.assertEqual(t.ys._config_file_path, _PathClass('test.yaml'))
+        t.assertEqual(t.ys._file_format, 'environments')
+        t.assertEqual(t.ys._missing_file_option, 'warn')
+
+        # Accessing _config_env triggers lazy load
+        t.assertEqual(t.ys._config_env, 'example')
+        t._load_yaml.assert_called_once_with(
+            file_path=_PathClass('test.yaml'),
+            when_missing='warn',
+            empty_fallback=EmptyYamlConfig,
+        )
+
+    def test__data(t):
+        """_raw_data is injected directly to bypass lazy file loading; tests _data's slicing logic."""
+        with t.subTest('environments: reads batconf.default_env, extracts subtree'):
+            env_cfg = {'k': 'v'}
+            ys = YamlSource(file_path='test.yaml')
+            ys.__dict__['_raw_data'] = {
+                'batconf': {'default_env': 'test_env'},
+                'test_env': env_cfg,
+            }
+            t.assertDictEqual(env_cfg, ys._data)
+            t.assertEqual(ys._config_env, 'test_env')
+
+        with t.subTest('environments: missing env raises ValueError'):
+            ys = YamlSource(file_path='test.yaml')
+            ys.__dict__['_raw_data'] = {'batconf': {'default_env': 'missing'}}
+            with t.assertRaises(ValueError):
+                _ = ys._data
+
+        with t.subTest('sections: returns raw dict'):
+            raw = {'sec1': {'k': 'v'}}
+            ys_s = YamlSource(file_path='test.yaml', file_format='sections')
+            ys_s.__dict__['_raw_data'] = raw
+            t.assertDictEqual(raw, ys_s._data)
+
+        with t.subTest('flat: returns raw dict'):
+            raw = {'key': 'val'}
+            ys_f = YamlSource(file_path='test.yaml', file_format='flat')
+            ys_f.__dict__['_raw_data'] = raw
+            t.assertDictEqual(raw, ys_f._data)
+
+        with t.subTest('EmptyYamlConfig: stored as-is'):
+            ys5 = YamlSource(file_path='test.yaml')
+            ys5.__dict__['_raw_data'] = EmptyYamlConfig
+            t.assertIs(ys5._data, EmptyYamlConfig)
+
+    def test__config_env(t):
+        with t.subTest('environments: populated from file default'):
+            t.assertEqual(t.ys._config_env, 'example')
+
+        with t.subTest('sections: always None'):
+            t._load_yaml.return_value = {'sec': {}}
+            ys_s = YamlSource(file_path='test.yaml', file_format='sections')
+            t.assertIsNone(ys_s._config_env)
+
+        with t.subTest('flat: always None'):
+            t._load_yaml.return_value = {'k': 'v'}
+            ys_f = YamlSource(file_path='test.yaml', file_format='flat')
+            t.assertIsNone(ys_f._config_env)
+
+    def test_get(t):
+        with t.subTest('single key'):
+            t.assertEqual(t.ys.get('bat.key'), 'value')
+
+        with t.subTest('key with path'):
+            t.assertEqual(
+                t.ys.get('api_key', path='bat.remote_host'),
+                'example_api_key',
+            )
+
+        with t.subTest('missing key returns None'):
+            t.assertIsNone(t.ys.get('nonexistent'))
+
+        with t.subTest('dict node returns None'):
+            t.assertIsNone(t.ys.get('bat'))
+
+        with t.subTest('navigating past a leaf value returns None and logs warning'):
+            with t.assertLogs(SRC, level='WARNING') as log:
+                result = t.ys.get('bat.key.sub')
+            t.assertIsNone(result)
+            t.assertEqual(
+                log.records[0].getMessage(),
+                'Config path bat.key.sub does not exist',
+            )
+
+    def test_keys(t):
+        t.assertEqual(
+            EXAMPLE_ENVIRONMENTS_DICT['example'].keys(),
+            t.ys.keys(),
+        )
+
+    def test___str__(t):
+        t.assertEqual(f'Yaml File: {repr(t.ys)}', str(t.ys))
+
+    def test___repr__(t):
+        t.assertEqual(
+            f'YamlSource('
+            f'file_path={_PathClass("test.yaml")}, '
+            f'config_env=example, '
+            f'missing_file_option=warn, '
+            f'file_format=environments)',
+            repr(t.ys),
+        )
+
+    def test_config_env_argument(t):
+        ys = YamlSource(file_path='test.yaml', config_env='alt')
+        t.assertEqual(ys.get('key', path='bat.module'), 'alt_value')
 
 
 class YamlConfigTests(TestCase):
@@ -244,6 +376,25 @@ class YamlConfigTests(TestCase):
             f'file_format=environments)',
             repr(yc),
         )
+
+
+class YamlConfigDeprecationTests(TestCase):
+    def setUp(t):
+        for target in ('get_file_path', '_load_yaml'):
+            patcher = patch(f'{SRC}.{target}', autospec=True)
+            setattr(t, target, patcher.start())
+            t.addCleanup(patcher.stop)
+        t._load_yaml.return_value = EXAMPLE_CONFIG_DICT
+        t.config_file_name = 'example.config.yaml'
+
+    def test_enable_config_environments_maps_to_file_format(t):
+        yc_envs = YamlConfig(config_file_name=t.config_file_name)
+        yc_no_envs = YamlConfig(
+            config_file_name=t.config_file_name,
+            enable_config_environments=False,
+        )
+        t.assertEqual(yc_envs._file_format, 'environments')
+        t.assertEqual(yc_no_envs._file_format, 'sections')
 
 
 class get_file_pathTests(TestCase):

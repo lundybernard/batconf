@@ -1,6 +1,7 @@
 from typing import Literal, Protocol
 
 ConfigFileFormats = Literal['flat', 'sections', 'environments']
+FILE_FORMATS: list[ConfigFileFormats] = ['flat', 'sections', 'environments']
 MissingFileOption = Literal['ignore', 'warn', 'error']
 
 
@@ -40,6 +41,7 @@ class FileSourceP(SourceInterfaceP, Protocol):
 
 __all__ = [
     'ConfigFileFormats',
+    'FILE_FORMATS',
     'FileSourceP',
     'MissingFileOption',
     'SourceInterfaceP',

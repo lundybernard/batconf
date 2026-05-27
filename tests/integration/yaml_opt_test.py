@@ -1,3 +1,4 @@
+import warnings
 from unittest import TestCase, skipIf
 from unittest.mock import patch
 
@@ -40,8 +41,11 @@ class SourcesYamlUnittestStaticValuesTests(TestCase):
 @skipIf(not _PYYAML_INSTALLED, 'optional pyyaml module not installed')
 class YamlFileIntegrationTests(TestCase):
     def setUp(t):
-        # Get the absolute path to the test config.yaml file
         t.this_dir = path.dirname(path.realpath(__file__))
+        w = warnings.catch_warnings()
+        w.__enter__()
+        warnings.simplefilter('ignore', DeprecationWarning)
+        t.addCleanup(w.__exit__, None, None, None)
 
     def test_yaml_file_source_defaults(t):
         # Get the OS-agnostic absolute path to the test config.yaml file
@@ -60,6 +64,10 @@ class YamlConfigMissingFileTests(TestCase):
 
     def setUp(t):
         t.filename = 'sir.not.appearing.in.this.film'
+        w = warnings.catch_warnings()
+        w.__enter__()
+        warnings.simplefilter('ignore', DeprecationWarning)
+        t.addCleanup(w.__exit__, None, None, None)
 
     def test_warning_default(t):
         # The same behavior applies to all file formats

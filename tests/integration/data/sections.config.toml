@@ -9,3 +9,9 @@ section.name = 'section 7'
 [section.9]
 section.name = 'section 9'
 key1 = 'val1'
+
+[sec0.sub0]
+value0 = 'sections.config.toml :: sec0.sub0 :: value0'
+
+[sec1]
+value0 = 'sections.config.toml :: sec1 :: value0'

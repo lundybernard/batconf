@@ -11,8 +11,8 @@ v0.4.0
 FileConfig Removed
 ========================
 ``batconf.sources.file.FileConfig`` has been removed.
-Replace it with :class:`~batconf.sources.ini.IniConfig` or
-:class:`~batconf.sources.yaml.YamlConfig` as appropriate.
+Replace it with :class:`~batconf.sources.ini.IniSource` or
+:class:`~batconf.sources.yaml.YamlSource` as appropriate.
 
 ========================
 New Public API
@@ -26,6 +26,7 @@ The following names are now importable directly from ``batconf``:
 * ``NamespaceSource``, ``Namespace``
 * ``EnvSource``
 * ``IniSource``
+* ``TomlSource``
 * ``YamlSource`` (requires ``batconf[yaml]``)
 
 Old submodule imports still work but the top-level names are now preferred:
