@@ -25,12 +25,12 @@ class TestEnvConfig(TestCase):
         with t.subTest('missing value'):
             t.assertEqual(conf.get('remote_host'), None)
 
-        with t.subTest('module value'):
-            t.assertEqual(conf.get('key', module='bat.module'), 'value')
+        with t.subTest('path value'):
+            t.assertEqual(conf.get('key', path='bat.module'), 'value')
 
-        with t.subTest('module and key paths'):
+        with t.subTest('path and key paths'):
             t.assertEqual(
-                conf.get('to.key', module='bat.module.path'), 'value2'
+                conf.get('to.key', path='bat.module.path'), 'value2'
             )
 
     def test_env_name(t):

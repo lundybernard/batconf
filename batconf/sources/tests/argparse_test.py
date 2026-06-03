@@ -23,8 +23,8 @@ class TestNamespaceConfig(TestCase):
         with t.subTest('missing value'):
             t.assertEqual(cs.get('missing'), None)
 
-        with t.subTest('module and key paths'):
-            t.assertEqual(cs.get('to.key', module='bat.module.path'), 'value')
+        with t.subTest('path and key paths'):
+            t.assertEqual(cs.get('to.key', path='bat.module.path'), 'value')
 
     def test___str__(t) -> None:
         cs = NamespaceConfig(Namespace())

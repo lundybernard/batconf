@@ -9,6 +9,7 @@ from dataclasses import _MISSING_TYPE
 
 from ..source import SourceInterface
 from ..types import ConfigP, FieldP
+from ._compat import deprecated_module
 
 
 class DataclassConfig(SourceInterface):
@@ -31,21 +32,27 @@ class DataclassConfig(SourceInterface):
             else:
                 self._data[field.name] = cast(str, field.default)
 
-    def get(self, key: str, module: str | None = None) -> str | None:
-        if module:
-            path = module.split('.') + key.split('.')
+    def get(
+        self,
+        key: str,
+        path: str | None = None,
+        module: str | None = None,
+    ) -> str | None:
+        path = deprecated_module(path, module)
+        if path:
+            parts = path.split('.') + key.split('.')
             # remove the root module
             for m in self._root.split('.'):
-                if m == path[0]:
-                    path.pop(0)
+                if m == parts[0]:
+                    parts.pop(0)
         else:
-            path = key.split('.')
+            parts = key.split('.')
 
         # TODO: Needs a thorough review
         # The difficulty in typing this indicates some potential issues
         # like unexpected return values.
         conf: _DATA_DICT_TYPE | str | None = self._data
-        for k in path:
+        for k in parts:
             if (conf := conf.get(k)) is None:  # type: ignore
                 return conf
         return conf  # type: ignore

@@ -1,6 +1,7 @@
 import os
 
 from ..source import SourceInterface
+from ._compat import deprecated_module
 
 
 class EnvConfig(SourceInterface):
@@ -24,8 +25,14 @@ class EnvConfig(SourceInterface):
     def __init__(self) -> None:
         pass
 
-    def get(self, key: str, module: str | None = None) -> str | None:
-        return os.getenv(self.env_name(key, module))
+    def get(
+        self,
+        key: str,
+        path: str | None = None,
+        module: str | None = None,
+    ) -> str | None:
+        path = deprecated_module(path, module)
+        return os.getenv(self.env_name(key, path))
 
     def env_name(self, key: str, module: str | None = None) -> str:
         if module:

@@ -32,9 +32,9 @@ class TestDataclassConfig(TestCase):
         with t.subTest('single key'):
             t.assertEqual(conf.get('config_file'), './GlobalConfig.yaml')
 
-        with t.subTest('module value'):
+        with t.subTest('path value'):
             t.assertEqual(
-                conf.get('key', module=ConfigClass.__module__),
+                conf.get('key', path=ConfigClass.__module__),
                 'v_1',
             )
 
@@ -52,13 +52,13 @@ class TestDataclassConfig(TestCase):
                 'sub_v_1',
             )
 
-        with t.subTest('module and key paths'):
+        with t.subTest('path and key paths'):
             t.assertEqual(
-                conf.get('key', module=SubConfig.__module__),
+                conf.get('key', path=SubConfig.__module__),
                 'sub_v_1',
             )
             t.assertEqual(
-                conf.get('SubModule.key', module=ConfigClass.__module__),
+                conf.get('SubModule.key', path=ConfigClass.__module__),
                 'sub_v_1',
             )
 
