@@ -1,4 +1,5 @@
 from batconf.source import SourceInterface
+from batconf.sources._compat import deprecated_module
 
 from argparse import Namespace
 
@@ -25,9 +26,15 @@ class NamespaceConfig(SourceInterface):
     def __init__(self, namespace: Namespace) -> None:
         self._data = namespace
 
-    def get(self, key: str, module: str | None = None) -> str | None:
-        path = '.'.join((module, key)) if module else key
-        return getattr(self._data, path, None)
+    def get(
+        self,
+        key: str,
+        path: str | None = None,
+        module: str | None = None,
+    ) -> str | None:
+        path = deprecated_module(path, module)
+        attr = '.'.join((path, key)) if path else key
+        return getattr(self._data, attr, None)
 
     def __str__(self):
         return f'Namespace Source: {repr(self)}'

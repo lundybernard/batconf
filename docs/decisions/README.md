@@ -19,3 +19,4 @@ Statuses: `Proposed → Accepted → Deprecated / Superseded by NNNN`
 | ---------------------------------------------- | ------------------------------ | -------- |
 | [0000](0000-foundational/)                     | Foundational decisions (8 decisions) | Accepted |
 | [0001](0001-file-source-classes/)              | FileSource class refactor (4 decisions) | Proposed |
+| [0002](0002-get-path-parameter.md)             | Standardize `.get()` on `path`; deprecate `module` | Proposed |
