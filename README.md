@@ -8,7 +8,7 @@ and microservices.
 [![Stable Version](https://img.shields.io/pypi/v/batconf?color=blue)](https://pypi.org/project/batconf/)
 [![Downloads](https://img.shields.io/pypi/dm/batconf)](https://pypistats.org/packages/batconf)
 [![Build Status](https://github.com/lundybernard/batconf/actions/workflows/tests.yml/badge.svg)](https://github.com/lundybernard/batconf/actions)
-[![Documentation Status](https://readthedocs.org/projects/batconf/badge/?version=latest)](https://batconf.readthedocs.io/en/latest/)
+[![Documentation Status](https://readthedocs.org/projects/batconf/badge/?version=stable)](https://batconf.readthedocs.io/en/stable/)
 [![Python](https://img.shields.io/pypi/pyversions/batconf)](https://pypi.org/pypi/batconf/)
 [![Tidelift](https://tidelift.com/badges/package/pypi/batconf)](https://tidelift.com/subscription/pkg/pypi-batconf)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/lundybernard/batconf/badge)](https://securityscorecards.dev/viewer/?uri=github.com/lundybernard/batconf)
@@ -70,7 +70,7 @@ https://tidelift.com/subscription/pkg/pypi-batconf?utm_source=pypi-batconf&utm_m
 )
 
 ## [Example Configuration](tests/example/)
-Check out our [Quick Start Guide](https://batconf.readthedocs.io/en/latest/quickstart.html)
+Check out our [Quick Start Guide](https://batconf.readthedocs.io/en/stable/quickstart.html)
 
 and the example project in [tests/example/](/tests/example)
 which includes tests and documentation.
@@ -153,7 +153,7 @@ dependencies = [
 ### Breaking Changes
 
 * `batconf.sources.file.FileConfig` has been removed.
-  See the [migration guide](https://batconf.readthedocs.io/en/latest/migration.html)
+  See the [migration guide](https://batconf.readthedocs.io/en/v0.4.0/migration.html)
   for details.
 
 ## Architecture Decision Records
