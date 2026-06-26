@@ -1,5 +1,6 @@
-# This workflow will install Python dependencies,
-# run tests and lint with a single version of Python
+# Runs the Nox test matrix through Pixi so CI uses the exact same entrypoints
+# as local development (`pixi run nox ...`). Nox installs each session frozen
+# from uv.lock, so CI, the matrix, and the dev env never drift.
 # For more information see:
 # https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
@@ -18,6 +19,63 @@ permissions:
   contents: read
 
 jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python: [
+          '3.10', '3.11', '3.12', '3.13', '3.13t', '3.14', '3.14t',
+          'pypy3.10', 'pypy3.11',
+        ]
+        extras: ['', 'yaml']
+        # tests_toml is 3.10-only (the [toml] extra only applies there); add it
+        # once per OS instead of folding it into the python/extras product.
+        include:
+          - { os: ubuntu-latest,  session: tests_toml }
+          - { os: macos-latest,   session: tests_toml }
+          - { os: windows-latest, session: tests_toml }
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - uses: prefix-dev/setup-pixi@ba3bb36eb2066252b2363392b7739741bb777659 # v0.8.1
+        with:
+          pixi-version: latest
+          environments: default
+
+      - name: Run nox session
+        shell: bash
+        run: |
+          session="${{ matrix.session }}"
+          if [ -z "$session" ]; then
+            session="tests-${{ matrix.python }}(extras='${{ matrix.extras }}')"
+          fi
+          pixi run nox --session "$session"
+
+  typecheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        nox-session: [
+          'typecheck-3.10', 'typecheck-3.11', 'typecheck-3.12',
+          'typecheck-3.13', 'typecheck-3.14',
+        ]
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - uses: prefix-dev/setup-pixi@ba3bb36eb2066252b2363392b7739741bb777659 # v0.8.1
+        with:
+          pixi-version: latest
+          environments: default
+
+      - run: pixi run nox --session "${{ matrix.nox-session }}"
+
   lint:
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -25,110 +83,22 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+      - uses: prefix-dev/setup-pixi@ba3bb36eb2066252b2363392b7739741bb777659 # v0.8.1
         with:
-          python-version: '3.13'
+          pixi-version: latest
+          environments: lint
 
-      - name: Set up uv
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
-
-      - name: Install dependencies
-        run: uv sync --only-group lint --frozen
-
-      - name: Lint with flake8
-        run: |
-          # stop the build if there are Python syntax errors or undefined names
-          uv run flake8 batconf tests --count --select=E9,F63,F7,F82 --show-source --statistics
-          # exit-zero treats all errors as warnings.
-          uv run flake8 batconf tests --count --exit-zero --statistics
-
-  typecheck:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    strategy:
-      matrix:
-        python-version: [
-          '3.10', '3.11', '3.12', '3.13', '3.14',
-        ]
-
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Set up uv
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
-
-      - name: Install dependencies
-        run: uv sync --only-group typecheck --frozen
-
-      - name: Type checking with mypy
-        run: |
-          uv run mypy batconf
-          uv run mypy tests
-
-  test:
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 5
-    strategy:
-      matrix:
-        python-version: [
-          '3.10', '3.11', '3.12', '3.13', '3.13t', '3.14', '3.14t',
-          'pypy-3.10', 'pypy-3.11',
-        ]
-        install-opts: [ '', '[yaml]' ]
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
-        # Include extra tests for legacy toml package
-        include:
-          - python-version: '3.10'
-            install-opts: '[toml]'
-            os: 'ubuntu-latest'
-
-          - python-version: '3.10'
-            install-opts: '[toml]'
-            os: 'macos-latest'
-
-          - python-version: '3.10'
-            install-opts: '[toml]'
-            os: 'windows-latest'
-
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Set up uv
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
-
-      - name: Install dependencies
-        run: uv sync --only-group test --frozen --no-install-project
-
-      - name: Unit Tests
-        run: |
-          uv run pytest batconf
-
-      - name: Install the module
-        run: |
-          uv pip install .${{ matrix.install-opts }}
-
-      - name: Integration Tests
-        run: |
-          uv run pytest --no-cov tests
+      - run: pixi run lint
 
   all-checks:
     if: always()
-    needs: [test]
+    needs: [lint, typecheck, test]
     runs-on: ubuntu-latest
     steps:
       - name: All checks passed
         run: |
-          if [[ "${{ needs.test.result }}" != "success" ]]; then
+          if [[ "${{ needs.lint.result }}" != "success" || \
+                "${{ needs.typecheck.result }}" != "success" || \
+                "${{ needs.test.result }}" != "success" ]]; then
             exit 1
           fi
