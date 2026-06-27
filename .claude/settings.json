@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // empty' | grep -E '\\.py$' | { read -r f && { ruff check \"$f\"; mypy \"$f\" --no-error-summary; }; } || true",
+            "statusMessage": "ruff + mypy..."
+          }
+        ]
+      }
+    ]
+  }
+}

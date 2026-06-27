@@ -113,3 +113,14 @@ venv.bak/
 # === IDE === #
 # pycharm
 .idea/
+
+# === Claude Code === #
+# Personal, per-machine settings (hooks, permission allowlist).
+# Shareable project config lives in .claude/settings.json (committed).
+.claude/settings.local.json
+# Personal CLAUDE.md overrides; project guide is the committed CLAUDE.md.
+CLAUDE.local.md
+
+# === Pixi === #
+# Local environment dir; pixi.lock is committed for a reproducible toolchain.
+.pixi/
