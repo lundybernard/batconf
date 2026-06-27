@@ -52,7 +52,7 @@ def _sync(session, group, extras=()):
 def tests(session, extras):
     _sync(session, group='test', extras=[extras] if extras else [])
     tag = extras or 'no-extras'
-    session.env['COVERAGE_FILE'] = f'.coverage.{session.python}.{tag}'
+    session.env['COVERAGE_FILE'] = f'.cache/.coverage.{session.python}.{tag}'
     session.run('pytest', 'batconf')
     session.run('pytest', '--no-cov', 'tests')
 
@@ -60,7 +60,7 @@ def tests(session, extras):
 @nox.session(python='3.10')
 def tests_toml(session):
     _sync(session, group='test', extras=['toml'])
-    session.env['COVERAGE_FILE'] = '.coverage.3.10.toml'
+    session.env['COVERAGE_FILE'] = '.cache/.coverage.3.10.toml'
     session.run('pytest', 'batconf')
     session.run('pytest', '--no-cov', 'tests')
 

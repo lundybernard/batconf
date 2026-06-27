@@ -96,9 +96,13 @@ docs = [
 # === Testing === #
 [tool.pytest.ini_options]
 log_level = "INFO"
-addopts = "--cov=batconf --cov-report=term --cov-report=xml"
+addopts = "--cov=batconf --cov-report=term"
+cache_dir = ".cache/pytest"
 python_classes = '*Tests'
 python_files = ["*_test.py", "*_pytest.py", "test_*.py"]
+
+[tool.coverage.run]
+data_file = ".cache/coverage"
 
 [tool.coverage.report]
 fail_under = 100
@@ -114,6 +118,7 @@ max-complexity = 10
 
 [tool.ruff]
 line-length = 79
+cache-dir = ".cache/ruff"
 [tool.ruff.format]
 quote-style = 'single'
 [tool.ruff.lint]
@@ -125,6 +130,7 @@ ignore = ['F401']
 # === Type Checking === #
 [tool.mypy]
 exclude = "runcli.py"
+cache_dir = ".cache/mypy"
 
 # === UV === #
 [tool.uv]
