@@ -59,11 +59,19 @@ typecheck = [
     "types-toml",
 ]
 
+# Full interpreter matrix (nox + its uv backend). Standalone so devs who do not
+# use pixi can `uv sync --group test-matrix` and run `nox` directly.
+test-matrix = [
+    "nox",
+    "uv",
+]
+
 # convenience group for local development:
 dev = [
     {include-group = "test"},
     {include-group = "lint"},
     {include-group = "typecheck"},
+    {include-group = "test-matrix"},
 ]
 
 build = [
@@ -88,9 +96,13 @@ docs = [
 # === Testing === #
 [tool.pytest.ini_options]
 log_level = "INFO"
-addopts = "--cov=batconf --cov-report=term --cov-report=xml"
+addopts = "--cov=batconf --cov-report=term"
+cache_dir = ".cache/pytest"
 python_classes = '*Tests'
 python_files = ["*_test.py", "*_pytest.py", "test_*.py"]
+
+[tool.coverage.run]
+data_file = ".cache/coverage"
 
 [tool.coverage.report]
 fail_under = 100
@@ -106,6 +118,7 @@ max-complexity = 10
 
 [tool.ruff]
 line-length = 79
+cache-dir = ".cache/ruff"
 [tool.ruff.format]
 quote-style = 'single'
 [tool.ruff.lint]
@@ -117,7 +130,58 @@ ignore = ['F401']
 # === Type Checking === #
 [tool.mypy]
 exclude = "runcli.py"
+cache_dir = ".cache/mypy"
 
 # === UV === #
 [tool.uv]
 exclude-newer = "7 days"
+
+# === Pixi (dev environment) === #
+# Fast single-python inner loop + IDE (nvim). pip-first: PyPI for pure-python,
+# conda only when necessary. The full interpreter matrix lives in noxfile.py
+# (installed frozen from uv.lock). `exclude-newer` mirrors [tool.uv] so the dev
+# env carries the same supply-chain cooldown as the matrix.
+#
+# Tool sets come from [dependency-groups] (test/lint/typecheck/dev) — pixi maps
+# each PEP 735 group to a feature of the same name, so there is a single source
+# of truth shared with uv/nox. Each task is attached to its feature, so it runs
+# in exactly one environment (no ambiguity); the single-feature envs isolate the
+# tools for targeted runs and CI (`pixi run test`, `pixi run lint`, ...). The
+# `dev` group includes all three, so the default environment is the union nvim
+# activates (`pixi shell`).
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+# Exactly the platforms CI launches nox on (ubuntu/macos/windows runners). nox
+# itself ships only in this lock, not uv.lock, so every CI OS must resolve here.
+# osx-64 (Intel mac) is omitted: GitHub has no Intel runner, so it is never
+# tested; add it only if a dev runs pixi on Intel hardware.
+platforms = ["linux-64", "osx-arm64", "win-64"]
+exclude-newer = "7d"
+
+[tool.pixi.dependencies]
+# conda only when necessary — the interpreter itself.
+python = "3.14.*"
+
+[tool.pixi.pypi-dependencies]
+# default feature (present in every environment): the project under test.
+batconf = { path = ".", editable = true, extras = ["yaml", "toml"] }
+
+[tool.pixi.environments]
+default = { features = ["dev"], solve-group = "default" }
+test = { features = ["test"], solve-group = "default" }
+lint = { features = ["lint"], solve-group = "default" }
+typecheck = { features = ["typecheck"], solve-group = "default" }
+
+[tool.pixi.feature.test.tasks]
+test = "pytest batconf && pytest --no-cov tests"
+
+[tool.pixi.feature.lint.tasks]
+lint = "flake8 batconf tests --count --select=E9,F63,F7,F82 --show-source --statistics && flake8 batconf tests --count --exit-zero --statistics"
+
+[tool.pixi.feature.typecheck.tasks]
+typecheck = "mypy batconf && mypy tests"
+
+# nox + uv reach the default environment via the dev group's test-matrix
+# include; the task lives on the dev feature so it runs there.
+[tool.pixi.feature.dev.tasks]
+matrix = "nox -s parallel -- -q"
