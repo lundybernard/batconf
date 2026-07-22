@@ -1,6 +1,8 @@
 # Runs the Nox test matrix through Pixi so CI uses the exact same entrypoints
-# as local development (`pixi run nox ...`). Nox installs each session frozen
-# from uv.lock, so CI, the matrix, and the dev env never drift.
+# as local development (`pixi run nox ...`). batconf is a library: no
+# dependency lockfile is committed, and every session resolves fresh under the
+# exclude-newer cooldown in [tool.uv], so new upstream releases are tested
+# within days. The tooling layer (python/nox/uv) stays pinned by pixi.lock.
 # For more information see:
 # https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
@@ -54,6 +56,16 @@ jobs:
             session="tests-${{ matrix.python }}(extras='${{ matrix.extras }}')"
           fi
           pixi run nox --session "$session"
+
+      # Archive the solved dependency set (uv.lock is generated, not
+      # committed) so a red run can be diffed against a known-good solve.
+      # Nightlies always upload; other events only when the job fails.
+      - name: Archive resolved lockfile
+        if: always() && (github.event_name == 'schedule' || failure())
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: resolved-lock-${{ matrix.os }}-${{ matrix.python || matrix.session }}-${{ matrix.extras }}
+          path: uv.lock
 
   typecheck:
     runs-on: ubuntu-latest

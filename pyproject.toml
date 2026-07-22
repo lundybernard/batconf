@@ -141,14 +141,21 @@ exclude = "runcli.py"
 cache_dir = ".cache/mypy"
 
 # === UV === #
+# batconf is a library: no uv.lock is committed (it is gitignored). Test deps
+# resolve fresh on every nox run, so CI continuously exercises new upstream
+# releases. `exclude-newer` is the supply-chain safety buffer: only releases
+# at least this old are candidates. CI archives each run's solved uv.lock as
+# an artifact for post-mortem diffing.
 [tool.uv]
 exclude-newer = "7 days"
 
 # === Pixi (dev environment) === #
 # Fast single-python inner loop + IDE (nvim). pip-first: PyPI for pure-python,
 # conda only when necessary. The full interpreter matrix lives in noxfile.py
-# (installed frozen from uv.lock). `exclude-newer` mirrors [tool.uv] so the dev
-# env carries the same supply-chain cooldown as the matrix.
+# (resolved fresh by uv on each run). pixi.lock IS committed: it pins the
+# tooling layer (interpreter, nox, uv, linters) for dev-env coordination and
+# CI caching, while the deps under test float. `exclude-newer` mirrors
+# [tool.uv] so the dev env carries the same supply-chain cooldown.
 #
 # Tool sets come from [dependency-groups] (test/lint/typecheck/dev) — pixi maps
 # each PEP 735 group to a feature of the same name, so there is a single source
@@ -160,7 +167,7 @@ exclude-newer = "7 days"
 [tool.pixi.workspace]
 channels = ["conda-forge"]
 # Exactly the platforms CI launches nox on (ubuntu/macos/windows runners). nox
-# itself ships only in this lock, not uv.lock, so every CI OS must resolve here.
+# and uv ship only in the pixi envs, so every CI OS must resolve here.
 # osx-64 (Intel mac) is omitted: GitHub has no Intel runner, so it is never
 # tested; add it only if a dev runs pixi on Intel hardware.
 platforms = ["linux-64", "osx-arm64", "win-64"]
