@@ -92,6 +92,14 @@ docs = [
     'diagrams',
 ]
 
+# optional: run/author example notebooks against editable batconf.
+# ipykernel is the only extra needed — batconf itself is in every environment
+# (default-feature pypi-dependency below). Kept out of `dev`; opt in via the
+# `notebooks` pixi environment (`pixi run -e notebooks ...`).
+notebooks = [
+    'ipykernel',
+]
+
 
 # === Testing === #
 [tool.pytest.ini_options]
@@ -171,6 +179,7 @@ default = { features = ["dev"], solve-group = "default" }
 test = { features = ["test"], solve-group = "default" }
 lint = { features = ["lint"], solve-group = "default" }
 typecheck = { features = ["typecheck"], solve-group = "default" }
+notebooks = { features = ["notebooks"], solve-group = "default" }
 
 [tool.pixi.feature.test.tasks]
 test = "pytest batconf && pytest --no-cov tests"
