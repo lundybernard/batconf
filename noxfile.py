@@ -30,15 +30,18 @@ PYTHON_VERSIONS = CPYTHON_VERSIONS + ['pypy3.10', 'pypy3.11']
 
 
 def _sync(session, group, extras=()):
-    """Install locked deps from uv.lock into this session's venv.
+    """Install deps into this session's venv, resolved fresh each run.
 
-    Frozen sync pins every matrix run to the exact versions in uv.lock — the
-    same set (and supply-chain cooldown) the pixi dev env uses — so local,
-    matrix, and CI never drift. ``--no-default-groups`` installs only the
-    requested group; ``UV_PROJECT_ENVIRONMENT`` points uv at the nox venv
-    instead of the project's .venv.
+    batconf is a library, so no dependency lockfile is committed: every run
+    resolves the newest releases allowed by the ``exclude-newer`` cooldown in
+    ``[tool.uv]``, so upstream breakage surfaces within days of a release
+    instead of at the next manual lock bump. The resolved set is written to
+    uv.lock (gitignored); CI archives it so any failure can be diffed against
+    a known-good solve. ``--no-default-groups`` installs only the requested
+    group; ``UV_PROJECT_ENVIRONMENT`` points uv at the nox venv instead of
+    the project's .venv.
     """
-    args = ['uv', 'sync', '--frozen', '--no-default-groups', '--group', group]
+    args = ['uv', 'sync', '--upgrade', '--no-default-groups', '--group', group]
     for extra in extras:
         args += ['--extra', extra]
     session.run_install(
