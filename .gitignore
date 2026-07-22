@@ -124,3 +124,9 @@ CLAUDE.local.md
 # === Pixi === #
 # Local environment dir; pixi.lock is committed for a reproducible toolchain.
 .pixi/
+
+# === UV === #
+# batconf is a library — no dependency lockfile is committed. uv.lock is
+# regenerated on every nox run (see [tool.uv] in pyproject.toml); CI archives
+# it as an artifact instead.
+uv.lock
