@@ -171,6 +171,17 @@ default = { features = ["dev"], solve-group = "default" }
 test = { features = ["test"], solve-group = "default" }
 lint = { features = ["lint"], solve-group = "default" }
 typecheck = { features = ["typecheck"], solve-group = "default" }
+docs = { features = ["docs"], solve-group = "default" }
+
+# graphviz is a system binary (`dot`, needed by the diagrams package), not a
+# python package — conda territory.
+[tool.pixi.feature.docs.dependencies]
+graphviz = "*"
+
+# conf.py imports diagram_config_comp from the source dir, so build with the
+# module runner from docs/source (cwd lands on sys.path, matching ReadTheDocs).
+[tool.pixi.feature.docs.tasks]
+docs = { cmd = "python -m sphinx -b html . ../build/html", cwd = "docs/source" }
 
 [tool.pixi.feature.test.tasks]
 test = "pytest batconf && pytest --no-cov tests"
