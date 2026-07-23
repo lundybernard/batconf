@@ -118,6 +118,7 @@ Indices and tables
    intro
    quickstart
    guide
+   comparison
 
 .. toctree::
    :hidden:
