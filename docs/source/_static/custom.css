@@ -1,3 +1,10 @@
 img[alt="Tidelift Logo"]{
     width:28%;
 }
+
+/* sphinx_rtd_theme forces white-space: nowrap on table cells, so wide
+   tables overflow and require horizontal scrolling; let cells wrap. */
+.wy-table-responsive table td,
+.wy-table-responsive table th {
+    white-space: normal;
+}
