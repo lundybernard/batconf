@@ -8,7 +8,7 @@ and microservices.
 [![Stable Version](https://img.shields.io/pypi/v/batconf?color=blue)](https://pypi.org/project/batconf/)
 [![Downloads](https://img.shields.io/pypi/dm/batconf)](https://pypistats.org/packages/batconf)
 [![Build Status](https://github.com/lundybernard/batconf/actions/workflows/tests.yml/badge.svg)](https://github.com/lundybernard/batconf/actions)
-[![Documentation Status](https://readthedocs.org/projects/batconf/badge/?version=latest)](https://batconf.readthedocs.io/en/latest/)
+[![Documentation Status](https://readthedocs.org/projects/batconf/badge/?version=stable)](https://batconf.readthedocs.io/en/stable/)
 [![Python](https://img.shields.io/pypi/pyversions/batconf)](https://pypi.org/pypi/batconf/)
 [![Tidelift](https://tidelift.com/badges/package/pypi/batconf)](https://tidelift.com/subscription/pkg/pypi-batconf)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/lundybernard/batconf/badge)](https://securityscorecards.dev/viewer/?uri=github.com/lundybernard/batconf)
@@ -51,6 +51,23 @@ which can be adjusted to suit your needs.
     * modules can be easily plugged in to other modules.
     * modules can be easily factored out (into new projects).
 
+## How BatConf Compares
+
+| Tool | Layered sources | Config object access | Validation | CLI integration |
+|---|---|---|---|---|
+| **BatConf** | CLI / env / files / dataclass defaults | dot-path + subscript | bring your own (by design) | explicit — your app owns its argparse parser |
+| pydantic-settings | env / files / secrets / CLI | typed model attributes | built-in (pydantic) | generated parser |
+| environs | env vars only | none (per-value reads) | built-in (marshmallow) | none |
+| python-decouple | env / `.ini` / `.env` | none (per-value reads) | `cast` callable only | none |
+| Dynaconf | many formats + env profiles | dot-path + subscript | built-in validators | management CLI |
+| python-dotenv | `.env` loader only | plain dict | none | none |
+| Hydra / OmegaConf | YAML composition + CLI overrides | dot-path + subscript | opt-in structured configs | framework owns `argv` |
+| configparser (stdlib) | INI files | subscript (strings) | none | none |
+
+See the full
+[comparison guide](https://batconf.readthedocs.io/en/latest/comparison.html)
+for details, access-interface ergonomics, and guidance on choosing a tool.
+
 ## Professional Support
 
 ![Tidelift Logo](docs/source/_static/Tidelift_Logos_RGB_Tidelift_Mark_On-White.png)
@@ -70,7 +87,7 @@ https://tidelift.com/subscription/pkg/pypi-batconf?utm_source=pypi-batconf&utm_m
 )
 
 ## [Example Configuration](tests/example/)
-Check out our [Quick Start Guide](https://batconf.readthedocs.io/en/latest/quickstart.html)
+Check out our [Quick Start Guide](https://batconf.readthedocs.io/en/stable/quickstart.html)
 
 and the example project in [tests/example/](/tests/example)
 which includes tests and documentation.
@@ -153,7 +170,7 @@ dependencies = [
 ### Breaking Changes
 
 * `batconf.sources.file.FileConfig` has been removed.
-  See the [migration guide](https://batconf.readthedocs.io/en/latest/migration.html)
+  See the [migration guide](https://batconf.readthedocs.io/en/v0.4.0/migration.html)
   for details.
 
 ## Architecture Decision Records

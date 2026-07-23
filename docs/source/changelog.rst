@@ -52,6 +52,24 @@ Features:
   ``NamespaceSource``, ``EnvSource``, ``IniSource``, ``TomlSource``,
   ``YamlSource`` are now importable directly from ``batconf``
 
+Deprecated:
+
+* :class:`~batconf.sources.ini.IniConfig` — use
+  :class:`~batconf.sources.ini.IniSource` instead
+* :class:`~batconf.sources.toml.TomlConfig` — use
+  :class:`~batconf.sources.toml.TomlSource` instead
+* :class:`~batconf.sources.yaml.YamlConfig` — use
+  :class:`~batconf.sources.yaml.YamlSource` instead
+* ``CliArgsConfig`` — use
+  :class:`~batconf.sources.argparse.NamespaceConfig` (exported as
+  ``NamespaceSource``) instead
+* The ``module`` argument to file sources is deprecated and will be
+  removed in a future release
+* Proto-suffixed type names now emit a ``DeprecationWarning`` and resolve
+  to their ``P``-suffixed equivalents: ``ConfigProtocol`` → ``ConfigP``,
+  ``FieldProtocol`` → ``FieldP``, ``SourceInterfaceProto`` →
+  ``SourceInterfaceP``, ``SourceListProto`` → ``SourceListP``
+
 .. _v0.3.1:
 
 ------------------

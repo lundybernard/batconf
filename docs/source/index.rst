@@ -118,6 +118,13 @@ Indices and tables
    intro
    quickstart
    guide
+   comparison
+
+.. toctree::
+   :hidden:
+   :caption: Developer's Guide
+   :maxdepth: 2
+
    devguide
 
 .. toctree::
