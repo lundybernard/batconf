@@ -18,10 +18,14 @@ body:
     attributes:
       label: ToDo
       options:
-        - label: Update dev release guide to include publishing release notes
-        - label: Update version
+        - label: Update version in pyproject.toml (remove the +dev suffix)
         - label: Change release notes date from TBD to today's date
-        - label: Tag the commit for version
-        - label: Add a new commit to update version to VERSION_NUMBER-dev
-        - label: check out VERSION_NUMBER, build and publish to PyPi
-        - label: add to [github releases](https://github.com/lundybernard/batconf/releases)
+        - label: Rebuild docs locally (`make docs`) and review the changelog entry
+        - label: 'Commit the release changes (message: `Release version X.Y.Z` / blank line / `Fixes: #<release ticket number>`)'
+        - label: Add a commit bumping the version to VERSION_NUMBER+dev
+        - label: Open a release PR, get it reviewed, and merge (merge commit — preserves the signed release commit)
+        - label: Tag the release commit with a signed tag (`git tag -s`) and verify (`git tag -v`)
+        - label: Build, run `twine check`, and GPG-sign the artifacts (`gpg --detach-sign --armor dist/*`)
+        - label: Publish to test.pypi and verify
+        - label: Publish to pypi and verify
+        - label: Create the [GitHub release](https://github.com/lundybernard/batconf/releases) with the signed artifacts (.asc) attached

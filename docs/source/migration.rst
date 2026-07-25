@@ -64,6 +64,28 @@ Subscript Access
 so ``cfg['key']`` is equivalent to ``cfg.key``. This enables dynamic
 lookups such as ``cfg.clients[client_id]``.
 
+========================
+Deprecations
+========================
+The following names still work but now emit a ``DeprecationWarning`` and
+will be removed in a future release. Update your imports:
+
+.. code-block:: python
+
+    # old                              # new
+    from batconf.sources.ini import IniConfig    # IniSource
+    from batconf.sources.toml import TomlConfig  # TomlSource
+    from batconf.sources.yaml import YamlConfig  # YamlSource
+    from batconf.sources.args import CliArgsConfig  # NamespaceConfig / NamespaceSource
+
+The ``module`` argument to file sources is also deprecated.
+
+Proto-suffixed type names now resolve to their ``P``-suffixed
+equivalents (``ConfigProtocol`` → ``ConfigP``, ``FieldProtocol`` →
+``FieldP``, ``SourceInterfaceProto`` → ``SourceInterfaceP``,
+``SourceListProto`` → ``SourceListP``). Prefer the ``P`` names; see
+:mod:`batconf.types`.
+
 
 ******
 v0.2.0

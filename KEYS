@@ -1,0 +1,29 @@
+This file contains the OpenPGP (GPG) public keys of BatConf maintainers
+who are authorized to sign releases. It is the canonical trust anchor for
+verifying BatConf release artifacts and signed git tags.
+
+Verify a download:
+
+    # import every authorized signer's key (once)
+    gpg --import KEYS
+
+    # verify a signed tag
+    git tag -v vX.Y.Z
+
+    # verify a downloaded artifact against its detached .asc signature
+    gpg --verify batconf-X.Y.Z.tar.gz.asc batconf-X.Y.Z.tar.gz
+
+Each entry below is one maintainer: a comment line with their name,
+primary key fingerprint, and the dates they are an authorized signer,
+followed by the ASCII-armored public key block. Generate your block with:
+
+    gpg --armor --export <YOUR_FINGERPRINT> >> KEYS
+
+See docs/source/devguide.md ("Prerequisites: signing keys") for the full
+key generation and maintenance procedure. When a maintainer stops signing
+releases, remove their key block from this file; signatures they made
+while authorized remain valid.
+
+================================================================================
+
+# (no maintainer keys recorded yet — append the first one above this line)
