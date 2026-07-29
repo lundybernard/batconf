@@ -51,6 +51,23 @@ which can be adjusted to suit your needs.
     * modules can be easily plugged in to other modules.
     * modules can be easily factored out (into new projects).
 
+## How BatConf Compares
+
+| Tool | Layered sources | Config object access | Validation | CLI integration |
+|---|---|---|---|---|
+| **BatConf** | CLI / env / files / dataclass defaults | dot-path + subscript | bring your own (by design) | explicit — your app owns its argparse parser |
+| pydantic-settings | env / files / secrets / CLI | typed model attributes | built-in (pydantic) | generated parser |
+| environs | env vars only | none (per-value reads) | built-in (marshmallow) | none |
+| python-decouple | env / `.ini` / `.env` | none (per-value reads) | `cast` callable only | none |
+| Dynaconf | many formats + env profiles | dot-path + subscript | built-in validators | management CLI |
+| python-dotenv | `.env` loader only | plain dict | none | none |
+| Hydra / OmegaConf | YAML composition + CLI overrides | dot-path + subscript | opt-in structured configs | framework owns `argv` |
+| configparser (stdlib) | INI files | subscript (strings) | none | none |
+
+See the full
+[comparison guide](https://batconf.readthedocs.io/en/latest/comparison.html)
+for details, access-interface ergonomics, and guidance on choosing a tool.
+
 ## Professional Support
 
 ![Tidelift Logo](docs/source/_static/Tidelift_Logos_RGB_Tidelift_Mark_On-White.png)
