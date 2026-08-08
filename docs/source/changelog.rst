@@ -19,9 +19,22 @@ BatConf 0.x
 
 Breaking changes:
 
-* Remove ``batconf.sources.file.FileConfig``
-  (deprecated since 0.2.0 — use :class:`~batconf.sources.ini.IniConfig`
-  or :class:`~batconf.sources.yaml.YamlConfig` instead)
+* Remove ``batconf.sources.file.FileConfig`` (deprecated since 0.2.0).
+  ``FileConfig`` read YAML files only, so its replacement is
+  :class:`~batconf.sources.yaml.YamlSource`. The constructor keyword was
+  renamed: ``config_file_name=`` is now ``file_path=``. See the
+  :doc:`migration` guide.
+* The ``Proto``-suffixed type names (``ConfigProtocol``, ``FieldProtocol``
+  and ``SourceInterfaceProto``) have been **removed** from
+  :mod:`batconf.manager`, :mod:`batconf.source` and
+  :mod:`batconf.sources.dataclass` — importing them from those modules
+  raises ``ImportError``. Deprecated equivalents (including the new
+  ``SourceListProto``) live in :mod:`batconf.types`. See the
+  :doc:`migration` guide.
+* :class:`~batconf.source.SourceList` no longer subclasses
+  ``SourceInterface``, so ``isinstance``/``issubclass`` checks against
+  ``SourceInterface`` no longer match it; use
+  :class:`~batconf.types.SourceListP` for type annotations.
 
 Features:
 
@@ -32,17 +45,29 @@ Features:
 * Subscript access on :class:`~batconf.manager.Configuration`:
   ``cfg['key']`` is equivalent to ``cfg.key``
 * :class:`~batconf.sources.ini.IniSource` — standardised INI file source
-  implementing :class:`~batconf.sources.types.FileSourceP`;
-  replaces :class:`~batconf.sources.ini.IniConfig`
+  implementing :class:`~batconf.sources.types.FileSourceP`; the successor to
+  :class:`~batconf.sources.ini.IniConfig`. It is **not** a drop-in rename:
+  the parameters after ``file_path`` were reordered —
+  ``IniConfig(file_path, config_env, missing_file_option, file_format)``
+  became
+  ``IniSource(file_path, file_format, config_env, missing_file_option)`` —
+  so ``IniSource('cfg.ini', 'dev')`` raises
+  ``ValueError: Invalid file_format: dev``. Pass ``config_env=`` by keyword.
 * :class:`~batconf.sources.toml.TomlSource` — standardised TOML file source
-  implementing :class:`~batconf.sources.types.FileSourceP`;
-  replaces :class:`~batconf.sources.toml.TomlConfig`
+  implementing :class:`~batconf.sources.types.FileSourceP`; the successor to
+  :class:`~batconf.sources.toml.TomlConfig`, whose constructor signature it
+  keeps unchanged
 * :class:`~batconf.sources.yaml.YamlSource` — standardised YAML file source
-  implementing :class:`~batconf.sources.types.FileSourceP`;
-  replaces :class:`~batconf.sources.yaml.YamlConfig`
-* New top-level public API — ``Configuration``, ``SourceList``,
-  ``NamespaceSource``, ``EnvSource``, ``IniSource``, ``TomlSource``,
-  ``YamlSource`` are now importable directly from ``batconf``
+  implementing :class:`~batconf.sources.types.FileSourceP`; the successor to
+  :class:`~batconf.sources.yaml.YamlConfig`. It is **not** a drop-in rename:
+  ``config_file_name=`` became ``file_path=`` (the old keyword raises
+  ``TypeError``), ``enable_config_environments=False`` has no direct
+  counterpart and maps to ``file_format='sections'``, and ``.get()`` takes
+  ``path=`` where ``YamlConfig.get()`` took ``module=``
+* New top-level public API — ``Configuration``, ``ConfigSingleton``,
+  ``SourceList``, ``insert_source``, ``NamespaceSource``, ``Namespace``,
+  ``EnvSource``, ``IniSource``, ``TomlSource`` and ``YamlSource`` are now
+  importable directly from ``batconf``
 
 Deprecated:
 
@@ -55,12 +80,18 @@ Deprecated:
 * ``CliArgsConfig`` — use
   :class:`~batconf.sources.argparse.NamespaceConfig` (exported as
   ``NamespaceSource``) instead
-* The ``module`` argument to file sources is deprecated and will be
-  removed in a future release
-* Proto-suffixed type names now emit a ``DeprecationWarning`` and resolve
-  to their ``P``-suffixed equivalents: ``ConfigProtocol`` → ``ConfigP``,
-  ``FieldProtocol`` → ``FieldP``, ``SourceInterfaceProto`` →
-  ``SourceInterfaceP``, ``SourceListProto`` → ``SourceListP``
+* The ``module`` keyword argument to ``.get()`` is deprecated on
+  :class:`~batconf.sources.env.EnvConfig` (exported as ``EnvSource``),
+  :class:`~batconf.sources.argparse.NamespaceConfig` (exported as
+  ``NamespaceSource``) and
+  :class:`~batconf.sources.dataclass.DataclassConfig`; use ``path``
+  instead. It will be removed in v0.5.0. The new file sources
+  (``IniSource``, ``TomlSource``, ``YamlSource``) accept ``path`` only and
+  raise ``TypeError`` if given ``module``.
+* The ``Proto``-suffixed aliases in :mod:`batconf.types` emit a
+  ``DeprecationWarning``; use the ``P``-suffixed names. Everywhere else
+  these names were removed outright — see Breaking changes above.
+
 
 .. _v0.3.1:
 

@@ -10,9 +10,46 @@ v0.4.0
 ========================
 FileConfig Removed
 ========================
-``batconf.sources.file.FileConfig`` has been removed.
-Replace it with :class:`~batconf.sources.ini.IniSource` or
-:class:`~batconf.sources.yaml.YamlSource` as appropriate.
+``batconf.sources.file.FileConfig`` has been removed. It read YAML files
+only, so its replacement is :class:`~batconf.sources.yaml.YamlSource`.
+The constructor keyword ``config_file_name`` was renamed to ``file_path``,
+so the obvious swap raises
+``TypeError: unexpected keyword argument 'config_file_name'``:
+
+.. code-block:: python
+
+    # old
+    from batconf.sources.file import FileConfig
+
+    source = FileConfig(config_file_name='config.yaml')
+
+    # new
+    from batconf import YamlSource
+
+    source = YamlSource(file_path='config.yaml')
+
+``FileConfig`` selected the active environment from the file's top-level
+``default`` key. ``YamlSource`` defaults to ``file_format='environments'``,
+which reads it from ``batconf.default_env`` instead, so the file itself
+needs updating:
+
+.. code-block:: yaml
+    :caption: config.yaml
+
+    # old
+    default: dev
+
+    # new
+    batconf:
+      default_env: dev
+
+    dev:
+      yourproject:
+        client:
+          api_key: example_api_key
+
+``FileConfig.get()`` took a ``module`` keyword; ``YamlSource.get()`` takes
+``path``.
 
 ========================
 New Public API
@@ -36,10 +73,13 @@ Old submodule imports still work but the top-level names are now preferred:
     # old
     from batconf.sources.argparse import NamespaceConfig, Namespace
     from batconf.sources.env import EnvConfig
-    from batconf.sources.ini import IniConfig
 
     # new
-    from batconf import NamespaceSource, Namespace, EnvSource, IniSource
+    from batconf import NamespaceSource, Namespace, EnvSource
+
+``IniConfig``, ``TomlConfig`` and ``YamlConfig`` still import too, but they
+are deprecated and emit a ``DeprecationWarning`` on import — see
+`Deprecations`_ below for their replacements.
 
 ========================
 ConfigSingleton
@@ -78,13 +118,52 @@ will be removed in a future release. Update your imports:
     from batconf.sources.yaml import YamlConfig  # YamlSource
     from batconf.sources.args import CliArgsConfig  # NamespaceConfig / NamespaceSource
 
-The ``module`` argument to file sources is also deprecated.
+The ``module`` keyword argument to ``.get()`` is also deprecated, on
+``EnvSource`` (``batconf.sources.env.EnvConfig``), ``NamespaceSource``
+(``batconf.sources.argparse.NamespaceConfig``) and
+``batconf.sources.dataclass.DataclassConfig``. It will be removed in
+v0.5.0; use ``path`` instead:
 
-Proto-suffixed type names now resolve to their ``P``-suffixed
-equivalents (``ConfigProtocol`` → ``ConfigP``, ``FieldProtocol`` →
-``FieldP``, ``SourceInterfaceProto`` → ``SourceInterfaceP``,
-``SourceListProto`` → ``SourceListP``). Prefer the ``P`` names; see
-:mod:`batconf.types`.
+.. code-block:: python
+
+    # old
+    EnvSource().get('api_key', module='project.client')
+
+    # new
+    EnvSource().get('api_key', path='project.client')
+
+The file sources ``IniSource``, ``TomlSource`` and ``YamlSource`` accept
+``path`` only and raise ``TypeError`` if given ``module``.
+
+The ``Proto``-suffixed type names were removed outright from the modules
+that used to export them, so update those imports:
+
+.. code-block:: python
+
+    # old — each of these now raises ImportError
+    from batconf.manager import ConfigProtocol, FieldProtocol
+    from batconf.source import SourceInterfaceProto
+    from batconf.sources.dataclass import ConfigProtocol, FieldProtocol
+
+    # new
+    from batconf.types import ConfigP, FieldP, SourceInterfaceP
+
+:mod:`batconf.types` is the one place the old names still resolve, and
+they emit a ``DeprecationWarning`` when they do. The full mapping, from
+the removed name to its ``batconf.types`` alias to the ``P``-suffixed name
+to prefer:
+
+* ``batconf.manager.ConfigProtocol``,
+  ``batconf.sources.dataclass.ConfigProtocol``
+  → ``batconf.types.ConfigProtocol`` → ``batconf.types.ConfigP``
+* ``batconf.manager.FieldProtocol``,
+  ``batconf.sources.dataclass.FieldProtocol``
+  → ``batconf.types.FieldProtocol`` → ``batconf.types.FieldP``
+* ``batconf.source.SourceInterfaceProto``
+  → ``batconf.types.SourceInterfaceProto``
+  → ``batconf.types.SourceInterfaceP``
+* ``SourceListProto`` (new in 0.4.0, ``batconf.types`` only)
+  → ``batconf.types.SourceListP``
 
 
 ******
