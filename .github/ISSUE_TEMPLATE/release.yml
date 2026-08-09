@@ -32,3 +32,4 @@ body:
         - label: Verify the artifact and tag signatures (`gpg --verify`, `git tag -v`)
         - label: Publish the same dist files to pypi and verify
         - label: Create the [GitHub release](https://github.com/lundybernard/batconf/releases) with the signed artifacts (.asc) attached
+        - label: Activate the new version on ReadTheDocs and confirm `stable` serves it

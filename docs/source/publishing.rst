@@ -151,3 +151,12 @@ Steps
     `github releases <https://github.com/lundybernard/batconf/releases>`_
   * Upload the build artifacts (``dist/*.tar.gz``, ``dist/*.whl``) and their
     ``.asc`` signatures so users can verify downloads against the signing key.
+
+* Activate the new version on ReadTheDocs
+
+  * On the ReadTheDocs dashboard (Versions), find or add the ``v{{X.Y.Z}}``
+    tag and enable its **Active** toggle.
+  * Confirm `stable <https://batconf.readthedocs.io/en/stable/>`_ serves the
+    new release — ``stable`` tracks the highest activated version tag — and
+    that `migration.html <https://batconf.readthedocs.io/en/stable/migration.html>`_
+    resolves (the PyPI README links to it).
