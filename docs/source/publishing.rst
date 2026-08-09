@@ -10,6 +10,17 @@ Each maintainer sets up their own GPG signing key before their first release.
 See :doc:`signing` for the one-time key generation, backup, and publishing
 steps.
 
+Every signing command below names your key explicitly with ``-u``. Never rely
+on the gpg default key: without ``-u``, gpg signs with whichever secret key it
+considers default, which may not be the key listed for you in
+:gh-file:`docs/SECURITY.md <docs/SECURITY.md>` — the resulting signature then
+fails verification against the project's trust anchor
+(:gh-file:`KEYS <KEYS>`). Throughout, ``{{FINGERPRINT}}`` is your
+primary-key fingerprint exactly as listed in your row of the
+authorized-signers table in :gh-file:`docs/SECURITY.md <docs/SECURITY.md>`
+(40 hex characters, no spaces — the ``$FPR`` from :doc:`signing`). Naming the
+primary key is enough; gpg selects your newest signing subkey automatically.
+
 Steps
 -----
 
@@ -66,13 +77,14 @@ Steps
     * Because the merge preserves SHAs, this hash matches the release
       commit on your local release branch.
 
-  * Tag the release. The version tag is GPG-signed (``-s``):
+  * Tag the release. The version tag is GPG-signed (``-s``) with your key
+    named explicitly (``-u``):
 
     .. code-block:: bash
 
        git tag -f release {{commit#}}
        git tag -f stable {{commit#}}
-       git tag -s v{{X.Y.Z}} {{commit#}} -m "Release vX.Y.Z"
+       git tag -s -u {{FINGERPRINT}} v{{X.Y.Z}} {{commit#}} -m "Release vX.Y.Z"
        # force-push only the moving tags; push the signed version tag
        # without --force so a published, immutable tag is never clobbered
        git push origin release stable --force
@@ -85,18 +97,51 @@ Steps
   * Checkout release ``git checkout release``
   * Build the package: ``hatch build``
   * Check the artifacts: ``twine check dist/*``
-  * Sign the artifacts (detached, armored):
-    ``gpg --detach-sign --armor dist/*``
-
-    * Produces a ``.asc`` signature next to each sdist/wheel.
-    * PyPI no longer accepts signature uploads, so these are published
-      on the GitHub Release (below), not via twine.
-
   * Publish to test pypi:
     ``twine upload --verbose --repository testpypi dist/*.tar.gz dist/*.whl``
   * Verify the release looks good on
     `test.pypi <https://test.pypi.org/project/batconf/>`_
-  * Publish to pypi:
+
+  * Sign the artifacts (detached, armored), naming your key explicitly:
+
+    .. code-block:: bash
+
+       gpg -u {{FINGERPRINT}} --detach-sign --armor dist/batconf-X.Y.Z.tar.gz
+       gpg -u {{FINGERPRINT}} --detach-sign --armor dist/batconf-X.Y.Z-py3-none-any.whl
+
+    * Produces a ``.asc`` signature next to each sdist/wheel.
+    * PyPI no longer accepts signature uploads, so these are published
+      on the GitHub Release (below), not via twine.
+    * Sign each filename explicitly rather than ``dist/*``: the glob also
+      matches leftover ``.asc`` files on a re-sign, so gpg prompts to
+      overwrite them (a missed prompt silently keeps a stale signature)
+      and signs the ``.asc`` files too.
+
+    .. warning::
+
+       Do **not** rebuild — ``hatch build``, ``python -m build``, or any
+       other build — after signing, or after the test.pypi upload. Build
+       output is not byte-reproducible, so a rebuild produces new bytes:
+       every ``.asc`` becomes invalid, and the files published to PyPI would
+       no longer be the ones you verified. Sign and publish the *same*
+       ``dist/`` files you uploaded to test.pypi. If ``dist/`` was
+       regenerated anyway, re-download the canonical files from test.pypi,
+       re-sign them, and re-verify.
+
+  * Verify the signatures **before** publishing to real pypi:
+
+    .. code-block:: bash
+
+       gpg --verify dist/batconf-X.Y.Z.tar.gz.asc dist/batconf-X.Y.Z.tar.gz
+       gpg --verify dist/batconf-X.Y.Z-py3-none-any.whl.asc \
+           dist/batconf-X.Y.Z-py3-none-any.whl
+       git tag -v v{{X.Y.Z}}
+
+    * Each must report ``Good signature`` **and** a primary key fingerprint
+      matching your row in :gh-file:`docs/SECURITY.md <docs/SECURITY.md>`.
+      A good signature from an unexpected key is a failure, not a pass.
+
+  * Publish the **same** files to pypi:
     ``twine upload --verbose --repository pypi dist/*.tar.gz dist/*.whl``
   * Verify the release on `pypi <https://pypi.org/project/batconf/>`_
 
