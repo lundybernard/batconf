@@ -170,7 +170,7 @@ dependencies = [
 ### Breaking Changes
 
 * `batconf.sources.file.FileConfig` has been removed.
-  See the [migration guide](https://batconf.readthedocs.io/en/v0.4.0/migration.html)
+  See the [migration guide](https://batconf.readthedocs.io/en/stable/migration.html)
   for details.
 
 ## Architecture Decision Records

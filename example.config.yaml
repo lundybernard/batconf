@@ -1,5 +1,6 @@
 
-default: example
+batconf:
+    default_env: example
 
 example:
     remote_host:
