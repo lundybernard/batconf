@@ -27,6 +27,7 @@ Authorized signers (see `KEYS` for the full public keys):
 | Maintainer | Fingerprint | Authorized |
 |------------|-------------|------------|
 | Lundy Bernard | `10D0375D 76138F64 C966CE81 E6A1871D 072F9BB1` | 2026-06-07 – |
+| Lauren Moore  | `F3A0B2D8 A58086F1 3FEE0203 B5E77395 0F1A501F` | 2026-08-09 - |
 
 The keys are also mirrored to a keyserver for convenience:
 
