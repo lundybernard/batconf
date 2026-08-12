@@ -17,6 +17,7 @@ body:
     id: release-tasks
     attributes:
       label: ToDo
+      description: "Quick reminders — full commands and details in the [release guide](https://batconf.readthedocs.io/en/latest/publishing.html)."
       options:
         - label: Update version in pyproject.toml (remove the +dev suffix)
         - label: Change release notes date from TBD to today's date
@@ -24,8 +25,11 @@ body:
         - label: 'Commit the release changes (message: `Release version X.Y.Z` / blank line / `Fixes: #<release ticket number>`)'
         - label: Add a commit bumping the version to VERSION_NUMBER+dev
         - label: Open a release PR, get it reviewed, and merge (merge commit — preserves the signed release commit)
-        - label: Tag the release commit with a signed tag (`git tag -s`) and verify (`git tag -v`)
-        - label: Build, run `twine check`, and GPG-sign the artifacts (`gpg --detach-sign --armor dist/*`)
+        - label: Tag the release commit with a signed tag (`git tag -s -u <YOUR_FINGERPRINT>`) and verify (`git tag -v`)
+        - label: Build and run `twine check`
         - label: Publish to test.pypi and verify
-        - label: Publish to pypi and verify
+        - label: GPG-sign the artifacts (`gpg -u <YOUR_FINGERPRINT> --detach-sign --armor`) — no rebuilds after signing
+        - label: Verify the artifact and tag signatures (`gpg --verify`, `git tag -v`)
+        - label: Publish the same dist files to pypi and verify
         - label: Create the [GitHub release](https://github.com/lundybernard/batconf/releases) with the signed artifacts (.asc) attached
+        - label: Activate the new version on ReadTheDocs and confirm `stable` serves it
