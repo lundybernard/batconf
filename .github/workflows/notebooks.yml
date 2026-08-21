@@ -21,6 +21,7 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           # Fetch the commit SHA
           ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
 
       - name: Clean Jupyter Notebooks
         uses: ResearchSoftwareActions/EnsureCleanNotebooksAction@e22cb52580930a21c3121a44c9e67fa37e149121 # v1.1
