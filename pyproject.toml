@@ -172,6 +172,18 @@ channels = ["conda-forge"]
 # tested; add it only if a dev runs pixi on Intel hardware.
 platforms = ["linux-64", "osx-arm64", "win-64"]
 exclude-newer = "7d"
+# pixi-build is preview: it makes this workspace installable as a package,
+# which dependents build from source.
+preview = ["pixi-build"]
+
+[tool.pixi.package]
+name = "batconf"
+
+[tool.pixi.package.build]
+backend = { name = "pixi-build-python", version = "0.*" }
+
+[tool.pixi.package.host-dependencies]
+hatchling = "*"
 
 [tool.pixi.dependencies]
 # conda only when necessary — the interpreter itself.
