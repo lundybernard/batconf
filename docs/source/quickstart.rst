@@ -76,6 +76,34 @@ and providing a structured configuration tree.
         option: str = "default value"
 
 
+.. _string_only_defaults:
+
+Defaults must be strings
+^^^^^^^^^^^^^^^^^^^^^^^^
+:class:`~batconf.manager.Configuration` keeps the ``str`` defaults
+declared on the schema and drops every other type. A default of another
+type is not an error and not a fallback — it simply is not there, and
+reading the option raises
+:class:`~batconf.errors.ConfigValueNotFound`:
+
+.. code-block:: python
+
+    @dataclass
+    class ServerConfig:
+        port: int = 5000        # dropped: reading cfg.port raises
+        timeout: str = '30'     # kept
+
+Declare the default as a string and convert it where you use it
+(``int(cfg.server.timeout)``). The rule matches the sources: a config
+file, an environment variable and a CLI argument all deliver strings,
+so a typed default would be the only value in the lookup chain with a
+different type.
+
+An empty string is a special case of the same rule. It is stored, but
+BatConf treats any falsey value as "not found", so ``option: str = ''``
+also reads as a missing value.
+
+
 .. _get_config:
 
 get_config function
