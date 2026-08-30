@@ -5,6 +5,7 @@ from dataclasses import dataclass
 
 from ..manager import (
     Configuration,
+    ConfigValueNotFound,
     _configuration_repr,
     SourceList,
 )
@@ -97,8 +98,8 @@ class ConfigurationTests(TestCase):
         with t.subTest('default values from Config classes'):
             t.assertEqual(t.conf.AModule.default_arg, 'unused default value')
 
-        with t.subTest('options without defaults raise AttributeError'):
-            with t.assertRaises(AttributeError):
+        with t.subTest('options without defaults are not found'):
+            with t.assertRaises(ConfigValueNotFound):
                 t.conf.AModule.no_default_arg
 
     def test___getattr__(t) -> None:
@@ -114,13 +115,11 @@ class ConfigurationTests(TestCase):
             t.assertEqual(t.conf.AModule.SubModule.arg_1, 's1_a_sub_1')
 
         with t.subTest('__getattr__ missing'):
-            with t.assertRaises(AttributeError):
+            with t.assertRaises(ConfigValueNotFound):
                 t.conf._sir_not_appearing_in_this_film
 
-        with t.subTest(
-            'options with no value and no default raise AttributeError'
-        ):
-            with t.assertRaises(AttributeError):
+        with t.subTest('options with no value and no default'):
+            with t.assertRaises(ConfigValueNotFound):
                 t.conf.AModule.no_default_arg
 
     def test___getitem__(t) -> None:
@@ -135,8 +134,8 @@ class ConfigurationTests(TestCase):
             key = 'arg_1'
             t.assertEqual(t.conf[module][key], 's1_a_arg_1')
 
-        with t.subTest('missing key raises AttributeError'):
-            with t.assertRaises(AttributeError):
+        with t.subTest('missing key is not found'):
+            with t.assertRaises(ConfigValueNotFound):
                 t.conf['_sir_not_appearing_in_this_film']
 
     def test___str__(t):
@@ -253,7 +252,7 @@ class RootMountTests(TestCase):
 
         with t.subTest('the missing-value message names an unprefixed key'):
             t.sl.get.return_value = None
-            with t.assertRaises(AttributeError) as err:
+            with t.assertRaises(ConfigValueNotFound) as err:
                 t.conf.no_default
             t.assertIn(
                 ' or add no_default to your config file',

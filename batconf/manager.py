@@ -3,6 +3,7 @@ from typing import (
     Iterable,
 )
 
+from .errors import ConfigValueNotFound
 from .source import SourceList
 from .types import ConfigP, FieldP, SourceListP
 
@@ -88,7 +89,7 @@ class Configuration:
 
         dotted = self._path_of(key)
 
-        raise AttributeError(
+        raise ConfigValueNotFound(
             'required configuration value not found.\n'
             f' please provide {key}'
             ' as a commandline argument\n'

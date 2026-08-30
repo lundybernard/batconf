@@ -11,7 +11,9 @@ from pathlib import Path as _PathClass
 
 from ..yaml import (
     YamlSource,
+    ConfigEnvironmentNotFound,
     EmptyYamlDict,
+    SourceDependencyNotFound,
     _load_yaml,
     _load_yaml_file,
     _missing_file_handlers,
@@ -94,10 +96,10 @@ class YamlSourceTests(TestCase):
             t.assertDictEqual(env_cfg, ys._data)
             t.assertEqual(ys._config_env, 'test_env')
 
-        with t.subTest('environments: missing env raises ValueError'):
+        with t.subTest('environments: missing env is not found'):
             ys = YamlSource(file_path='test.yaml')
             ys.__dict__['_raw_data'] = {'batconf': {'default_env': 'missing'}}
-            with t.assertRaises(ValueError):
+            with t.assertRaises(ConfigEnvironmentNotFound):
                 _ = ys._data
 
         with t.subTest('sections: returns raw dict'):
@@ -244,8 +246,8 @@ class YamlLoaderFunctionsTests(TestCase):
             with t.assertRaises(ImportError):
                 import yaml  # noqa: quiet flake8
 
-        with t.subTest('Instantiating YamlSource raises ImportError'):
-            with t.assertRaises(ImportError) as err:
+        with t.subTest('the pyyaml dependency is not found'):
+            with t.assertRaises(SourceDependencyNotFound) as err:
                 _ = _load_yaml_file(file_path=t.file_path)
 
             t.assertEqual(err.exception.msg, _YAML_IMPORT_ERROR_MSG)

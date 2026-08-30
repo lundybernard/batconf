@@ -9,6 +9,7 @@ from .file import (
     file_config_repr,
     missing_file_handlers as _missing_file_handlers,
 )
+from ..errors import ConfigEnvironmentNotFound, SourceDependencyNotFound
 from .types import (
     ConfigFileFormats,
     FileSourceP,
@@ -71,7 +72,7 @@ class YamlSource(FileSourceP):
             try:
                 return self._raw_data[self._config_env]
             except KeyError as err:
-                raise ValueError(
+                raise ConfigEnvironmentNotFound(
                     f'Config Environment "{self._config_env}" '
                     f'not found in {self._config_file_path}'
                 ) from err
@@ -131,7 +132,7 @@ def _load_yaml_file(file_path: Path) -> dict:
     try:
         import yaml
     except ImportError as e:
-        raise ImportError(_YAML_IMPORT_ERROR_MSG) from e
+        raise SourceDependencyNotFound(_YAML_IMPORT_ERROR_MSG) from e
 
     with open(file_path) as env_file:
         return yaml.load(env_file, Loader=yaml.BaseLoader)

@@ -4,7 +4,10 @@ from unittest.mock import Mock, patch, mock_open, create_autospec, PropertyMock
 from ..ini import (
     # Under Test
     IniSource,
+    ConfigEnvironmentNotFound,
     ConfigFileFormats,
+    ConfigFileNotFound,
+    InvalidFileFormat,
     _load_ini_file,
     _load_ini_file_flat,
     _load_ini,
@@ -128,7 +131,7 @@ class IniSourceTests(TestCase):
         )
 
     def test___init__catches_invalid_file_format(t):
-        with t.assertRaises(ValueError):
+        with t.assertRaises(InvalidFileFormat):
             _ = IniSource(file_path=t.config_file_str, file_format='invalid')
 
     def test__file_format(t):
@@ -137,8 +140,8 @@ class IniSourceTests(TestCase):
                 t.ins._file_format = fmt
                 t.assertEqual(t.ins._file_format, fmt)
 
-        with t.subTest('invalid format raises ValueError'):
-            with t.assertRaises(ValueError):
+        with t.subTest('invalid format raises InvalidFileFormat'):
+            with t.assertRaises(InvalidFileFormat):
                 t.ins._file_format = 'invalid'
 
     def test__loader(t):
@@ -197,12 +200,12 @@ class IniSourceTests(TestCase):
             t.assertIs(ins._data, CONFIG_PARSER_ENVS)
             t.assertEqual(ins._config_env, 'development')
 
-        with t.subTest('environments: raises ValueError for missing section'):
+        with t.subTest('environments: missing section is not found'):
             ins = IniSource(
                 file_path=t.config_file_str,
                 config_env='nonexistent_env',
             )
-            with t.assertRaises(ValueError) as err:
+            with t.assertRaises(ConfigEnvironmentNotFound) as err:
                 _ = ins._data
             t.assertEqual(
                 str(err.exception),
@@ -436,7 +439,7 @@ class _load_ini_file_Tests(TestCase):
         config_parser_instance = ConfigParser.return_value
         config_parser_instance.read.return_value = []
 
-        with t.assertRaises(FileNotFoundError):
+        with t.assertRaises(ConfigFileNotFound):
             _ = _load_ini_file(file_path=t.file_path)
 
 

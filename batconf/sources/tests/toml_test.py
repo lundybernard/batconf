@@ -13,7 +13,9 @@ from pathlib import Path as _PathClass
 
 from ..toml import (
     TomlSource,
+    ConfigEnvironmentNotFound,
     EmptyConfigDict,
+    SourceDependencyNotFound,
     _load_toml,
     _load_toml_file,
     _missing_file_handlers,
@@ -158,11 +160,11 @@ class TomlSourceTests(TestCase):
             ts.__dict__['_raw_data'] = {'my_env': env_cfg}
             t.assertDictEqual(env_cfg, ts._data)
 
-        with t.subTest('environments: missing env raises ValueError'):
+        with t.subTest('environments: missing env is not found'):
             ts = TomlSource(file_path=t.file_name)
             ts._config_env = 'missing'
             ts.__dict__['_raw_data'] = {'other_env': env_cfg}
-            with t.assertRaises(ValueError):
+            with t.assertRaises(ConfigEnvironmentNotFound):
                 _ = ts._data
 
         with t.subTest(
@@ -381,8 +383,8 @@ class ImportTomlLoadFunctionTests(TestCase):
             with t.assertRaises(ImportError):
                 from toml import load  # noqa
 
-        with t.subTest('Instantiating TomlSource raises ImportError'):
-            with t.assertRaises(ImportError) as err:
+        with t.subTest('the toml dependency is not found'):
+            with t.assertRaises(SourceDependencyNotFound) as err:
                 _ = _import_toml_load_function()
 
             t.assertEqual(err.exception.msg, _TOML_IMPORT_ERROR_MSG)

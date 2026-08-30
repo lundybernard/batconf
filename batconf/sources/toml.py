@@ -9,6 +9,7 @@ from .file import (
     missing_file_handlers as _missing_file_handlers,
     file_config_repr,
 )
+from ..errors import ConfigEnvironmentNotFound, SourceDependencyNotFound
 from .types import ConfigFileFormats, FileSourceP
 
 
@@ -85,7 +86,7 @@ class TomlSource(FileSourceP):
                 # the environments format always resolves a _config_env
                 return self._raw_data[cast(str, self._config_env)]
             except KeyError as err:
-                raise ValueError(
+                raise ConfigEnvironmentNotFound(
                     f'Config Environment "{self._config_env}" '
                     f'not found in {self._config_file_path}'
                 ) from err
@@ -151,7 +152,7 @@ def _import_toml_load_function():
         try:
             from toml import loads  # type: ignore[assignment]
         except ImportError as e:
-            raise ImportError(_TOML_IMPORT_ERROR_MSG) from e
+            raise SourceDependencyNotFound(_TOML_IMPORT_ERROR_MSG) from e
 
     return loads
 

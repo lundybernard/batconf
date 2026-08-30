@@ -4,6 +4,11 @@ from typing import Protocol
 from configparser import ConfigParser
 from pathlib import Path
 
+from ..errors import (
+    ConfigEnvironmentNotFound,
+    ConfigFileNotFound,
+    InvalidFileFormat,
+)
 from .types import ConfigFileFormats, FileSourceP
 from .file import (
     _MissingFileOption,
@@ -148,7 +153,7 @@ class IniSource(FileSourceP):
     @_file_format.setter
     def _file_format(self, fmt: str) -> None:
         if fmt not in _file_type_loaders:
-            raise ValueError(f'Invalid file_format: {fmt}')
+            raise InvalidFileFormat(f'Invalid file_format: {fmt}')
         self.__file_format = fmt
 
     @property
@@ -175,7 +180,7 @@ class IniSource(FileSourceP):
             return self._raw_data
         if self._file_format == 'environments':
             if not self._raw_data.has_section(self._config_env):
-                raise ValueError(
+                raise ConfigEnvironmentNotFound(
                     f'Config Environment "{self._config_env}" '
                     f'not found in {self._config_file_path}'
                 )
@@ -223,7 +228,7 @@ def _load_ini(
 def _load_ini_file(file_path: Path) -> ConfigParser:
     config = ConfigParser()
     if not config.read(file_path):
-        raise FileNotFoundError(f'Failed to load config file: {file_path}')
+        raise ConfigFileNotFound(f'Failed to load config file: {file_path}')
 
     return config
 
