@@ -20,7 +20,7 @@ from .types import (
 
 log = getLogger(__name__)
 
-EmptyYamlConfig: dict[None, None] = dict()
+EmptyYamlDict: dict[None, None] = dict()
 
 
 class YamlSource(FileSourceP):
@@ -63,12 +63,12 @@ class YamlSource(FileSourceP):
         return _load_yaml(
             file_path=self._config_file_path,
             when_missing=self._missing_file_option,
-            empty_fallback=EmptyYamlConfig,
+            empty_fallback=EmptyYamlDict,
         )
 
     @cached_property
     def _data(self) -> dict:
-        if self._raw_data is EmptyYamlConfig:
+        if self._raw_data is EmptyYamlDict:
             return self._raw_data
         if self._file_format == 'environments':
             try:
@@ -87,7 +87,7 @@ class YamlSource(FileSourceP):
             return None
         if self.__config_env is None:
             raw = self._raw_data
-            if raw is not EmptyYamlConfig:
+            if raw is not EmptyYamlDict:
                 self.__config_env = raw['batconf']['default_env']
         return self.__config_env
 

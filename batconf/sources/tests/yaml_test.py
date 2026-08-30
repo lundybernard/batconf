@@ -11,7 +11,7 @@ from pathlib import Path as _PathClass
 
 from ..yaml import (
     YamlSource,
-    EmptyYamlConfig,
+    EmptyYamlDict,
     _load_yaml,
     _load_yaml_file,
     _missing_file_handlers,
@@ -80,7 +80,7 @@ class YamlSourceTests(TestCase):
         t._load_yaml.assert_called_once_with(
             file_path=_PathClass('test.yaml'),
             when_missing='warn',
-            empty_fallback=EmptyYamlConfig,
+            empty_fallback=EmptyYamlDict,
         )
 
     def test__data(t):
@@ -113,10 +113,10 @@ class YamlSourceTests(TestCase):
             ys_f.__dict__['_raw_data'] = raw
             t.assertDictEqual(raw, ys_f._data)
 
-        with t.subTest('EmptyYamlConfig: stored as-is'):
+        with t.subTest('EmptyYamlDict: stored as-is'):
             ys5 = YamlSource(file_path='test.yaml')
-            ys5.__dict__['_raw_data'] = EmptyYamlConfig
-            t.assertIs(ys5._data, EmptyYamlConfig)
+            ys5.__dict__['_raw_data'] = EmptyYamlDict
+            t.assertIs(ys5._data, EmptyYamlDict)
 
     def test__config_env(t):
         with t.subTest('environments: populated from file default'):
@@ -210,7 +210,7 @@ class YamlLoaderFunctionsTests(TestCase):
         ret = _load_yaml(
             file_path=t.file_path,
             when_missing='error',
-            empty_fallback=EmptyYamlConfig,
+            empty_fallback=EmptyYamlDict,
         )
         t.assertEqual(ret, EXAMPLE_CONFIG_DICT)
 
@@ -227,12 +227,12 @@ class YamlLoaderFunctionsTests(TestCase):
                 ret = _load_yaml(
                     file_path=t.file_path,
                     when_missing=opt,
-                    empty_fallback=EmptyYamlConfig,
+                    empty_fallback=EmptyYamlDict,
                 )
                 _missing_file_handlers[opt].assert_called_with(
                     loader_fn=_load_yaml_file,
                     file_path=t.file_path,
-                    empty_fallback=EmptyYamlConfig,
+                    empty_fallback=EmptyYamlDict,
                 )
                 t.assertIs(_missing_file_handlers[opt].return_value, ret)
 
@@ -244,7 +244,7 @@ class YamlLoaderFunctionsTests(TestCase):
             _ = _load_yaml(
                 file_path=t.file_path,
                 when_missing='error',
-                empty_fallback=EmptyYamlConfig,
+                empty_fallback=EmptyYamlDict,
             )
 
         _load_yaml_file.assert_called_with(t.file_path)

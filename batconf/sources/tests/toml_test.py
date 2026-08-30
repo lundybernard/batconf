@@ -380,7 +380,7 @@ class ImportTomlLoadFunctionTests(TestCase):
         """The toml module is an optional extra,
         not required to use batconf after Python version 3.11.
         Using batconf without toml should not raise any Errors,
-        But attempting to use TomlConfig when it is not installed
+        But attempting to use TomlSource when it is not installed
         will raise an ImportError on older versions of python without tomllib.
         """
 
