@@ -3,9 +3,9 @@ Migration Guide
 ###############
 
 
-****************
-v0.5.0 (planned)
-****************
+******
+v0.5.0
+******
 
 BatConf deprecates and documents a name in a patch release (n.n.x) and
 removes it in the next minor release (n.x). Every name and default
@@ -42,15 +42,16 @@ What is removed
    * - ``batconf.sources.args.CliArgsConfig``, and the whole
        ``batconf.sources.args`` module
      - ``NamespaceSource`` — different lookup rule
-   * - ``batconf.sources.dataclass.DataclassConfig``
+   * - ``batconf.sources.dataclass.DataclassConfig``, and the whole
+       ``batconf.sources.dataclass`` module
      - none; delete the source-list entry
    * - ``batconf.source.SourceInterface``
      - ``SourceInterfaceP``, or no base class at all
    * - The ``module=`` keyword of ``.get()`` on every
        ``SourceInterfaceP`` source, and of ``EnvSource.env_name()``
      - ``path=``
-   * - ``Protocol``- and ``Proto``-suffixed aliases in
-       ``batconf.types``
+   * - ``Protocol``- and ``Proto``-suffixed aliases in ``batconf.types``
+       and ``batconf.sources.types``
      - the ``P``-suffixed names
    * - The module-name default of the ``path`` parameter of
        ``Configuration``
@@ -251,8 +252,9 @@ v0.4.x and removed in v0.5.0. Its second parameter is ``path``:
 Type aliases
 ==================
 The ``Protocol``- and ``Proto``-suffixed aliases in
-:mod:`batconf.types` are removed. Use the ``P``-suffixed names:
-``ConfigP``, ``FieldP``, ``SourceInterfaceP``, ``SourceListP``.
+:mod:`batconf.types` and :mod:`batconf.sources.types` are removed. Use
+the ``P``-suffixed names: ``ConfigP``, ``FieldP``, ``SourceInterfaceP``,
+``SourceListP``.
 
 ==================
 The module path

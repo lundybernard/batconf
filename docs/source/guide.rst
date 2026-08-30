@@ -61,7 +61,7 @@ Custom Configuration Sources
 -----------------------------
 
 Any object with a ``get(key, path)`` method satisfies
-:py:class:`SourceInterfaceP <batconf.source.SourceInterfaceP>`,
+:py:class:`SourceInterfaceP <batconf.sources.types.SourceInterfaceP>`,
 so you can pull config values from any backend — a secrets manager,
 a database, a remote API — without changing the rest of your config setup.
 
@@ -98,12 +98,6 @@ Protocol is satisfied structurally either way.
         def get(self, key: str, path: str | None = None) -> str | None:
             full_key = f'{path}.{key}' if path else key
             return self._client.read(full_key)
-
-.. deprecated:: 0.4.1
-   ``batconf.source.SourceInterface``, an abstract base class, was a
-   second way to declare the same contract. It emits a
-   ``DeprecationWarning`` and is removed in v0.5.0. Subclass
-   ``SourceInterfaceP`` instead, or drop the base class entirely.
 
 Registering a custom source
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

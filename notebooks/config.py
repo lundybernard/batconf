@@ -4,9 +4,9 @@ from pathlib import Path
 
 from batconf.manager import Configuration
 from batconf.types import ConfigP
-from batconf.source import SourceList, SourceInterface
+from batconf.source import SourceList
 from batconf.types import SourceInterfaceP
-from batconf.sources.ini import IniConfig
+from batconf.sources.ini import IniSource
 
 
 # === Configuration Schema === #
@@ -36,7 +36,7 @@ CONFIG_FILE_NAME = str(_notebooks_dir / 'config.ini')
 def get_config(
     config_class: ConfigP | Any = NotebooksConfigSchema,
     cfg_path: str = 'notebooks',
-    config_file: SourceInterface | None = None,
+    config_file: SourceInterfaceP | None = None,
     config_file_name: str = CONFIG_FILE_NAME,
     config_env: str | None = None,
 ) -> Configuration:
@@ -54,12 +54,12 @@ def get_config(
     for your project.
     :param cli_args: :class:`Namespace` provided by python's builtin argparse
     :param config_file: Optional config file source injection.  Initialize
-    any `batconf.sources.` *Config class
-    [`IniConfig`, `TomlSource`, `YamlConfig`],
+    any `batconf.sources.` *Source class
+    [`IniSource`, `TomlSource`, `YamlSource`],
     and use it as the config file source
     :param config_file_name:
     :param config_env: Environment id string, ex: 'dev', 'staging', 'yourname'
-    used by some sources such as :class:`YamlConfig` to
+    used by some sources such as :class:`YamlSource` to
     :return: A batconf :class:`Configuration` instance, used to access config
     values from the :class:`SourceList` using the config_class tree
     or module namespace (these should™ match).
@@ -70,7 +70,7 @@ def get_config(
         (
             config_file
             if config_file
-            else IniConfig(config_file_name, config_env=config_env)
+            else IniSource(config_file_name, config_env=config_env)
         ),
     ]
 
