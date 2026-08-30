@@ -3,7 +3,6 @@ from typing import Any
 from logging import getLogger
 
 from pathlib import Path
-from enum import Enum, auto
 
 from .file import (
     _MissingFileOption,
@@ -17,10 +16,6 @@ _OptStr = str | None
 TomlDictT = dict[str, Any]
 
 log = getLogger(__name__)
-
-
-class _DEFAULTS(Enum):
-    environment = auto()
 
 
 class TomlSource(FileSourceP):
@@ -105,7 +100,7 @@ class TomlSource(FileSourceP):
         return self.__config_env
 
     @_config_env.setter
-    def _config_env(self, env):  # _EnvOpts):
+    def _config_env(self, env):  # str | None
         if not self._file_format == 'environments':
             self.__config_env = None  # type: ignore[assignment]
             return

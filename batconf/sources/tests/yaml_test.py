@@ -80,7 +80,6 @@ class YamlSourceTests(TestCase):
         t._load_yaml.assert_called_once_with(
             file_path=_PathClass('test.yaml'),
             when_missing='warn',
-            empty_fallback=EmptyYamlDict,
         )
 
     def test__data(t):
@@ -202,11 +201,7 @@ class YamlLoaderFunctionsTests(TestCase):
 
     def test__load_yaml(t):
         """Default behavior: file is found and loaded."""
-        ret = _load_yaml(
-            file_path=t.file_path,
-            when_missing='error',
-            empty_fallback=EmptyYamlDict,
-        )
+        ret = _load_yaml(file_path=t.file_path, when_missing='error')
         t.assertEqual(ret, EXAMPLE_CONFIG_DICT)
 
     @patch.dict(
@@ -219,11 +214,7 @@ class YamlLoaderFunctionsTests(TestCase):
         """Dispatches to the correct handler with the right arguments."""
         for opt in ('warn', 'ignore', 'error'):
             with t.subTest(f'when_missing={opt}'):
-                ret = _load_yaml(
-                    file_path=t.file_path,
-                    when_missing=opt,
-                    empty_fallback=EmptyYamlDict,
-                )
+                ret = _load_yaml(file_path=t.file_path, when_missing=opt)
                 _missing_file_handlers[opt].assert_called_with(
                     loader_fn=_load_yaml_file,
                     file_path=t.file_path,
@@ -236,11 +227,7 @@ class YamlLoaderFunctionsTests(TestCase):
         _load_yaml_file.side_effect = FileNotFoundError
 
         with t.assertRaises(FileNotFoundError):
-            _ = _load_yaml(
-                file_path=t.file_path,
-                when_missing='error',
-                empty_fallback=EmptyYamlDict,
-            )
+            _ = _load_yaml(file_path=t.file_path, when_missing='error')
 
         _load_yaml_file.assert_called_with(t.file_path)
 

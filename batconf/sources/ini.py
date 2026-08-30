@@ -1,6 +1,5 @@
 from functools import cached_property
 from typing import Protocol
-from logging import getLogger
 
 from configparser import ConfigParser
 from pathlib import Path
@@ -12,9 +11,6 @@ from .file import (
     missing_file_handlers as _missing_file_handlers,
     file_config_repr,
 )
-
-
-log = getLogger(__name__)
 
 
 class ConfigParserP(Protocol):

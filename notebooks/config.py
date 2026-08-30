@@ -52,7 +52,6 @@ def get_config(
     the dataclass produced by @dataclass as satisfying the ConfigP.
     :param cfg_path: :class:`String` The name of the config tree root
     for your project.
-    :param cli_args: :class:`Namespace` provided by python's builtin argparse
     :param config_file: Optional config file source injection.  Initialize
     any `batconf.sources.` *Source class
     [`IniSource`, `TomlSource`, `YamlSource`],

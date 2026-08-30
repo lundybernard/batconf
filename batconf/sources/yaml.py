@@ -59,7 +59,6 @@ class YamlSource(FileSourceP):
         return _load_yaml(
             file_path=self._config_file_path,
             when_missing=self._missing_file_option,
-            empty_fallback=EmptyYamlDict,
         )
 
     @cached_property
@@ -119,12 +118,11 @@ class YamlSource(FileSourceP):
 def _load_yaml(
     file_path: Path,
     when_missing: _MissingFileOption,
-    empty_fallback: Any,
 ) -> dict:
     return _missing_file_handlers[when_missing](
         loader_fn=_load_yaml_file,
         file_path=file_path,
-        empty_fallback=empty_fallback,
+        empty_fallback=EmptyYamlDict,
     )
 
 
