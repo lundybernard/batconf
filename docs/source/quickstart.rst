@@ -453,6 +453,84 @@ parameter that controls what happens when the config file is not found:
     IniSource('config.ini', missing_file_option='error')
 
 
+Flat configurations
+-------------------
+
+The examples above are nested: a schema of sub-configs mirrors a nested
+config file. A small application rarely needs that. A flat
+configuration is one schema with no sub-configs, read from a config
+file of plain key/value pairs.
+
+Start with a single dataclass:
+
+.. code-block:: python
+    :caption: yourproject/conf.py
+
+    from dataclasses import dataclass
+
+    @dataclass
+    class ConfigSchema:
+        host: str = 'localhost'
+        port: str = '5000'
+        log_level: str = 'INFO'
+
+The config file holds the same names at its root, with no sections:
+
+.. code-block:: ini
+    :caption: app.ini
+
+    host = 0.0.0.0
+    port = 8080
+
+Build the source list with ``file_format='flat'``:
+
+.. code-block:: python
+    :caption: yourproject/conf.py
+
+    from batconf import (
+        Configuration, SourceList, IniSource, EnvSource, NamespaceSource,
+    )
+
+    def get_config(cli_args=None):
+        return Configuration(
+            source_list=SourceList([
+                NamespaceSource(cli_args) if cli_args else None,
+                EnvSource(),
+                IniSource('app.ini', file_format='flat'),
+            ]),
+            config_class=ConfigSchema,
+            path='yourproject',
+        )
+
+Options are read straight off the configuration, with the same priority
+order as a nested setup:
+
+.. code-block:: python
+
+    >>> cfg = get_config()
+    >>> cfg.host          # from app.ini
+    '0.0.0.0'
+    >>> cfg.log_level     # nothing supplies it; the schema default stands
+    'INFO'
+
+Two things do not flatten with the file:
+
+* **Environment variables keep the path prefix.** The configuration's
+  ``path`` is still part of the name, so ``host`` is read from
+  ``YOURPROJECT_HOST``.
+* **CLI arguments keep the dotted** ``dest``. ``NamespaceSource`` reads
+  one attribute named for the full path::
+
+      parser.add_argument('--host', dest='yourproject.host')
+
+.. note::
+
+   Use :class:`~batconf.sources.ini.IniSource` for a flat file behind a
+   :class:`~batconf.manager.Configuration`. A flat TOML or YAML file
+   resolves only when the source is queried directly — see
+   :doc:`guide`.
+
+
 Testing
 -------
 
