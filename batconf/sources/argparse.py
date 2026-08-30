@@ -7,9 +7,14 @@ class NamespaceSource(SourceInterfaceP):
     """A configuration source
     that retrieves values from an argparse.Namespace object.
 
-    parameters
+    A lookup joins ``path`` and ``key`` with a ``.`` and reads that exact
+    attribute. Give each argument a ``dest`` holding its full dotted
+    config path: there is no bare-key fallback, and a nested namespace is
+    never walked.
+
+    Parameters
     ----------
-    namespace : argparse.Namespace:
+    namespace : argparse.Namespace
         An argparse.Namespace instance.
 
     Examples
@@ -17,8 +22,10 @@ class NamespaceSource(SourceInterfaceP):
     >>> parser = argparse.ArgumentParser()
     >>> parser.add_argument('--host', dest='root.host', default='localhost')
     >>> args = parser.parse_args()
-    >>> config = NamespaceSource(args)
-    >>> config.get('root.host')
+    >>> src = NamespaceSource(args)
+    >>> src.get('root.host')
+    'localhost'
+    >>> src.get('host', path='root')
     'localhost'
     """
 

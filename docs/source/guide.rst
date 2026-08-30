@@ -9,6 +9,52 @@ User Guide
 ==========
 
 
+Source lookup rules
+-------------------
+
+:class:`~batconf.manager.Configuration` asks every source for a ``key``
+and the dotted ``path`` of the config node holding it. Each source turns
+that pair into a lookup its own way, and the rule decides how you name
+things outside BatConf.
+
+
+NamespaceSource
+~~~~~~~~~~~~~~~
+:class:`~batconf.sources.argparse.NamespaceSource` joins the path and the
+key with a ``.``, then reads that one attribute off the
+:class:`argparse.Namespace`:
+
+.. code-block:: python
+
+    getattr(namespace, 'yourproject.server.host', None)
+
+Three consequences follow:
+
+* Every argument needs a ``dest`` holding its full dotted config path::
+
+    parser.add_argument('--host', dest='yourproject.server.host')
+
+* There is no bare-key fallback. An argument stored as ``host`` is never
+  found by a lookup for ``yourproject.server.host``.
+* Nested namespaces never resolve. A ``Namespace`` holding another
+  ``Namespace`` is not walked — only the flat attribute name is read.
+
+
+EnvSource
+~~~~~~~~~
+:class:`~batconf.sources.env.EnvSource` builds a variable name from the
+same pair: it joins the path and the key, replaces each ``.`` with
+``_``, and upper-cases the result.
+
+* path ``project.database``, key ``host`` → ``PROJECT_DATABASE_HOST``
+* path ``project``, key ``timeout`` → ``PROJECT_TIMEOUT``
+* no path, key ``host`` → ``BAT_HOST``
+
+The ``BAT`` prefix stands in for a missing path.
+:class:`~batconf.manager.Configuration` always supplies one, so the
+prefix appears only when the source is queried directly.
+
+
 Testing
 -------
 
