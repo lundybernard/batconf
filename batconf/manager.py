@@ -48,7 +48,7 @@ class Configuration:
     def __init__(
         self,
         source_list: SourceListP,
-        config_class: ConfigP | Any,
+        config_class: ConfigP,
         path: str | None = None,
     ):
         self._config_sources = source_list

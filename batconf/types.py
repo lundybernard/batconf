@@ -10,7 +10,8 @@ Examples
 ...     ...
 """
 
-from typing import Protocol, Type, runtime_checkable
+from collections.abc import Mapping
+from typing import Protocol, runtime_checkable
 
 from .sources.types import (
     ConfigFileFormats,
@@ -28,14 +29,19 @@ class SourceListP(SourceInterfaceP, Protocol):
 
 
 class FieldP(Protocol):
-    type: 'ConfigP | Type[str]'
+    # a live class, or its annotation string. Configuration reads a
+    # nested schema from the class; every other field is a leaf.
+    type: type | str
     name: str
     default: object
 
 
 @runtime_checkable
 class ConfigP(Protocol):
-    __dataclass_fields__: dict[str, FieldP]
+    # read-only: a dict member would be invariant, and no dataclass
+    # would satisfy the protocol
+    @property
+    def __dataclass_fields__(self) -> Mapping[str, FieldP]: ...
 
 
 __all__ = [
