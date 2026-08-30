@@ -1,7 +1,7 @@
-"""Every batconf failure carries a batconf error type.
+"""The public error contract.
 
-Each error also keeps the standard exception it replaces as a base, so
-except clauses written before the hierarchy existed still catch.
+A batconf failure is catchable as BatconfError, and stays catchable as
+the standard exception it replaced.
 """
 from unittest import TestCase
 

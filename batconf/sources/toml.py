@@ -87,7 +87,7 @@ class TomlSource(FileSourceP):
 
         if self._file_format == 'environments':
             try:
-                # the environments format always resolves a _config_env
+                # the property returns None only for other formats
                 return self._raw_data[cast(str, self._config_env)]
             except KeyError as err:
                 raise ConfigEnvironmentNotFound(

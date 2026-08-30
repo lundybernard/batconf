@@ -29,8 +29,7 @@ class SourceListP(SourceInterfaceP, Protocol):
 
 
 class FieldP(Protocol):
-    # a live class, or its annotation string. Configuration reads a
-    # nested schema from the class; every other field is a leaf.
+    # a live class, or its annotation string
     type: type | str
     name: str
     default: object
