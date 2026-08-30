@@ -2,7 +2,7 @@ import os
 import warnings
 
 from .types import SourceInterfaceP
-from ._compat import deprecated_module, make_deprecated_getattr
+from ._compat import deprecated_module
 
 
 _BAT_PREFIX_DEPRECATION = (
@@ -93,10 +93,3 @@ class EnvSource(SourceInterfaceP):
 
     def __repr__(self):
         return f'{self.__class__.__name__}()'
-
-
-__getattr__ = make_deprecated_getattr(
-    deprecated={'EnvConfig': 'EnvSource'},
-    module_globals=globals(),
-    module_name=__name__,
-)

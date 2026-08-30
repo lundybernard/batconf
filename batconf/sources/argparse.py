@@ -1,8 +1,5 @@
 from batconf.sources.types import SourceInterfaceP
-from batconf.sources._compat import (
-    deprecated_module,
-    make_deprecated_getattr,
-)
+from batconf.sources._compat import deprecated_module
 
 from argparse import Namespace
 
@@ -44,10 +41,3 @@ class NamespaceSource(SourceInterfaceP):
 
     def __repr__(self):
         return f'{self.__class__.__name__}(namespace={self._data})'
-
-
-__getattr__ = make_deprecated_getattr(
-    deprecated={'NamespaceConfig': 'NamespaceSource'},
-    module_globals=globals(),
-    module_name=__name__,
-)
