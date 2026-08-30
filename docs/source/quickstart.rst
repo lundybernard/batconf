@@ -322,8 +322,8 @@ controlled by the ``file_format`` parameter (default: ``'environments'``):
 * ``'environments'`` *(default)* — sections are prefixed with an
   environment name (e.g. ``[dev.yourproject.example.client]``).
   A ``[batconf]`` section can declare the default environment via
-  ``default_env``. Intermediate parent sections must be present even
-  if empty (e.g. ``[dev]``, ``[dev.yourproject]``).
+  ``default_env``. The environment section itself must be present even
+  if empty (e.g. ``[dev]``); deeper sections stand on their own.
 * ``'sections'`` — sections use the dotted config path directly
   (e.g. ``[yourproject.example.client]``), with no environment prefix.
 * ``'flat'`` — a single flat key/value file with no sections.

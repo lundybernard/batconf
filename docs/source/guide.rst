@@ -55,6 +55,108 @@ The ``BAT`` prefix stands in for a missing path.
 prefix appears only when the source is queried directly.
 
 
+Configuration file contract
+---------------------------
+
+:class:`~batconf.sources.ini.IniSource`,
+:class:`~batconf.sources.toml.TomlSource` and
+:class:`~batconf.sources.yaml.YamlSource` read the same three layouts,
+selected with the ``file_format`` argument. The rules below hold for
+all three sources. :doc:`quickstart` shows a file in each format.
+
+
+Values are strings
+~~~~~~~~~~~~~~~~~~
+Write every config value as a string. Config files, environment
+variables and CLI arguments all deliver text, and the schema keeps only
+``str`` defaults, so a string is the one type every layer of the lookup
+agrees on.
+
+A key that resolves to a section, table or mapping is not a value. The
+source returns ``None`` for it and the lookup moves on to the next
+source.
+
+.. warning::
+
+   ``TomlSource`` is the one source that can hand back another type.
+   TOML parses ``retries = 5`` as an integer and the value reaches your
+   code as an ``int``. Quote TOML values — ``retries = '5'`` — to stay
+   inside the string contract. ``IniSource`` and ``YamlSource`` return
+   strings whatever the file says.
+
+
+``environments`` — the default layout
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The top level of the file is a set of named environments. One reserved
+top-level key, ``batconf``, is not an environment: it holds
+``default_env``, whose value must name one of the others.
+
+.. code-block:: ini
+    :caption: config.ini
+
+    [batconf]
+    default_env = dev
+
+    [dev]
+    [dev.yourproject.server]
+    host = localhost
+
+    [prod]
+    [prod.yourproject.server]
+    host = 10.0.0.1
+
+* A source reads inside one environment only. Everything outside the
+  selected environment is invisible to it, including the other
+  environments.
+* ``config_env='prod'`` on the source overrides ``default_env``.
+* Naming an environment the file does not define raises
+  :class:`~batconf.errors.ConfigEnvironmentNotFound` on the first read.
+* In an INI file the environment section itself must exist — ``[dev]``,
+  even when empty. Deeper sections are literal dotted names, so
+  ``[dev.yourproject.server]`` needs no ``[dev.yourproject]`` above it.
+
+
+``sections``
+~~~~~~~~~~~~
+The environment layer is dropped and the top level is the config tree
+itself. Use it when one file serves one environment.
+
+.. code-block:: ini
+    :caption: config.ini (file_format='sections')
+
+    [yourproject.server]
+    host = localhost
+
+There is no ``batconf`` key in this layout, and ``config_env`` is
+ignored. An INI file needs the whole dotted path as a literal section
+name, so a key at the root of the file — outside every section — never
+resolves.
+
+
+``flat``
+~~~~~~~~
+No sections at all: every key lives at the root of the file.
+
+.. code-block:: ini
+    :caption: config.ini (file_format='flat')
+
+    host = localhost
+    port = 5000
+
+INI keys are taken literally, dots included, so ``not.really.nested``
+is one key rather than a path.
+
+.. warning::
+
+   The three sources disagree about ``flat`` files when a ``path`` is
+   in play. ``IniSource`` ignores the path and reads the key from the
+   root, so it works behind a :class:`~batconf.manager.Configuration`.
+   ``TomlSource`` and ``YamlSource`` prepend the path before walking,
+   find nothing at the root, and return ``None``. Use ``IniSource`` for
+   a flat file read through a ``Configuration``; a flat TOML or YAML
+   file resolves only when the source is queried directly.
+
+
 Testing
 -------
 
