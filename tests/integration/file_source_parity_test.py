@@ -1,5 +1,6 @@
 from unittest import TestCase
-from os import path
+from os import path, remove
+from tempfile import TemporaryDirectory
 
 from batconf import ConfigFileNotFound, IniSource, TomlSource, YamlSource
 from batconf.types import FILE_FORMATS
@@ -103,6 +104,25 @@ class FileSourceMissingFileParityTests(TestCase):
                             file_format=file_format,
                             missing_file_option='error',
                         )
+
+    def test_error_option_raises_when_the_file_goes(t) -> None:
+        """A file lost after construction still fails with a batconf type."""
+        for source_class in _ALL_SOURCES:
+            with t.subTest(source=source_class.__name__):
+                with TemporaryDirectory() as tmp_dir:
+                    file_path = path.join(
+                        tmp_dir, f'conf.{_SOURCE_EXT[source_class]}'
+                    )
+                    open(file_path, 'w').close()
+                    src = source_class(
+                        file_path=file_path,
+                        file_format='flat',
+                        missing_file_option='error',
+                    )
+                    remove(file_path)
+
+                    with t.assertRaises(ConfigFileNotFound):
+                        src.get('any_key')
 
 
 class FileSourceValueParityTests(TestCase):

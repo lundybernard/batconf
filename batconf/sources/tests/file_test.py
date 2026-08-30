@@ -6,6 +6,7 @@ from ..file import (
     check_missing_file,
     ConfigFileNotFound,
     MissingFileHandlerP,
+    MissingFileOption,
     load_file_warn_when_missing,
     load_file_ignore_when_missing,
     load_file_error_when_missing,
@@ -107,18 +108,22 @@ class FileLoaderFunctionTests(TestCase):
         with t.subTest('file_path does not exist'):
             t.loader_fn.side_effect = FileNotFoundError
 
-            with t.assertRaises(FileNotFoundError):
+            with t.assertRaises(ConfigFileNotFound) as err:
                 _ = load_file_error_when_missing(
                     loader_fn=t.loader_fn,
                     file_path=t.file_path,
                 )
+            t.assertEqual(
+                str(err.exception),
+                f'Failed to load config file: {t.file_name}',
+            )
 
 
 class CheckMissingFileTests(TestCase):
-    def setUp(t):
+    def setUp(t) -> None:
         t.file_path = create_autospec(Path, instance=True)
 
-    def test_check_missing_file(t):
+    def test_check_missing_file(t) -> None:
         with t.subTest('error option, file is missing'):
             t.file_path.exists.return_value = False
 
@@ -135,23 +140,17 @@ class CheckMissingFileTests(TestCase):
         with t.subTest('error option, file exists'):
             t.file_path.exists.return_value = True
 
-            t.assertIsNone(
-                check_missing_file(
-                    file_path=t.file_path,
-                    when_missing='error',
-                )
-            )
+            check_missing_file(file_path=t.file_path, when_missing='error')
 
-        for option in ('warn', 'ignore'):
+        quiet: tuple[MissingFileOption, ...] = ('warn', 'ignore')
+        for option in quiet:
             with t.subTest(f'{option} option: the file is not checked'):
                 t.file_path.exists.reset_mock()
                 t.file_path.exists.return_value = False
 
-                t.assertIsNone(
-                    check_missing_file(
-                        file_path=t.file_path,
-                        when_missing=option,
-                    )
+                check_missing_file(
+                    file_path=t.file_path,
+                    when_missing=option,
                 )
                 t.file_path.exists.assert_not_called()
 

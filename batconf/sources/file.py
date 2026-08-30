@@ -58,7 +58,19 @@ def load_file_error_when_missing(
     file_path: Path,
     empty_fallback: Any = ...,
 ):
-    return loader_fn(file_path)
+    """Load the file, and report a missing one as a batconf error.
+
+    Raises
+    ------
+    ConfigFileNotFound
+        The loader could not read ``file_path``.
+    """
+    try:
+        return loader_fn(file_path)
+    except FileNotFoundError as err:
+        raise ConfigFileNotFound(
+            f'Failed to load config file: {file_path}'
+        ) from err
 
 
 def check_missing_file(
