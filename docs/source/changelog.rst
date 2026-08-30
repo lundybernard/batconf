@@ -14,7 +14,7 @@ BatConf 0.x
 .. _v0.4.1:
 
 ------------------
-0.4.1 - TBD
+0.4.1 - 2026-08-29
 ------------------
 
 A deprecation-completeness release. This release removes nothing, and
