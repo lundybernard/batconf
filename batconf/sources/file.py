@@ -6,9 +6,6 @@ from pathlib import Path
 from ..errors import ConfigFileNotFound
 from .types import MissingFileOption
 
-# backwards-compatible internal alias
-_MissingFileOption = MissingFileOption
-
 
 log = getLogger(__name__)
 
@@ -20,10 +17,6 @@ class FileLoaderP(Protocol):
     def __call__(self, file_path: Path) -> Any: ...
 
 
-EmptyConfigurationSentinel = object()
-
-
-# EmptyConfiguration = {'default': 'none', 'none': {}}
 class MissingFileHandlerP(Protocol):
     def __call__(
         self,

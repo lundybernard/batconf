@@ -11,11 +11,7 @@ from .file import (
     missing_file_handlers as _missing_file_handlers,
 )
 from ..errors import ConfigEnvironmentNotFound, SourceDependencyNotFound
-from .types import (
-    ConfigFileFormats,
-    FileSourceP,
-    MissingFileOption as _MissingFileOption,
-)
+from .types import ConfigFileFormats, FileSourceP, MissingFileOption
 
 
 EmptyYamlDict: dict[None, None] = dict()
@@ -51,7 +47,7 @@ class YamlSource(FileSourceP):
         file_path: str,
         file_format: ConfigFileFormats = 'environments',
         config_env: str | None = None,
-        missing_file_option: _MissingFileOption = 'warn',
+        missing_file_option: MissingFileOption = 'warn',
     ):
         self._missing_file_option = missing_file_option
         self._file_format = file_format
@@ -124,7 +120,7 @@ class YamlSource(FileSourceP):
 
 def _load_yaml(
     file_path: Path,
-    when_missing: _MissingFileOption,
+    when_missing: MissingFileOption,
 ) -> dict:
     return _missing_file_handlers[when_missing](
         loader_fn=_load_yaml_file,

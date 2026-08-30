@@ -9,23 +9,13 @@ from ..errors import (
     ConfigFileNotFound,
     InvalidFileFormat,
 )
-from .types import ConfigFileFormats, FileSourceP
+from .types import ConfigFileFormats, FileSourceP, MissingFileOption
 from .file import (
-    _MissingFileOption,
     check_missing_file,
     FileLoaderP,
     missing_file_handlers as _missing_file_handlers,
     file_config_repr,
 )
-
-
-class ConfigParserP(Protocol):
-    def get(
-        self,
-        section: str,
-        option: str,
-        fallback: str | None = None,
-    ) -> str | None: ...
 
 
 # === IniSource Get Methods === #
@@ -137,7 +127,7 @@ class IniSource(FileSourceP):
         file_path: str,
         file_format: ConfigFileFormats = 'environments',
         config_env: str | None = None,
-        missing_file_option: _MissingFileOption = 'warn',
+        missing_file_option: MissingFileOption = 'warn',
     ):
         self._missing_file_option = missing_file_option
         self._file_format = file_format  # validated by setter
@@ -160,10 +150,6 @@ class IniSource(FileSourceP):
         if fmt not in _file_type_loaders:
             raise InvalidFileFormat(f'Invalid file_format: {fmt}')
         self.__file_format = fmt
-
-    @property
-    def _loader(self):
-        return _file_type_loaders[self._file_format]
 
     @property
     def _get_impl(self):
@@ -220,7 +206,7 @@ class IniSource(FileSourceP):
 def _load_ini(
     file_path: Path,
     file_format: ConfigFileFormats,
-    when_missing: _MissingFileOption = 'warn',
+    when_missing: MissingFileOption = 'warn',
 ) -> ConfigParser | EmptyConfigParser:
     loader_fn = _file_type_loaders[file_format]
     return _missing_file_handlers[when_missing](
@@ -252,9 +238,3 @@ _file_type_loaders: dict[str, FileLoaderP] = {
     'flat': _load_ini_file_flat,
 }
 
-
-_file_loader_map = {
-    (ini_format, when_missing): (loader_fn, handler_fn)
-    for ini_format, loader_fn in _file_type_loaders.items()
-    for when_missing, handler_fn in _missing_file_handlers.items()
-}

@@ -5,13 +5,12 @@ from logging import getLogger
 from pathlib import Path
 
 from .file import (
-    _MissingFileOption,
     check_missing_file,
     missing_file_handlers as _missing_file_handlers,
     file_config_repr,
 )
 from ..errors import ConfigEnvironmentNotFound, SourceDependencyNotFound
-from .types import ConfigFileFormats, FileSourceP
+from .types import ConfigFileFormats, FileSourceP, MissingFileOption
 
 
 _OptStr = str | None
@@ -50,7 +49,7 @@ class TomlSource(FileSourceP):
         file_path: str,
         file_format: ConfigFileFormats = 'environments',
         config_env: _OptStr = None,
-        missing_file_option: _MissingFileOption = 'warn',
+        missing_file_option: MissingFileOption = 'warn',
     ):
         self._config_file_path = Path(file_path)
         self._file_format = file_format
@@ -129,7 +128,7 @@ EmptyConfigDict: dict[None, None] = dict()
 
 def _load_toml(
     file_path: Path,
-    when_missing: _MissingFileOption = 'warn',
+    when_missing: MissingFileOption = 'warn',
 ) -> TomlDictT:
     return _missing_file_handlers[when_missing](
         loader_fn=_load_toml_file,

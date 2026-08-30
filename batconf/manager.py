@@ -8,9 +8,6 @@ from .source import SourceList
 from .types import ConfigP, FieldP, SourceListP
 
 
-ConfigRet = 'Configuration | str'
-
-
 class Configuration:
     """Resolves configuration values from an ordered :class:`SourceList`.
 

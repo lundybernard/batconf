@@ -150,19 +150,6 @@ class IniSourceTests(TestCase):
             with t.assertRaises(InvalidFileFormat):
                 t.ins._file_format = 'invalid'
 
-    def test__loader(t):
-        with t.subTest('environments'):
-            t.ins._file_format = 'environments'
-            t.assertIs(t.ins._loader, _load_ini_file)
-
-        with t.subTest('sections'):
-            t.ins._file_format = 'sections'
-            t.assertIs(t.ins._loader, _load_ini_file)
-
-        with t.subTest('flat'):
-            t.ins._file_format = 'flat'
-            t.assertIs(t.ins._loader, _load_ini_file_flat)
-
     def test__config_env(t):
         with t.subTest('environments format: stores value'):
             t.ins._config_env = 'production'
