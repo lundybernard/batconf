@@ -16,6 +16,25 @@ Install with ``pip``:
 
     pip install batconf
 
+BatConf itself requires nothing beyond the standard library. Two
+optional extras cover the file formats the standard library does not
+read:
+
+.. code-block:: bash
+
+    pip install 'batconf[yaml]'
+    pip install 'batconf[toml]'
+
+* ``[yaml]`` installs PyYAML, which
+  :class:`~batconf.sources.yaml.YamlSource` requires on every Python
+  version.
+* ``[toml]`` is needed only on **Python 3.10**.
+  :class:`~batconf.sources.toml.TomlSource` reads ``tomllib`` from the
+  standard library on Python 3.11 and later.
+
+The quotes matter in ``zsh``, which otherwise reads the brackets as a
+glob pattern.
+
 
 Project Setup
 -------------
@@ -333,6 +352,15 @@ controlled by the ``file_format`` parameter (default: ``'environments'``):
 
 Toml
 ^^^^
+
+.. note::
+
+   On Python 3.10, ``TomlSource`` needs the ``[toml]`` extra
+   (``pip install 'batconf[toml]'``). Python 3.11 and later read TOML
+   with the standard library, and the extra installs nothing. Without
+   it, constructing a source is still fine — the first read raises
+   :class:`~batconf.errors.SourceDependencyNotFound`, which names the
+   extra to install.
 
 :class:`~batconf.sources.toml.TomlSource` supports the same three file
 formats as :class:`~batconf.sources.ini.IniSource`, controlled by the
