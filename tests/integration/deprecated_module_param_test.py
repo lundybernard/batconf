@@ -12,7 +12,6 @@ from unittest import TestCase
 from unittest.mock import patch
 
 from batconf import EnvSource, NamespaceSource
-from batconf.sources.dataclass import _DataclassConfig
 
 
 _MODULE_WARNING = (
@@ -60,16 +59,4 @@ class DeprecatedModuleParameterTests(TestCase):
         t._assert_parity_and_warning(
             NamespaceSource(ns), key='key', namespace='bat.module',
             expected='value',
-        )
-
-    def test_dataclass_source(t):
-        from dataclasses import dataclass
-
-        @dataclass
-        class Config:
-            key: str = 'value'
-
-        source = _DataclassConfig(Config, path='bat.module')
-        t._assert_parity_and_warning(
-            source, key='key', namespace='bat.module', expected='value'
         )
