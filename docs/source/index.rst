@@ -19,9 +19,18 @@ that works best for them.
   * Config classes with default values
   * Fully customizeable configuration Schemas
 
+* Customizable priority: the ``SourceList`` sets the lookup order,
+  and you can change it
 * Easily extendable, add new sources to serve your needs.
 * Set reasonable defaults, and override them as needed.
 * Designed for 12-factor applications (config via Environment Variables)
+* :class:`~batconf.lib.ConfigSingleton`: share one configuration across
+  your application, and :func:`~batconf.lib.insert_source` to add a
+  source at runtime
+* Subscript access: ``cfg['key']`` alongside ``cfg.key``, for dynamic
+  lookups like ``cfg.clients[client_id]``
+* One error base: catch every configuration failure with
+  :class:`~batconf.errors.BatconfError`
 
 
 .. image:: https://img.shields.io/pypi/v/batconf?color=blue
@@ -54,13 +63,17 @@ on our Developer's Blog.
 :ref:`supplychain_security_blog`
 
 
-What's new in v0.4.0
+What's new in v1.0.0
 --------------------
 
-- :class:`~batconf.lib.ConfigSingleton` — share a single configuration instance across your application
-- :func:`~batconf.lib.insert_source` — add sources at runtime (e.g. after CLI arg parsing)
-- Subscript access: ``cfg['key']`` as an alternative to ``cfg.key``
-- Cleaner public API: import common classes directly from ``batconf``
+- The API is frozen. See :doc:`stability` for what that covers and how
+  deprecations are handled from here.
+- :class:`~batconf.errors.BatconfError` — every failure batconf raises
+  carries a batconf type, while keeping its standard exception base
+- A missing config file is reported when the source is built, not at
+  the first lookup
+- A walk-through for :doc:`writing a custom source <guide>`, and the
+  config file contract stated in full
 
 See the :doc:`migration` guide for upgrade instructions.
 

@@ -23,20 +23,21 @@ them.
 * Provides builtin support for common config sources:
     * CLI args
     * Environment Variables
-    * Config File (yaml)
+    * Config files: `ini`, `toml` and `yaml`
     * Config classes with default values
+* Customizable priority: the `SourceList` sets the lookup order, and you can change it
 * Easily extendable, add new sources to serve your needs.
 * Set reasonable defaults, and override them as needed.
 * Designed for 12-factor applications (config via Environment Variables)
 * `ConfigSingleton`: share a single `Configuration` instance across your application
 * `insert_source`: dynamically add configuration sources at runtime
 * Subscript access: `cfg['key']` as an alternative to `cfg.key`, enabling dynamic lookups like `cfg.clients[client_id]`
+* `BatconfError`: catch every configuration failure with one `except` clause
 
 Users can create their own config sources
-by creating classes that satisfy `batconf.sources.types.SourceInterfaceP`
-
-The config lookup order is determined by the `SourceList` instance,
-which can be adjusted to suit your needs.
+by creating classes that satisfy `batconf.sources.types.SourceInterfaceP`.
+See the [custom source guide](https://batconf.readthedocs.io/en/stable/guide.html)
+for a walk-through.
 
 ## Design Principles
 
@@ -134,17 +135,17 @@ insert_source(cfg=CFG, source=NamespaceSource(args))
 
 ## Install Instructions
 
-Install the core package:
+Install the core package, which has no dependencies of its own:
 
-`pip install .`
+`pip install batconf`
 
 Install with Yaml support:
 
-`pip install .[yaml]`
+`pip install 'batconf[yaml]'`
 
-Install with Toml support, for python<=3.10:
+Install with Toml support, needed only on python 3.10:
 
-`pip install .[toml]`
+`pip install 'batconf[toml]'`
 
 ### Adding BatConf to your project requirements
 ```toml
@@ -164,13 +165,16 @@ dependencies = [
 ```
 
 
-## Migrating to v0.4.0
+## Stability and Upgrading
 
-### Breaking Changes
+BatConf follows Semantic Versioning. The
+[stability policy](https://batconf.readthedocs.io/en/stable/stability.html)
+states what the 1.0 API freeze covers, how deprecations are announced
+before a name is removed, and what BatConf deliberately leaves to you.
 
-* `batconf.sources.file.FileConfig` has been removed.
-  See the [migration guide](https://batconf.readthedocs.io/en/stable/migration.html)
-  for details.
+Upgrading from a 0.x release? The
+[migration guide](https://batconf.readthedocs.io/en/stable/migration.html)
+covers every rename and removal.
 
 ## Architecture Decision Records
 
