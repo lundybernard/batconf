@@ -42,7 +42,8 @@ def _get_envs(
     try:
         section, key = key.rsplit(sep='.', maxsplit=1)
     except ValueError:
-        # Type checking should be fixed in the next MyPy release
+        # a bare key is read from the environment section itself, which
+        # the environments format always resolves
         section = self._config_env  # type: ignore[assignment]
     else:
         section = f'{self._config_env}.{section}'
