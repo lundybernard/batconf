@@ -98,23 +98,3 @@ class BatPrefixDeprecationTests(TestCase):
             'prefix=None for no prefix.',
             _BAT_PREFIX_DEPRECATION,
         )
-
-
-class EnvNameModuleDeprecationTests(TestCase):
-    """env_name routes its deprecated module keyword through the shim."""
-
-    deprecated_module: Mock
-
-    def setUp(t) -> None:
-        patcher = patch(f'{SRC}.deprecated_module', autospec=True)
-        t.deprecated_module = patcher.start()
-        t.addCleanup(patcher.stop)
-        t.es = EnvSource(prefix='mytool')
-
-    def test_env_name(t):
-        t.deprecated_module.return_value = 'server'
-
-        t.assertEqual('MYTOOL_SERVER_KEY', t.es.env_name('key', module='m'))
-        t.deprecated_module.assert_called_once_with(
-            None, 'm', method='env_name'
-        )

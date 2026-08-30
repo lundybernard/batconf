@@ -2,7 +2,6 @@ import os
 import warnings
 
 from .types import SourceInterfaceP
-from ._compat import deprecated_module
 
 
 _BAT_PREFIX_DEPRECATION = (
@@ -46,27 +45,11 @@ class EnvSource(SourceInterfaceP):
     def __init__(self, prefix: str | None | _UnsetPrefix = _UNSET) -> None:
         self._prefix = prefix
 
-    def get(
-        self,
-        key: str,
-        path: str | None = None,
-        module: str | None = None,
-    ) -> str | None:
-        path = deprecated_module(path, module)
+    def get(self, key: str, path: str | None = None) -> str | None:
         return os.getenv(self.env_name(key, path=path))
 
-    def env_name(
-        self,
-        key: str,
-        path: str | None = None,
-        module: str | None = None,
-    ) -> str:
-        """Return the environment variable name for ``key`` under ``path``.
-
-        The ``module`` keyword is deprecated. It maps onto ``path`` and is
-        removed in v0.5.0.
-        """
-        path = deprecated_module(path, module, method='env_name')
+    def env_name(self, key: str, path: str | None = None) -> str:
+        """Return the environment variable name for ``key`` under ``path``."""
         parts = (
             self._prefix_parts(path)
             + (path.split('.') if path else [])
