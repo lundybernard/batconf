@@ -16,8 +16,9 @@ config file > application defaults.
 ## Decision
 
 `SourceList` holds an ordered sequence of sources and queries them in
-index order. The first source that returns a non-`None` value wins; the
-remaining sources are not consulted for that key. Sources can be added
+index order. The first source that returns a truthy value wins; the
+remaining sources are not consulted for that key. A falsey return —
+`None`, `''`, `0`, `False` — is treated as missing. Sources can be added
 at any position at runtime via `SourceList.insert_source`.
 
 The canonical priority order is:
