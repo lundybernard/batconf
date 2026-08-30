@@ -30,7 +30,7 @@ class SourceListP(SourceInterfaceP, Protocol):
 class FieldP(Protocol):
     type: 'ConfigP | Type[str]'
     name: str
-    default: str
+    default: object
 
 
 @runtime_checkable
