@@ -11,6 +11,114 @@ All previous releases should still be available
 BatConf 0.x
 ==============
 
+.. _v0.5.0:
+
+------------------
+0.5.0 - TBD
+------------------
+
+The removal release for everything deprecated in 0.4.x. Every name and
+default behaviour below warned in v0.4.1 and named v0.5.0 as its removal
+version. Upgrade to v0.4.1 first and run your test suite with
+deprecations promoted to errors; each failure points at one line to
+change. See :doc:`migration`.
+
+Two derived namespaces go with this release: the module name a schema
+took as its config path, and the ``BAT`` prefix a root-level environment
+lookup took. A namespace is now something the caller declares, or the
+root.
+
+Breaking changes:
+
+* The legacy file source classes ``IniConfig``, ``TomlConfig`` and
+  ``YamlConfig`` are removed. Use
+  :class:`~batconf.sources.ini.IniSource`,
+  :class:`~batconf.sources.toml.TomlSource` and
+  :class:`~batconf.sources.yaml.YamlSource`. Only ``TomlSource`` is a
+  drop-in: ``IniSource`` reorders the arguments after ``file_path``, and
+  ``YamlSource`` renames ``config_file_name`` to ``file_path`` and reads
+  the active environment from ``batconf.default_env``.
+* ``CliArgsConfig`` and the whole ``batconf.sources.args`` module are
+  removed. :class:`~batconf.sources.argparse.NamespaceSource` replaces
+  it, and resolves the full dotted path rather than the last key
+  segment, so each argument needs a ``dest=`` holding its config path.
+* ``DataclassConfig`` and the whole ``batconf.sources.dataclass`` module
+  are removed. There is no replacement:
+  :class:`~batconf.manager.Configuration` has read schema defaults
+  itself since v0.2.0, so the source-list entry is deleted.
+* ``EnvConfig`` and ``NamespaceConfig`` are removed. Both were aliases;
+  import :class:`~batconf.sources.env.EnvSource` and
+  :class:`~batconf.sources.argparse.NamespaceSource`, or take them from
+  ``batconf``.
+* ``batconf.source.SourceInterface`` is removed.
+  :class:`~batconf.sources.types.SourceInterfaceP` is the sole source
+  extension point; a custom source needs no base class. ``isinstance``
+  checks move to the Protocol, which is runtime-checkable. See ADR 0015.
+* The ``module`` keyword argument to ``.get()`` and to
+  ``EnvSource.env_name()`` is removed. Every source now takes
+  ``get(key, path=None)``, and ``env_name()`` takes ``path``.
+* The ``Protocol``- and ``Proto``-suffixed aliases are removed from
+  :mod:`batconf.types` and :mod:`batconf.sources.types`. Use
+  ``ConfigP``, ``FieldP``, ``SourceInterfaceP`` and ``SourceListP``.
+* The module-name config path is removed. An absent or empty ``path``
+  mounts the schema at the root of the namespace, and each
+  sub-configuration mounts under its field name. A configuration that
+  relied on the module name must pass ``path=`` to keep it. See
+  ADR 0017.
+* The hardcoded ``BAT`` environment prefix is removed.
+  :class:`~batconf.sources.env.EnvSource` takes ``prefix``, and the
+  prefix leads every variable name rather than standing in at the root.
+  See ADR 0018.
+* With no prefix and an empty path,
+  :class:`~batconf.sources.env.EnvSource` returns ``None`` rather than
+  reading a bare uppercase name. A field named ``path`` or ``user`` can
+  no longer resolve to an ambient process variable.
+  ``EnvSource(raw=True)`` is the opt-in for bare-name resolution.
+
+Added:
+
+* Several top-level schemas hang under one configuration. The parent is
+  a :class:`~batconf.manager.Configuration` with no path, so no reserved
+  name and no synthetic level appears in the file or the environment
+  (#150).
+* :class:`~batconf.sources.ini.IniSource` reads the ``[/ROOT/]`` section
+  for a key at the root of a schema. ``configparser`` has no unnamed
+  section, so INI alone could not express a schema that TOML and YAML
+  express. The section is format parity and is not recommended. See
+  ADR 0019.
+
+Fixed:
+
+* The missing-value message built an environment variable name by hand,
+  including a leading separator at the root, and named a variable no
+  prefix could match. It now names the suffix and defers the prefix to
+  the source. The tree header drops the path at the root for the same
+  reason.
+* ``TomlSource.get`` and ``YamlSource.get`` no longer log a warning when
+  the dotted lookup runs past a leaf or into an absent section. A key
+  miss is ordinary — :class:`~batconf.source.SourceList` moves on to the
+  next source — so both return ``None`` silently, matching
+  ``IniSource``. The missing-config-file warning is unchanged.
+
+Documentation:
+
+* The first-wins rule is stated as first *truthy* value, in the
+  ``SourceList.get`` docstring and in the foundational ADR. Behaviour is
+  unchanged: a falsey value is treated as missing.
+* ``BATCONF_*`` is reserved for BatConf's own variables, and
+  ``BATCONF_ENVIRONMENT`` is the canonical shell-level environment
+  selector. No source reads it. The :doc:`guide` documents the two-stage
+  bootstrap that does, and the precedence order: ``config_env=``, then
+  ``BATCONF_ENVIRONMENT``, then the file's ``default_env``. See
+  ADR 0020.
+* The :doc:`guide` states what each format can express: only
+  ``environments`` holds several environments, ``sections`` holds several
+  projects for one environment, ``flat`` is single-tenant, and
+  environment variables carry no environment. In a shared file or process
+  environment every project declares its own ``path`` and prefix; the
+  root belongs to no one. See ADR 0021.
+
+
 .. _v0.4.1:
 
 ------------------
