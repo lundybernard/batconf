@@ -16,8 +16,6 @@ from .types import (
     FileSourceP,
     MissingFileOption as _MissingFileOption,
 )
-from ..source import _SourceInterface
-from ._compat import make_deprecated_getattr
 
 
 log = getLogger(__name__)
@@ -120,157 +118,13 @@ class YamlSource(FileSourceP):
     __repr__ = file_config_repr
 
 
-class YamlConfig(_SourceInterface):
-    """
-    Configuration source backed by a YAML file.
-
-    By default, the YAML file is interpreted as an environment-based
-    configuration, where top-level keys define environments and
-    ``config_env`` selects the active one.
-
-    Parameters
-    ----------
-    config_file_name : str
-        Path to the YAML configuration file.
-    config_env : str or None, default=None
-        Name of the active configuration environment. When
-        ``config_env`` is not provided, the ``default`` environment
-        defined in the YAML file is used.
-    enable_config_environments : bool, default=True
-        Whether the YAML file should be interpreted as an
-        environment-based configuration.
-    missing_file_option : {'warn', 'ignore', 'error'}, default='warn'
-        Behavior when the specified config file is missing.
-
-    Notes
-    -----
-    When environment-based configuration is enabled, the YAML file is
-    expected to contain a top-level ``default`` key identifying the
-    default environment, along with top-level mappings for each
-    environment.
-    """
-
-    __data: Any
-
-    def __init__(
-        self,
-        config_file_name: str,
-        config_env: str | None = None,
-        enable_config_environments: bool = True,
-        missing_file_option: _MissingFileOption = 'warn',
-    ):
-        self._missing_file_option = missing_file_option
-        self._config_file_path = get_file_path(
-            file_name=config_file_name,
-            when_missing=missing_file_option,
-        )
-        self._config_env = config_env
-
-        self._enable_config_environments = enable_config_environments
-
-        self._data = _load_yaml(
-            file_path=self._config_file_path,
-            when_missing=self._missing_file_option,
-        )
-
-    @property
-    def _data(self) -> Any:
-        return self.__data
-
-    @_data.setter
-    def _data(self, config: dict):
-        if self._enable_config_environments:
-            if not self._config_env:
-                self._config_env = config['default']
-            self.__data = config[self._config_env]
-        else:
-            self.__data = config
-
-    @property
-    def _file_format(self) -> str:
-        if self._enable_config_environments:
-            return 'environments'
-        return 'sections'
-
-    def __getitem__(self, key: str) -> _SourceInterface | str:
-        path = key.split('.')
-        conf = self._data
-        for k in path:
-            conf = conf[k]
-        return conf
-
-    def __str__(self) -> str:
-        return f'Yaml File: {repr(self)}'
-
-    __repr__ = file_config_repr
-
-    def keys(self) -> list[str]:
-        return self._data.keys()
-
-    def get(self, key: str, module: str | None = None) -> str | None:
-        if module:
-            path = module.split('.') + key.split('.')
-        else:
-            path = key.split('.')
-
-        conf = self._data
-        for k in path:
-            if not (conf := conf.get(k)):
-                return conf
-        return conf
-
-
-_YamlConfig = YamlConfig
-del YamlConfig
-
-__getattr__ = make_deprecated_getattr(
-    deprecated={'YamlConfig': 'YamlSource'},
-    module_globals=globals(),
-    module_name=__name__,
-    targets={'YamlConfig': '_YamlConfig'},
-)
-
-
-_missing_config_warning = 'Config File not found'
-
-
-# === OS File Checker === #
-
-
-def get_file_path(
-    file_name: str, when_missing: _MissingFileOption = 'warn'
-) -> Path:
-    path = Path(file_name)
-
-    if path.is_file():
-        return path
-
-    relpath = path.resolve()
-    if relpath.is_file():
-        return relpath
-
-    if when_missing == 'warn':
-        log.warning(_missing_config_warning)
-    elif when_missing == 'error':
-        raise FileNotFoundError(
-            'Could not find Yaml Config file.'
-            f' Using absolute path: {path}'
-            f' or relative path: {relpath}.'
-        )
-
-    return path
-
-
 # === Yaml File Loader === #
-
-# TODO: replace when we implement YamlSource
-_empty_yaml_config: dict = {'default': 'none', 'none': {}}
 
 
 def _load_yaml(
     file_path: Path,
     when_missing: _MissingFileOption,
-    empty_fallback: Any = _empty_yaml_config,
+    empty_fallback: Any,
 ) -> dict:
     return _missing_file_handlers[when_missing](
         loader_fn=_load_yaml_file,

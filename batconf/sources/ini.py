@@ -1,10 +1,9 @@
 from functools import cached_property
-from typing import Literal, Protocol, Callable
+from typing import Protocol
 from logging import getLogger
 
 from configparser import ConfigParser
 from pathlib import Path
-from enum import Enum, auto
 
 from .types import ConfigFileFormats, FileSourceP
 from .file import (
@@ -13,17 +12,9 @@ from .file import (
     missing_file_handlers as _missing_file_handlers,
     file_config_repr,
 )
-from ._compat import make_deprecated_getattr
 
 
 log = getLogger(__name__)
-
-
-class _DEFAULTS(Enum):
-    environment = auto()
-
-
-_EnvOpts = str | Literal[_DEFAULTS.environment] | None
 
 
 class ConfigParserP(Protocol):
@@ -35,11 +26,11 @@ class ConfigParserP(Protocol):
     ) -> str | None: ...
 
 
-# === IniConfig Get Methods === #
+# === IniSource Get Methods === #
 
 
 class _ConfigParserSource(Protocol):
-    _config_env: _EnvOpts
+    _config_env: str | None
     _data: ConfigParser
 
 
@@ -209,52 +200,6 @@ class IniSource(FileSourceP):
         return f'Ini File: {repr(self)}'
 
     __repr__ = file_config_repr
-
-
-# === IniConfig (deprecated) === #
-
-
-class IniConfig(IniSource):
-    """Deprecated. Use IniSource instead.
-
-    Parameters
-    ----------
-    file_path : str
-        Path to the INI configuration file.
-    config_env : str or None, default=read from file
-        Active configuration environment. When not provided, the value of
-        ``batconf.default_env`` in the INI file is used.
-    missing_file_option : {'warn', 'ignore', 'error'}, default='warn'
-        Behaviour when the specified file is missing.
-    file_format : {'environments', 'sections', 'flat'}, default='environments'
-        INI file layout.
-    """
-
-    def __init__(
-        self,
-        file_path: str,
-        config_env: _EnvOpts = _DEFAULTS.environment,
-        missing_file_option: _MissingFileOption = 'warn',
-        file_format: ConfigFileFormats = 'environments',
-    ):
-        env = None if config_env is _DEFAULTS.environment else config_env
-        super().__init__(
-            file_path=file_path,
-            file_format=file_format,
-            config_env=env,
-            missing_file_option=missing_file_option,
-        )
-
-
-_IniConfig = IniConfig
-del IniConfig
-
-__getattr__ = make_deprecated_getattr(
-    deprecated={'IniConfig': 'IniSource'},
-    module_globals=globals(),
-    module_name=__name__,
-    targets={'IniConfig': '_IniConfig'},
-)
 
 
 # === INI File Loader Functions === #

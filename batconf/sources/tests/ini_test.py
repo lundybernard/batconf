@@ -1,11 +1,8 @@
-import warnings
-
 from unittest import TestCase
 from unittest.mock import Mock, patch, mock_open, create_autospec, PropertyMock
 
 from ..ini import (
     # Under Test
-    _IniConfig,
     IniSource,
     ConfigFileFormats,
     _load_ini_file,
@@ -84,19 +81,6 @@ EXAMPLE_CONFIG_DICT: dict = {
 
 CONFIG_PARSER_ENVS = ConfigParser()
 CONFIG_PARSER_ENVS.read_string(INI_ENV_STR)
-
-
-class IniConfigTests(TestCase):
-    def test_is_IniSource_subclass(t):
-        t.assertTrue(issubclass(_IniConfig, IniSource))
-
-    def test___init__(t):
-        ic = _IniConfig(file_path='test.ini')
-        t.assertIsInstance(ic, IniSource)
-
-    def test___init___with_config_env(t):
-        ic = _IniConfig(file_path='test.ini', config_env='production')
-        t.assertEqual(ic._IniSource__config_env, 'production')
 
 
 class IniSourceTests(TestCase):
@@ -309,7 +293,7 @@ class IniSourceTests(TestCase):
 
 class GetConfigFunctionsTests(TestCase):
     def setUp(t):
-        t.ic = Mock(_IniConfig, autospec=True)
+        t.ic = Mock(IniSource, autospec=True)
         t.ic._config_env = 'testing'
         t.key = 'key'
 

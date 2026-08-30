@@ -20,7 +20,6 @@ from ..toml import (
     _import_toml_load_function,
     _TOML_IMPORT_ERROR_MSG,
     Path,
-    __getattr__,
 )
 
 
@@ -289,13 +288,6 @@ class TomlSourceTests(TestCase):
             'missing_file_option=warn, file_format=environments)',
             repr(ts),
         )
-
-
-class DeprecationTests(TestCase):
-    def test_TomlConfig_is_TomlSource_subclass(t):
-        with t.assertWarns(DeprecationWarning):
-            result = __getattr__('TomlConfig')
-        t.assertTrue(issubclass(result, TomlSource))
 
 
 class TomlLoaderFunctionsTests(TestCase):

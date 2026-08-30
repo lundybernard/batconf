@@ -11,7 +11,6 @@ from .file import (
     file_config_repr,
 )
 from .types import ConfigFileFormats, FileSourceP
-from ._compat import make_deprecated_getattr
 
 
 _OptStr = str | None
@@ -165,21 +164,4 @@ _TOML_IMPORT_ERROR_MSG = (
     'Failed to import toml.load,'
     ' for python < 3.11, the toml package is required.'
     ' Install the optional extra batconf[toml]'
-)
-
-# === TomlConfig (deprecated) === #
-
-
-class TomlConfig(TomlSource):
-    """Deprecated. Use TomlSource instead."""
-
-
-_TomlConfig = TomlConfig
-del TomlConfig
-
-__getattr__ = make_deprecated_getattr(
-    deprecated={'TomlConfig': 'TomlSource'},
-    module_globals=globals(),
-    module_name=__name__,
-    targets={'TomlConfig': '_TomlConfig'},
 )
