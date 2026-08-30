@@ -48,24 +48,3 @@ __all__ = [
     'SourceInterfaceP',
     'SourceListP',
 ]
-
-_deprecated: dict[str, str] = {
-    'ConfigProtocol': 'ConfigP',
-    'FieldProtocol': 'FieldP',
-    'SourceInterfaceProto': 'SourceInterfaceP',
-    'SourceListProto': 'SourceListP',
-}
-
-
-def __getattr__(name: str):
-    if name in _deprecated:
-        import warnings
-        new = _deprecated[name]
-        warnings.warn(
-            f'{name!r} is deprecated and will be removed in v0.5.0; '
-            f'use {new!r} instead.',
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return globals()[new]
-    raise AttributeError(f'module {__name__!r} has no attribute {name!r}')
