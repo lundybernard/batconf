@@ -8,6 +8,102 @@ All previous releases should still be available
 :pypi:`on PyPI <batconf>`.
 
 
+BatConf 1.x
+==============
+
+.. _v1.0.0:
+
+------------------
+1.0.0 - TBD
+------------------
+
+The API freeze. BatConf follows Semantic Versioning from here, under a
+published :doc:`stability` policy that states what the freeze covers,
+how a name is deprecated before it is removed, and what BatConf leaves
+to your application.
+
+Upgrading from 0.5.0 needs no code changes, unless you build a file
+source with ``missing_file_option='error'``.
+
+Added:
+
+* An error hierarchy. Every failure BatConf raises now carries a
+  BatConf type, so one ``except``
+  :class:`~batconf.errors.BatconfError` clause covers configuration
+  failures and separates them from your application's own. The
+  concrete errors are :class:`~batconf.errors.ConfigFileNotFound`,
+  :class:`~batconf.errors.ConfigEnvironmentNotFound`,
+  :class:`~batconf.errors.ConfigValueNotFound`,
+  :class:`~batconf.errors.InvalidFileFormat` and
+  :class:`~batconf.errors.SourceDependencyNotFound`; all are exported
+  from ``batconf``. Each keeps the standard exception it replaces as a
+  second base, so existing ``except ValueError``,
+  ``except AttributeError``, ``except FileNotFoundError`` and
+  ``except ImportError`` clauses catch exactly as before. See ADR 0022.
+* A :doc:`stability` page: the versioning scheme, the API surface the
+  1.0 freeze covers, the deprecation cycle, and the non-goals.
+* An ``AUTHORS`` file naming the people who have contributed.
+
+Changed:
+
+* A file source built with ``missing_file_option='error'`` and a
+  missing file raises
+  :class:`~batconf.errors.ConfigFileNotFound` at construction. It
+  previously failed at the first ``.get()``, inside a lazy property,
+  so a program given a bad config path started normally and failed
+  later with nothing to connect the failure to the path. Sources built
+  with ``'warn'`` or ``'ignore'`` are unchanged and still read the
+  file lazily.
+* The ``Development Status`` classifier is now
+  ``5 - Production/Stable``.
+
+Fixed:
+
+* A config file lost between building a source and the first read is
+  reported as :class:`~batconf.errors.ConfigFileNotFound`. Every source
+  previously let the operating system's ``FileNotFoundError`` through
+  on that path, so ``except BatconfError`` did not catch it.
+
+Typing:
+
+* :class:`~batconf.manager.Configuration` declares ``config_class`` as
+  ``ConfigP`` instead of ``ConfigP | Any``. ``ConfigP`` could not be
+  satisfied by any dataclass before — its ``__dataclass_fields__``
+  member was invariant — so the ``Any`` carried every call and the
+  Protocol checked nothing. ``ConfigP`` and ``FieldP`` now describe
+  what a dataclass schema actually provides, and a wrong
+  ``config_class`` is a type error at the call site.
+* ``ConfigSingleton.__getattr__`` is annotated.
+* The ``# type: ignore`` comments deferred to "the next MyPy release"
+  are gone, along with the untyped ``_config_env`` properties that
+  needed them.
+
+Removed:
+
+* Internal names that nothing referenced: ``ConfigRet``,
+  ``EmptyConfigurationSentinel``, ``ConfigParserP``,
+  ``_file_loader_map``, ``IniSource._loader`` and the private
+  ``_MissingFileOption`` alias. All were private or unused; no
+  supported API changes.
+
+Documentation:
+
+* The source lookup rules are stated in the guide: how
+  :class:`~batconf.sources.argparse.NamespaceSource` resolves a dotted
+  ``dest``, and how :class:`~batconf.sources.env.EnvSource` derives an
+  environment variable name.
+* A config file contract section covers the three file layouts, the
+  reserved ``batconf.default_env`` key, and the string-value rule —
+  including two places where the sources differ.
+* A walk-through for writing a custom source against
+  :py:class:`SourceInterfaceP <batconf.sources.types.SourceInterfaceP>`.
+* A flat, non-nested configuration example.
+* Quickstart states that schema defaults must be strings, and carries
+  the ``[toml]`` extra caveat for Python 3.10.
+* The documentation build instructions use the ``docs`` dependency
+  group instead of the retired ``.[docs]`` extra.
+
+
 BatConf 0.x
 ==============
 
