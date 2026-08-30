@@ -124,6 +124,8 @@ class IniSource(FileSourceP):
     >>> src = IniSource(file_path='config.ini', config_env='dev')
     """
 
+    __config_env: str | None
+
     def __init__(
         self,
         file_path: str,
@@ -134,7 +136,7 @@ class IniSource(FileSourceP):
         self._missing_file_option = missing_file_option
         self._file_format = file_format  # validated by setter
         self._config_file_path = Path(file_path)
-        self._config_env = config_env  # type: ignore[assignment]
+        self._config_env = config_env
 
     def get(self, key: str, path: str | None = None) -> str | None:
         return self._get_impl(self, key=key, path=path)
@@ -179,9 +181,8 @@ class IniSource(FileSourceP):
                 )
         return self._raw_data
 
-    # TODO: Fix type-hints when the next version of MyPy is released
     @property
-    def _config_env(self):  # -> str | None:
+    def _config_env(self) -> str | None:
         if self._file_format != 'environments':
             return None
         if self.__config_env is None:
@@ -191,9 +192,9 @@ class IniSource(FileSourceP):
         return self.__config_env
 
     @_config_env.setter
-    def _config_env(self, env):  # str | None
+    def _config_env(self, env: str | None) -> None:
         if not self._file_format == 'environments':
-            self.__config_env = None  # type: ignore[assignment]
+            self.__config_env = None
             return
         self.__config_env = env
 

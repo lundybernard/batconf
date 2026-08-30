@@ -42,6 +42,8 @@ class YamlSource(FileSourceP):
     >>> src = YamlSource(file_path='config.yaml', config_env='dev')
     """
 
+    __config_env: str | None
+
     def __init__(
         self,
         file_path: str,
@@ -75,9 +77,8 @@ class YamlSource(FileSourceP):
                 ) from err
         return self._raw_data
 
-    # TODO: Fix type-hints when the next version of MyPy is released
     @property
-    def _config_env(self):  # -> str | None:
+    def _config_env(self) -> str | None:
         if self._file_format != 'environments':
             return None
         if self.__config_env is None:
@@ -87,9 +88,9 @@ class YamlSource(FileSourceP):
         return self.__config_env
 
     @_config_env.setter
-    def _config_env(self, env):  # str | None
+    def _config_env(self, env: str | None) -> None:
         if self._file_format != 'environments':
-            self.__config_env = None  # type: ignore[assignment]
+            self.__config_env = None
             return
         self.__config_env = env
 

@@ -1,5 +1,5 @@
 from functools import cached_property
-from typing import Any
+from typing import Any, cast
 from logging import getLogger
 
 from pathlib import Path
@@ -41,6 +41,8 @@ class TomlSource(FileSourceP):
     >>> src = TomlSource(file_path='config.toml', config_env='dev')
     """
 
+    __config_env: str | None
+
     def __init__(
         self,
         file_path: str,
@@ -80,7 +82,8 @@ class TomlSource(FileSourceP):
 
         if self._file_format == 'environments':
             try:
-                return self._raw_data[self._config_env]
+                # the environments format always resolves a _config_env
+                return self._raw_data[cast(str, self._config_env)]
             except KeyError as err:
                 raise ValueError(
                     f'Config Environment "{self._config_env}" '
@@ -89,9 +92,8 @@ class TomlSource(FileSourceP):
 
         return self._raw_data
 
-    # TODO: Fix type-hints when the next version of MyPy is released
     @property
-    def _config_env(self):  # -> str | None:
+    def _config_env(self) -> str | None:
         if self._file_format != 'environments':
             return None
         if self.__config_env is None:
@@ -100,9 +102,9 @@ class TomlSource(FileSourceP):
         return self.__config_env
 
     @_config_env.setter
-    def _config_env(self, env):  # str | None
+    def _config_env(self, env: str | None) -> None:
         if not self._file_format == 'environments':
-            self.__config_env = None  # type: ignore[assignment]
+            self.__config_env = None
             return
         else:
             self.__config_env = env

@@ -379,7 +379,7 @@ class ImportTomlLoadFunctionTests(TestCase):
 
         with t.subTest('pytoml behaves as if it is not installed'):
             with t.assertRaises(ImportError):
-                from toml import load  # type: ignore  # noqa
+                from toml import load  # noqa
 
         with t.subTest('Instantiating TomlSource raises ImportError'):
             with t.assertRaises(ImportError) as err:
