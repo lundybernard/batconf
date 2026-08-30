@@ -1,21 +1,6 @@
-import warnings
-from abc import ABCMeta, abstractmethod
-
 from typing import Sequence
 
 from .types import SourceInterfaceP, SourceListP
-
-
-class SourceInterface(SourceInterfaceP, metaclass=ABCMeta):
-    """Deprecated. Implement SourceInterfaceP structurally instead."""
-
-    @abstractmethod
-    def get(self, key: str, path: str | None = None) -> str | None:
-        pass
-
-
-_SourceInterface = SourceInterface
-del SourceInterface
 
 
 class SourceList:
@@ -59,15 +44,3 @@ class SourceList:
 
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}(sources={self._sources})'
-
-
-def __getattr__(name: str):
-    if name == 'SourceInterface':
-        warnings.warn(
-            "'SourceInterface' is deprecated and will be removed in "
-            "v0.5.0; use 'SourceInterfaceP' instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return _SourceInterface
-    raise AttributeError(f'module {__name__!r} has no attribute {name!r}')
