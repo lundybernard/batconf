@@ -1,7 +1,7 @@
 # ADR 0002 — Standardize `.get()` on `path`; deprecate the `module` keyword
 
 Date: 2026-06-03
-Status: Proposed
+Status: Accepted
 Branch: feature/get-name-resolution
 Issue: #3
 

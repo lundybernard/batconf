@@ -1,7 +1,7 @@
 # ADR 0001 — Unified FileSource API
 
 Date: 2026-05-14
-Status: Proposed
+Status: Accepted
 Branch: feature/file-sources
 Issue: #193
 

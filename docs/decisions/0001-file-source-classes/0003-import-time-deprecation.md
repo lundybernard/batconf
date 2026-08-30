@@ -1,7 +1,7 @@
 # ADR 0003 — Import-time deprecation via module `__getattr__`
 
 Date: 2026-05-14
-Status: Proposed
+Status: Accepted
 Branch: feature/file-sources
 Issue: #193
 
@@ -87,3 +87,10 @@ __getattr__ = make_deprecated_getattr(
   `TomlConfig` is no longer a module-level name. Users should migrate to
   `isinstance(tc, TomlSource)`.
 - The deprecated classes are removed in v0.5.0.
+
+Amended 2026-08-29. The project deprecates and documents a name in a patch
+release (n.n.x) and removes it in the next minor release (n.x). Removal of
+these classes stays at v0.5.0, gated on the warning, its documentation, and
+a migration-guide entry shipping in a released 0.4.x. Every warning names
+its removal version, so `make_deprecated_getattr` writes v0.5.0 into the
+message text.

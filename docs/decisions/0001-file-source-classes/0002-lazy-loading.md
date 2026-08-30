@@ -1,7 +1,7 @@
 # ADR 0002 — Lazy file loading via `_raw_data`
 
 Date: 2026-05-14
-Status: Proposed
+Status: Accepted
 Branch: feature/file-sources
 Issue: #193
 
