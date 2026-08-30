@@ -6,6 +6,7 @@ from typing import Any
 from pathlib import Path
 
 from .file import (
+    check_missing_file,
     file_config_repr,
     missing_file_handlers as _missing_file_handlers,
 )
@@ -56,6 +57,10 @@ class YamlSource(FileSourceP):
         self._file_format = file_format
         self._config_file_path = Path(file_path)
         self._config_env = config_env
+        check_missing_file(
+            file_path=self._config_file_path,
+            when_missing=missing_file_option,
+        )
 
     @cached_property
     def _raw_data(self) -> dict:

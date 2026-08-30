@@ -12,6 +12,7 @@ from ..errors import (
 from .types import ConfigFileFormats, FileSourceP
 from .file import (
     _MissingFileOption,
+    check_missing_file,
     FileLoaderP,
     missing_file_handlers as _missing_file_handlers,
     file_config_repr,
@@ -142,6 +143,10 @@ class IniSource(FileSourceP):
         self._file_format = file_format  # validated by setter
         self._config_file_path = Path(file_path)
         self._config_env = config_env
+        check_missing_file(
+            file_path=self._config_file_path,
+            when_missing=missing_file_option,
+        )
 
     def get(self, key: str, path: str | None = None) -> str | None:
         return self._get_impl(self, key=key, path=path)

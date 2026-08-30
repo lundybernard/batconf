@@ -90,10 +90,12 @@ LOAD_FLAT_DICT: dict = {'k0': 'v0', 'k1': 'v1'}
 
 class TomlSourceTests(TestCase):
     _load_toml: Mock
+    check_missing_file: Mock
 
     def setUp(t):
         patches = [
             '_load_toml',
+            'check_missing_file',
         ]
         for target in patches:
             patcher = patch(f'{SRC}.{target}', autospec=True)
@@ -115,6 +117,10 @@ class TomlSourceTests(TestCase):
         )
 
         t.assertEqual(ts._config_file_path, Path(t.file_name))
+        t.check_missing_file.assert_called_with(
+            file_path=Path(t.file_name),
+            when_missing=t.default_missing_file_option,
+        )
         # Enable multi-environment support by default
         t.assertEqual('environments', ts._file_format)
 

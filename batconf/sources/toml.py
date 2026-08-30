@@ -6,6 +6,7 @@ from pathlib import Path
 
 from .file import (
     _MissingFileOption,
+    check_missing_file,
     missing_file_handlers as _missing_file_handlers,
     file_config_repr,
 )
@@ -55,6 +56,10 @@ class TomlSource(FileSourceP):
         self._file_format = file_format
         self._config_env = config_env
         self._missing_file_option = missing_file_option
+        check_missing_file(
+            file_path=self._config_file_path,
+            when_missing=missing_file_option,
+        )
 
     def get(self, key: str, path: _OptStr = None) -> _OptStr:
         parts = path.split('.') + key.split('.') if path else key.split('.')

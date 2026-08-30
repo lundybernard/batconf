@@ -3,6 +3,7 @@ from logging import getLogger
 
 from pathlib import Path
 
+from ..errors import ConfigFileNotFound
 from .types import MissingFileOption
 
 # backwards-compatible internal alias
@@ -65,6 +66,23 @@ def load_file_error_when_missing(
     empty_fallback: Any = ...,
 ):
     return loader_fn(file_path)
+
+
+def check_missing_file(
+    file_path: Path,
+    when_missing: MissingFileOption,
+) -> None:
+    """Report a missing config file before anything reads it.
+
+    Raises
+    ------
+    ConfigFileNotFound
+        ``when_missing`` is ``'error'`` and ``file_path`` does not exist.
+    """
+    if when_missing != 'error':
+        return
+    if not file_path.exists():
+        raise ConfigFileNotFound(f'Config file not found: {file_path}')
 
 
 missing_file_handlers: dict[str, MissingFileHandlerP] = {

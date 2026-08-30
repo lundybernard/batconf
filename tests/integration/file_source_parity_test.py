@@ -1,7 +1,7 @@
 from unittest import TestCase
 from os import path
 
-from batconf import IniSource, TomlSource, YamlSource
+from batconf import ConfigFileNotFound, IniSource, TomlSource, YamlSource
 from batconf.types import FILE_FORMATS
 
 
@@ -82,6 +82,27 @@ class FileSourceSignatureParityTests(TestCase):
                     )
                     t.assertIsNone(src.get('missing.key'))
                     t.assertIsNone(src.get('key', path='missing.path'))
+
+
+class FileSourceMissingFileParityTests(TestCase):
+    """Every file source reports a missing file the same way."""
+
+    def setUp(t) -> None:
+        t.missing = 'sir.not.appearing.in.this.film'
+
+    def test_error_option_raises_at_construction(t) -> None:
+        for file_format in FILE_FORMATS:
+            for source_class in _ALL_SOURCES:
+                with t.subTest(
+                    source=source_class.__name__,
+                    file_format=file_format,
+                ):
+                    with t.assertRaises(ConfigFileNotFound):
+                        source_class(
+                            file_path=t.missing,
+                            file_format=file_format,
+                            missing_file_option='error',
+                        )
 
 
 class FileSourceValueParityTests(TestCase):

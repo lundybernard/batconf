@@ -3,6 +3,8 @@ from unittest.mock import patch, create_autospec, Mock, sentinel
 
 from ..file import (
     # missing file handlers
+    check_missing_file,
+    ConfigFileNotFound,
     MissingFileHandlerP,
     load_file_warn_when_missing,
     load_file_ignore_when_missing,
@@ -110,6 +112,48 @@ class FileLoaderFunctionTests(TestCase):
                     loader_fn=t.loader_fn,
                     file_path=t.file_path,
                 )
+
+
+class CheckMissingFileTests(TestCase):
+    def setUp(t):
+        t.file_path = create_autospec(Path, instance=True)
+
+    def test_check_missing_file(t):
+        with t.subTest('error option, file is missing'):
+            t.file_path.exists.return_value = False
+
+            with t.assertRaises(ConfigFileNotFound) as err:
+                check_missing_file(
+                    file_path=t.file_path,
+                    when_missing='error',
+                )
+            t.assertEqual(
+                str(err.exception),
+                f'Config file not found: {t.file_path}',
+            )
+
+        with t.subTest('error option, file exists'):
+            t.file_path.exists.return_value = True
+
+            t.assertIsNone(
+                check_missing_file(
+                    file_path=t.file_path,
+                    when_missing='error',
+                )
+            )
+
+        for option in ('warn', 'ignore'):
+            with t.subTest(f'{option} option: the file is not checked'):
+                t.file_path.exists.reset_mock()
+                t.file_path.exists.return_value = False
+
+                t.assertIsNone(
+                    check_missing_file(
+                        file_path=t.file_path,
+                        when_missing=option,
+                    )
+                )
+                t.file_path.exists.assert_not_called()
 
 
 class MissingFileHandlersTests(TestCase):

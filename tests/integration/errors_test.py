@@ -94,18 +94,12 @@ class FileSourceErrorsTests(TestCase):
 
         with t.subTest('raises ConfigFileNotFound'):
             with t.assertRaises(ConfigFileNotFound):
-                IniSource(file_path=missing, missing_file_option='error').get(
-                    'doc'
-                )
+                IniSource(file_path=missing, missing_file_option='error')
 
         with t.subTest('a BatconfError'):
             with t.assertRaises(BatconfError):
-                IniSource(file_path=missing, missing_file_option='error').get(
-                    'doc'
-                )
+                IniSource(file_path=missing, missing_file_option='error')
 
         with t.subTest('still a FileNotFoundError'):
             with t.assertRaises(FileNotFoundError):
-                IniSource(file_path=missing, missing_file_option='error').get(
-                    'doc'
-                )
+                IniSource(file_path=missing, missing_file_option='error')

@@ -89,10 +89,12 @@ CONFIG_PARSER_ENVS.read_string(INI_ENV_STR)
 
 class IniSourceTests(TestCase):
     _load_ini: Mock
+    check_missing_file: Mock
 
     def setUp(t):
         patches = [
             '_load_ini',
+            'check_missing_file',
         ]
         for target in patches:
             patcher = patch(f'{SRC}.{target}', autospec=True)
@@ -121,6 +123,10 @@ class IniSourceTests(TestCase):
         t.assertEqual(ins._missing_file_option, 'warn')
         t.assertEqual(ins._config_file_path, Path(t.config_file_str))
         t._load_ini.assert_not_called()  # lazy: file not read on construction
+        t.check_missing_file.assert_called_with(
+            file_path=Path(t.config_file_str),
+            when_missing='warn',
+        )
 
         # Accessing _config_env triggers lazy load
         t.assertEqual(ins._config_env, 'development')

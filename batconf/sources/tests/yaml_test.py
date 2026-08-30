@@ -63,9 +63,15 @@ EXAMPLE_ENVIRONMENTS_DICT = {
 
 
 class YamlSourceTests(TestCase):
+    check_missing_file: Mock
+
     def setUp(t):
         patcher = patch(f'{SRC}._load_yaml', autospec=True)
         t._load_yaml = patcher.start()
+        t.addCleanup(patcher.stop)
+
+        patcher = patch(f'{SRC}.check_missing_file', autospec=True)
+        t.check_missing_file = patcher.start()
         t.addCleanup(patcher.stop)
 
         t._load_yaml.return_value = EXAMPLE_ENVIRONMENTS_DICT
@@ -74,6 +80,10 @@ class YamlSourceTests(TestCase):
     def test___init__(t):
         t._load_yaml.assert_not_called()  # lazy: file not read on construction
         t.assertEqual(t.ys._config_file_path, _PathClass('test.yaml'))
+        t.check_missing_file.assert_called_with(
+            file_path=_PathClass('test.yaml'),
+            when_missing='warn',
+        )
         t.assertEqual(t.ys._file_format, 'environments')
         t.assertEqual(t.ys._missing_file_option, 'warn')
 
