@@ -14,7 +14,7 @@ BatConf 1.x
 .. _v1.0.0:
 
 ------------------
-1.0.0 - TBD
+1.0.0 - 2026-08-30
 ------------------
 
 The API freeze. BatConf follows Semantic Versioning from here, under a
