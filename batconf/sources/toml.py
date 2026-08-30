@@ -65,7 +65,6 @@ class TomlSource(FileSourceP):
             for k in parts:
                 conf = conf.get(k)
         except AttributeError:
-            log.warning(f'Config path {".".join(parts)} does not exist')
             return None
         return None if isinstance(conf, dict) else conf
 

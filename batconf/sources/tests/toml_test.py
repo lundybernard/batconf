@@ -223,16 +223,9 @@ class TomlSourceTests(TestCase):
         with t.subTest('missing item'):
             t.assertEqual(ts.get('_sir_not_appearing_in_this_film'), None)
 
-        with t.subTest(
-            'navigating past a leaf value returns None and logs warning'
-        ):
-            with t.assertLogs(SRC, level='WARNING') as log:
-                result = ts.get('nonexistent', path='bat.key')
-            t.assertIsNone(result)
-            t.assertEqual(
-                log.records[0].getMessage(),
-                'Config path bat.key.nonexistent does not exist',
-            )
+        with t.subTest('navigating past a leaf value returns None silently'):
+            with t.assertNoLogs(SRC, 'WARNING'):
+                t.assertIsNone(ts.get('nonexistent', path='bat.key'))
 
     def test_get__from_sections(t):
         ts = TomlSource(file_path=t.file_name, file_format='sections')

@@ -154,14 +154,9 @@ class YamlSourceTests(TestCase):
         with t.subTest('dict node returns None'):
             t.assertIsNone(t.ys.get('bat'))
 
-        with t.subTest('navigating past a leaf value returns None and logs warning'):
-            with t.assertLogs(SRC, level='WARNING') as log:
-                result = t.ys.get('bat.key.sub')
-            t.assertIsNone(result)
-            t.assertEqual(
-                log.records[0].getMessage(),
-                'Config path bat.key.sub does not exist',
-            )
+        with t.subTest('navigating past a leaf value returns None silently'):
+            with t.assertNoLogs(SRC, 'WARNING'):
+                t.assertIsNone(t.ys.get('bat.key.sub'))
 
     def test_keys(t):
         t.assertEqual(

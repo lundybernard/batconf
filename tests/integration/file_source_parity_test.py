@@ -138,10 +138,10 @@ class FileSourceValueParityTests(TestCase):
                 t.assertIsNone(src.get('missing_key'))
 
     def test_path_past_terminal_string_returns_None(t):
-        """Traversing past a leaf string value returns None, not an error.
+        """Traversing past a leaf string value returns None, silently.
 
-        Dict-traversal sources (TOML, YAML) also emit a WARNING.
-        IniSource handles this natively via ConfigParser fallback — no warning.
+        A key miss is ordinary: a later source in the list may hold the
+        value. Only a missing config file warns.
         """
         cases = [
             ('environments', t.env_sources),
@@ -155,13 +155,5 @@ class FileSourceValueParityTests(TestCase):
             key, path = keys[fmt]
             for src in sources:
                 with t.subTest(fmt=fmt, source=type(src).__name__):
-                    if isinstance(src, IniSource):
+                    with t.assertNoLogs(type(src).__module__, 'WARNING'):
                         t.assertIsNone(src.get(key, path=path))
-                    else:
-                        with t.assertLogs(type(src).__module__, level='WARNING') as cm:
-                            result = src.get(key, path=path)
-                        t.assertIsNone(result)
-                        t.assertEqual(
-                            cm.records[0].getMessage(),
-                            f'Config path {path}.{key} does not exist',
-                        )

@@ -3,8 +3,6 @@ from __future__ import annotations
 from functools import cached_property
 from typing import Any
 
-from logging import getLogger
-
 from pathlib import Path
 
 from .file import (
@@ -17,8 +15,6 @@ from .types import (
     MissingFileOption as _MissingFileOption,
 )
 
-
-log = getLogger(__name__)
 
 EmptyYamlDict: dict[None, None] = dict()
 
@@ -105,7 +101,6 @@ class YamlSource(FileSourceP):
             for k in parts:
                 conf = conf.get(k)
         except AttributeError:
-            log.warning(f'Config path {".".join(parts)} does not exist')
             return None
         return None if isinstance(conf, dict) else conf
 
