@@ -154,7 +154,7 @@ Most projects can copy this example with minimal modification.
         opt: str = 'default opt'
 
     def get_config(
-        config_class: ConfigP = ConfigSchema,  # type: ignore
+        config_class: ConfigP = ConfigSchema,
         cfg_path: str = 'yourmodule',
         cli_args: Namespace | None = None,
         config_file: SourceInterfaceP | None = None,
