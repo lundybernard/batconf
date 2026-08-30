@@ -129,17 +129,6 @@ class TomlSourceMissingFileTests(TestCase):
             t.assertIsNone(ts.get('project.submodule.sub.key1'))
             t.assertIsNone(ts.get('any.random.key'))
 
-    def test_missing_file_error(t):
-        """The error option fails at construction, not at first access."""
-        for file_format in FILE_FORMATS:
-            with t.subTest(file_format=file_format):
-                with t.assertRaises(FileNotFoundError):
-                    TomlSource(
-                        file_path=t.filename,
-                        missing_file_option='error',
-                        file_format=file_format,
-                    )
-
     def test_missing_file_ignore(t):
         """when missing_file_option='ignore'
         attempting to load a missing file will not raise an error

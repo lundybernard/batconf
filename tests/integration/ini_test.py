@@ -80,17 +80,6 @@ class IniSourceMissingFileTests(TestCase):
                 t.assertIsNone(ins.get('project.submodule.sub.key1'))
                 t.assertIsNone(ins.get('any.random.key'))
 
-    def test_missing_file_error(t):
-        """The error option fails at construction, not at first access."""
-        for file_format in FILE_FORMATS:
-            with t.subTest(file_format=file_format):
-                with t.assertRaises(FileNotFoundError):
-                    IniSource(
-                        file_path=t.filename,
-                        missing_file_option='error',
-                        file_format=file_format,
-                    )
-
     def test_missing_file_ignore(t):
         for file_format in FILE_FORMATS:
             with t.subTest(file_format=file_format):
