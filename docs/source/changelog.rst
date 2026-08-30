@@ -14,7 +14,7 @@ BatConf 0.x
 .. _v0.5.0:
 
 ------------------
-0.5.0 - TBD
+0.5.0 - 2026-08-29
 ------------------
 
 The removal release for everything deprecated in 0.4.x. Every name and
