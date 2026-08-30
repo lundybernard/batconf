@@ -139,6 +139,7 @@ Indices and tables
    :caption: Reference
    :maxdepth: 2
 
+   stability
    changelog
    migration
    reference/modules
