@@ -28,3 +28,4 @@ Statuses: `Proposed → Accepted → Deprecated / Superseded by NNNN`
 | [0014](0014-get-path-parameter.md)           | Standardize `.get()` on `path`; deprecate `module` | Accepted |
 | [0015](0015-retire-source-interface-abc.md)  | Retire the `SourceInterface` ABC                   | Accepted |
 | [0016](0016-root-path-and-namespaces/)       | Root path and namespaces (components 0017–0021)    | Accepted |
+| [0022](0022-error-hierarchy.md)              | A batconf error hierarchy                          | Accepted |
