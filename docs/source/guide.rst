@@ -103,68 +103,236 @@ test instead of using the shared ``CFG``. This creates a fresh
             t.assertEqual(cfg.server.host, 'localhost')
 
 
-Custom Configuration Sources
------------------------------
+Writing a custom configuration source
+-------------------------------------
 
-Any object with a ``get(key, path)`` method satisfies
-:py:class:`SourceInterfaceP <batconf.sources.types.SourceInterfaceP>`,
-so you can pull config values from any backend — a secrets manager,
-a database, a remote API — without changing the rest of your config setup.
+A configuration source is any object with a ``get`` method. Nothing
+else is required — no base class, no registration, no metadata — so a
+source can read from a secrets manager, a database, a remote API, or a
+file format BatConf does not ship.
 
-Using the Protocol (structural subtyping)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The simplest approach: implement ``get`` on any class, no base class required.
+
+The contract
+~~~~~~~~~~~~
+:class:`~batconf.source.SourceList` calls every source the same way:
 
 .. code-block:: python
 
-    class VaultSource:
-        def __init__(self, client):
-            self._client = client
+    def get(self, key: str, path: str | None = None) -> str | None: ...
 
-        def get(self, key: str, path: str | None = None) -> str | None:
-            full_key = f'{path}.{key}' if path else key
-            return self._client.read(full_key)
+* ``key`` is the option name.
+* ``path`` is the dotted path of the config node holding it, for example
+  ``yourproject.server``. It is passed **positionally**, so name your
+  second parameter freely but keep it second.
+* Return the value as a ``str``, or ``None`` when the source has no
+  value. :class:`~batconf.source.SourceList` walks its sources in order
+  and stops at the first truthy return, so ``None`` means "ask the next
+  source".
 
-Declaring the Protocol explicitly
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Subclass
+That is the whole interface, and it is what
 :py:class:`SourceInterfaceP <batconf.sources.types.SourceInterfaceP>`
-when you want a type checker to flag an incomplete implementation. The
-built-in sources are written this way. Behaviour is unchanged — the
-Protocol is satisfied structurally either way.
+declares.
+
+
+Step 1: the smallest source
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+A source backed by a flat dict of fully-qualified keys is enough to
+start. Joining ``path`` and ``key`` gives the lookup key:
 
 .. code-block:: python
 
-    from batconf.sources.types import SourceInterfaceP
+    class DictSource:
+        """Read config values from a flat dict of dotted keys."""
 
-    class VaultSource(SourceInterfaceP):
-        def __init__(self, client):
-            self._client = client
+        def __init__(self, values: dict[str, str]) -> None:
+            self._values = values
 
         def get(self, key: str, path: str | None = None) -> str | None:
-            full_key = f'{path}.{key}' if path else key
-            return self._client.read(full_key)
+            return self._values.get(f'{path}.{key}' if path else key)
 
-Registering a custom source
+Use it like any built-in source:
+
+.. code-block:: python
+
+    >>> src = DictSource({'yourproject.server.host': 'localhost'})
+    >>> src.get('host', path='yourproject.server')
+    'localhost'
+    >>> src.get('port', path='yourproject.server')  # returns None
+
+Handle a missing ``path``. A :class:`~batconf.manager.Configuration`
+always passes one, but application code and tests may call ``get`` with
+a key alone.
+
+
+Step 2: a file-backed source
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Pass your custom source to :class:`~batconf.source.SourceList` like any
-built-in source, or add it at runtime with :func:`~batconf.lib.insert_source`:
+Most real sources hold nested data and need to load it. This JSON
+source walks the dotted path through the parsed document:
+
+.. code-block:: python
+
+    from functools import cached_property
+    from json import loads
+    from pathlib import Path
+    from typing import Any
+
+    from batconf.errors import ConfigFileNotFound
+
+
+    class JsonSource:
+        """Read config values from a nested JSON file."""
+
+        def __init__(self, file_path: str) -> None:
+            self._file_path = Path(file_path)
+            if not self._file_path.exists():
+                raise ConfigFileNotFound(
+                    f'Config file not found: {self._file_path}'
+                )
+
+        @cached_property
+        def _data(self) -> dict:
+            return loads(self._file_path.read_text())
+
+        def get(self, key: str, path: str | None = None) -> str | None:
+            parts = f'{path}.{key}'.split('.') if path else key.split('.')
+            node: Any = self._data
+            for part in parts:
+                if not isinstance(node, dict):
+                    return None
+                node = node.get(part)
+            return node if isinstance(node, str) else None
+
+Three habits worth copying from the built-in sources:
+
+* **Validate the path in the constructor.** Reporting a bad path while
+  the caller still holds it beats failing at the first read, from
+  somewhere else entirely.
+* **Load lazily, once.** ``_data`` is a
+  :class:`~functools.cached_property`, so the file is read on the first
+  lookup and never again. A source that is never queried never touches
+  the disk.
+* **Return only strings.** The final ``isinstance`` check turns a
+  number, a boolean or a nested object into ``None``, so a key that
+  resolves to a branch rather than a leaf falls through to the next
+  source instead of returning a ``dict``.
+
+Given ``conf.json``:
+
+.. code-block:: json
+
+    {"yourproject": {"server": {"host": "json-host"}}}
+
+.. code-block:: python
+
+    >>> src = JsonSource('conf.json')
+    >>> src.get('host', path='yourproject.server')
+    'json-host'
+
+
+Step 3: register the source
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Pass it to :class:`~batconf.source.SourceList` alongside the built-in
+sources. Position decides priority — earlier wins:
+
+.. code-block:: python
+    :caption: yourmodule/conf.py
+
+    source_list = SourceList([
+        NamespaceSource(cli_args) if cli_args else None,
+        EnvSource(),
+        JsonSource('conf.json'),
+        IniSource(CONFIG_FILE_NAME),
+    ])
+
+``None`` entries are dropped, so a source can be included conditionally
+on one line.
+
+To add one after the fact — for example once CLI arguments are parsed —
+use :func:`~batconf.lib.insert_source`:
 
 .. code-block:: python
 
     from batconf import insert_source
     from yourmodule.conf import CFG
 
-    insert_source(cfg=CFG, source=VaultSource(vault_client))
+    insert_source(cfg=CFG, source=JsonSource('conf.json'))
 
-The source is inserted at index 0 by default, giving it the highest
-priority. Pass ``index=`` to place it elsewhere in the lookup order.
+The source lands at index 0, the highest priority. Pass ``index=`` to
+place it elsewhere in the lookup order.
 
-Important constraints
-~~~~~~~~~~~~~~~~~~~~~
-* ``get`` must return a ``str`` or ``None`` — never a non-string value.
-  Some sources (e.g. environment variables) can only store strings, and
-  BatConf treats any falsey return value (``False``, ``None``, ``""``)
-  as "not found".
-* Keep ``get`` fast and side-effect-free — it is called on every config
-  lookup, not cached by BatConf itself.
+
+Declaring the Protocol
+~~~~~~~~~~~~~~~~~~~~~~
+Subclass
+:py:class:`SourceInterfaceP <batconf.sources.types.SourceInterfaceP>`
+to have a type checker flag an incomplete implementation. The built-in
+sources are written this way. Runtime behaviour is identical — the
+Protocol is satisfied structurally either way:
+
+.. code-block:: python
+
+    from batconf.sources.types import SourceInterfaceP
+
+    class JsonSource(SourceInterfaceP):
+        ...
+
+:py:class:`SourceInterfaceP <batconf.sources.types.SourceInterfaceP>` is
+runtime-checkable, so ``isinstance(src, SourceInterfaceP)`` also works.
+
+
+Reporting failures
+~~~~~~~~~~~~~~~~~~
+Raise a subclass of :class:`~batconf.errors.BatconfError` when the
+source cannot do its job, so a caller can catch every configuration
+failure with one clause. Reuse an existing error where it fits — the
+JSON source above raises
+:class:`~batconf.errors.ConfigFileNotFound` — or derive your own:
+
+.. code-block:: python
+
+    from batconf.errors import BatconfError
+
+    class VaultUnreachable(BatconfError, ConnectionError):
+        """The secrets backend did not answer."""
+
+Keeping the standard exception as a second base is what the built-in
+errors do, and it lets callers who catch ``ConnectionError`` keep
+working.
+
+A key that is simply absent is not a failure. Return ``None`` and let
+the next source answer.
+
+
+Testing a custom source
+~~~~~~~~~~~~~~~~~~~~~~~
+Test ``get`` directly — it takes two strings and returns one:
+
+.. code-block:: python
+
+    class JsonSourceTests(TestCase):
+        def test_get(t):
+            src = JsonSource('tests/data/conf.json')
+
+            with t.subTest('resolves a path and key'):
+                t.assertEqual(src.get('host', path='app.server'), 'localhost')
+
+            with t.subTest('a missing key returns None'):
+                t.assertIsNone(src.get('nope', path='app.server'))
+
+            with t.subTest('a branch is not a value'):
+                t.assertIsNone(src.get('server', path='app'))
+
+Then check it composes, by putting it in a
+:class:`~batconf.source.SourceList` behind a source that has no value
+for the key and confirming yours answers.
+
+
+Rules to follow
+~~~~~~~~~~~~~~~
+* ``get`` returns a ``str`` or ``None``, never another type. BatConf
+  treats any falsey return (``None``, ``''``, ``False``, ``0``) as
+  "not found" and moves to the next source.
+* ``get`` runs on every lookup. BatConf caches nothing, so cache inside
+  the source if the backend is slow.
+* Keep ``get`` free of side effects. It is called during attribute
+  access, including while rendering a configuration for display.
