@@ -43,16 +43,62 @@ Three consequences follow:
 EnvSource
 ~~~~~~~~~
 :class:`~batconf.sources.env.EnvSource` builds a variable name from the
-same pair: it joins the path and the key, replaces each ``.`` with
-``_``, and upper-cases the result.
+same pair, led by the ``prefix`` you declare: it joins the prefix, the
+path and the key, replaces each ``.`` with ``_``, and upper-cases the
+result. With ``EnvSource(prefix='yourproject')``:
 
-* path ``project.database``, key ``host`` → ``PROJECT_DATABASE_HOST``
-* path ``project``, key ``timeout`` → ``PROJECT_TIMEOUT``
-* no path, key ``host`` → ``BAT_HOST``
+* path ``database``, key ``host`` → ``YOURPROJECT_DATABASE_HOST``
+* path ``server``, key ``timeout`` → ``YOURPROJECT_SERVER_TIMEOUT``
+* no path, key ``host`` → ``YOURPROJECT_HOST``
 
-The ``BAT`` prefix stands in for a missing path.
-:class:`~batconf.manager.Configuration` always supplies one, so the
-prefix appears only when the source is queried directly.
+Declare a prefix. The process environment is shared by every program the
+shell starts, and the prefix is the one namespace in it that your
+project owns.
+
+.. warning::
+
+   ``BATCONF_`` is reserved for BatConf's own variables. Do not choose
+   it as your prefix.
+
+Without a prefix, a key at the root would resolve to a bare uppercase
+name — ``PATH``, ``HOME``, ``USER``. Those are ambient process
+variables: the value comes from the shell that started the program, it
+outranks your config file, and nothing in the result tells it apart from
+a value you set. ``EnvSource`` refuses that lookup and returns ``None``,
+so the schema default applies instead:
+
+.. code-block:: python
+
+    >>> import os
+    >>> os.environ['SERVER_HOST'] = 'localhost'
+    >>> EnvSource().get('path')  # returns None: a bare name is refused
+    >>> EnvSource().get('host', path='server')
+    'localhost'
+
+``EnvSource(raw=True)`` lifts the guard. It is raw environment access:
+schema-declared fields resolve against ambient variables, ``cfg.path``
+reads ``$PATH``, and the collision risk is yours to accept.
+
+
+The path is the mount point
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``path`` names where a schema hangs in every source at once. An absent
+or empty path mounts the schema at the root, and each
+sub-configuration mounts under its field name:
+
+.. code-block:: python
+
+    Configuration(source_list, YourSchema)                 # at the root
+    Configuration(source_list, YourSchema, path='yourproject')
+
+A schema resolves the same names either way: it mounts at the root when
+it stands alone, and under a field name when a larger schema holds it.
+Several top-level schemas therefore hang under one configuration — the
+parent is a :class:`~batconf.manager.Configuration` with no path.
+
+The root belongs to no project. In a file or a process environment that
+two projects share, each one declares its own name; see
+:ref:`sharing-a-file`.
 
 
 Configuration file contract
@@ -128,9 +174,27 @@ itself. Use it when one file serves one environment.
     host = localhost
 
 There is no ``batconf`` key in this layout, and ``config_env`` is
-ignored. An INI file needs the whole dotted path as a literal section
-name, so a key at the root of the file — outside every section — never
-resolves.
+ignored. One ``sections`` file holds several projects, each under its
+own top-level name, for one environment.
+
+An INI file needs the whole dotted path as a literal section name, and
+``configparser`` has no unnamed section. A key at the root of a schema
+therefore lives in the reserved ``[/ROOT/]`` section:
+
+.. code-block:: ini
+    :caption: config.ini (file_format='sections')
+
+    [/ROOT/]
+    name = demo
+
+    [server]
+    host = localhost
+
+``[/ROOT/]`` is not recommended; it exists so that no schema becomes
+unreadable purely because the file is INI. A project with its own INI
+file mounts under its own name instead. The name is case-sensitive, so
+``[/root/]`` does not resolve. TOML and YAML hold root keys natively and
+have no reserved section.
 
 
 ``flat``
@@ -146,15 +210,164 @@ No sections at all: every key lives at the root of the file.
 INI keys are taken literally, dots included, so ``not.really.nested``
 is one key rather than a path.
 
+A flat file is a root-level file: every key sits at the root, so mount
+the schema at the root and all three sources agree.
+
 .. warning::
 
-   The three sources disagree about ``flat`` files when a ``path`` is
-   in play. ``IniSource`` ignores the path and reads the key from the
-   root, so it works behind a :class:`~batconf.manager.Configuration`.
+   Give a flat file a ``path`` and the three sources disagree.
+   ``IniSource`` ignores the path and still reads from the root.
    ``TomlSource`` and ``YamlSource`` prepend the path before walking,
-   find nothing at the root, and return ``None``. Use ``IniSource`` for
-   a flat file read through a ``Configuration``; a flat TOML or YAML
-   file resolves only when the source is queried directly.
+   find nothing, and return ``None``. Read a flat file through a
+   :class:`~batconf.manager.Configuration` with no path.
+
+
+Selecting an environment
+------------------------
+
+``BATCONF_ENVIRONMENT`` is the canonical shell-level environment
+selector: one variable that names the environment for every tool started
+in that shell. It is canonical, not enforced — a project may select its
+environment another way.
+
+No source reads it. A source reads one medium and answers for one key;
+which environment the program runs in is not a fact about a medium. The
+caller decides once, at construction, and passes ``config_env=``.
+
+Precedence is fixed:
+
+1. an explicit ``config_env=``,
+2. a command-line argument, read by a bootstrap configuration,
+3. ``BATCONF_ENVIRONMENT``, read by the same bootstrap,
+4. the file's ``default_env``.
+
+
+The two-stage bootstrap
+~~~~~~~~~~~~~~~~~~~~~~~
+Which environment to select, and which config file to read, must be
+known before the configuration that would describe them can be built.
+Build a small one first. A bootstrap
+:class:`~batconf.manager.Configuration` mounts at the root over the
+command-line arguments and an ``EnvSource`` in the reserved namespace,
+and carries the environment name, the config file, and any other
+pre-configuration value:
+
+.. code-block:: python
+
+    from argparse import Namespace
+    from dataclasses import dataclass
+
+    from batconf import (
+        Configuration,
+        EnvSource,
+        IniSource,
+        NamespaceSource,
+        SourceList,
+    )
+
+
+    @dataclass
+    class BootSchema:
+        environment: str
+        config_file: str = 'config.ini'
+
+
+    def get_config(
+        cli_args: Namespace | None = None,
+        config_env: str | None = None,
+    ) -> Configuration:
+        # stage 1: what must be known before the real configuration
+        boot = Configuration(
+            source_list=SourceList([
+                NamespaceSource(cli_args) if cli_args else None,
+                EnvSource(prefix='batconf'),
+            ]),
+            config_class=BootSchema,
+        )
+
+        # stage 2: the real configuration, from the bootstrap values
+        config_file = IniSource(
+            file_path=boot.config_file,
+            # None falls through to the file's default_env
+            config_env=config_env or getattr(boot, 'environment', None),
+        )
+        return Configuration(
+            source_list=SourceList([
+                NamespaceSource(cli_args) if cli_args else None,
+                EnvSource(prefix='yourproject'),
+                config_file,
+            ]),
+            config_class=YourSchema,
+            path='yourproject',
+        )
+
+:class:`~batconf.source.SourceList` drops ``None`` entries, so a run
+with no command line reads the environment alone.
+
+Combining the two sources is what earns the bootstrap its schema. One
+source reads one variable and needs no schema; two need an order and a
+name for each value, which is what ``BootSchema`` declares.
+
+``config_file`` belongs there because the file itself is worth changing
+at runtime. ``--config-file config-failsafe.ini``, or
+``BATCONF_CONFIG_FILE``, swaps the whole file for one run — the answer
+when a different environment is not the one you want.
+
+The bootstrap is an ordinary configuration, so the pattern needs no new
+machinery. It mounts at the root, so it needs no namespace of its own,
+and each argument takes a bare field name as its ``dest``:
+``--config-env`` stores ``environment``, ``--config-file`` stores
+``config_file``. Reading the reserved ``BATCONF_`` namespace here is
+its one sanctioned use.
+
+``getattr`` supplies the fallthrough: a value the bootstrap cannot
+resolve raises
+:class:`~batconf.errors.ConfigValueNotFound`, which is an
+``AttributeError``, so ``None`` reaches the source and the file's
+``default_env`` decides.
+
+
+.. _sharing-a-file:
+
+Sharing a file or a process environment
+---------------------------------------
+
+The environment dimension exists only where the medium expresses it.
+BatConf documents the contract and adds no layer of its own.
+
+* Only ``environments`` holds several environments in one file.
+  ``flat`` and ``sections`` carry no environment and ignore
+  ``config_env``, silently.
+* ``sections`` holds several projects in one file, for one environment.
+* ``flat`` is single-tenant: one key space, so two projects cannot both
+  declare ``host``.
+* Environment variables carry no environment. The process environment
+  *is* the environment.
+
+In a shared file or a shared process environment, every project declares
+its own name — its ``path``, and its ``EnvSource`` prefix — on every
+source it builds. The file root and the process-environment root belong
+to no one, so a project that leaves its name unset claims the shared
+root, and so does every other project that does the same. BatConf cannot
+detect this: it cannot know that a file is shared.
+
+Two further consequences of a shared file:
+
+* Every project reading it must agree on one ``file_format``. An
+  ``environments`` file read as ``sections`` returns nothing.
+* One file holds one ``default_env``, and the file owns it. A project
+  that wants a different environment passes ``config_env=``.
+
+.. warning::
+
+   An exported variable outlives every edit to the file. It keeps
+   overriding the file in every environment until it is unset. This is
+   the sharpest hazard in the shared case.
+
+.. warning::
+
+   In INI, ``[DEFAULT]`` keys inherit into every declared section, so
+   one project can leak a key into every other project's sections.
 
 
 Testing
@@ -261,9 +474,9 @@ Use it like any built-in source:
     'localhost'
     >>> src.get('port', path='yourproject.server')  # returns None
 
-Handle a missing ``path``. A :class:`~batconf.manager.Configuration`
-always passes one, but application code and tests may call ``get`` with
-a key alone.
+Handle an absent ``path``. A schema mounted at the root passes the empty
+string, and application code and tests may call ``get`` with a key
+alone. Both mean the root of your medium.
 
 
 Step 2: a file-backed source
