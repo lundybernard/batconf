@@ -16,11 +16,11 @@ behaviour of the sources as they ship in 0.4.1.
 
 | #    | Title                                                                                      | Status   |
 | ---- | ------------------------------------------------------------------------------------------ | -------- |
-| 0017 | [An absent path mounts the schema at the root](0017-absent-path-mounts-at-root.md)          | Proposed |
-| 0018 | [A caller-declared environment-variable prefix](0018-env-source-prefix.md)                  | Proposed |
-| 0019 | [The INI root section](0019-ini-root-section.md)                                            | Proposed |
-| 0020 | [Environment selection layers above the sources](0020-environment-selection-bootstrap.md)   | Proposed |
-| 0021 | [What a format and the process environment can express](0021-format-environment-contract.md) | Proposed |
+| 0017 | [An absent path mounts the schema at the root](0017-absent-path-mounts-at-root.md)          | Accepted |
+| 0018 | [A caller-declared environment-variable prefix](0018-env-source-prefix.md)                  | Accepted |
+| 0019 | [The INI root section](0019-ini-root-section.md)                                            | Accepted |
+| 0020 | [Environment selection layers above the sources](0020-environment-selection-bootstrap.md)   | Accepted |
+| 0021 | [What a format and the process environment can express](0021-format-environment-contract.md) | Accepted |
 
 ## Release schedule
 
