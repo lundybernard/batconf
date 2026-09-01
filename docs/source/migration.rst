@@ -333,11 +333,15 @@ was: path ``yourproject.conf.server`` and key ``host`` read
    path ``server`` and key ``host`` move from ``SERVER_HOST`` to
    ``BAT_SERVER_HOST``.
 
-In v0.4.x, ``prefix=None`` reads a bare uppercase name at the root, so a
-schema field named ``path`` or ``user`` resolves against an ambient
-process variable. ADR 0018 proposes to refuse bare names at the root in
-v0.5.0. Declare a prefix to keep every lookup inside a namespace under
-either rule.
+Without a prefix, a lookup at the root returns ``None`` rather than
+reading a bare uppercase name, so a schema field named ``path`` or
+``user`` cannot resolve against an ambient process variable.
+``raw=True`` opts back in:
+
+.. code-block:: python
+
+    EnvSource().get('path')          # None
+    EnvSource(raw=True).get('path')  # reads $PATH
 
 ``BATCONF_`` is reserved for BatConf's own variables. Do not choose it
 as your prefix.
