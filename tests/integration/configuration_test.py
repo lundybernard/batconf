@@ -223,6 +223,30 @@ class FreeFormConfigTreeTests(TestCase):
     @patch.dict(
         'batconf.sources.env.os.environ',
         {
+            'MYTOOL_VALUE': 'MYTOOL root config value',
+            'MYTOOL_L1A_VALUE': 'MYTOOL level 1 config A value',
+            'MYTOOL_L1B_VALUE': 'MYTOOL level 1 config B value',
+        },
+    )
+    def test_an_absent_path_mounts_the_schema_at_the_root(t) -> None:
+        """REF: github #152, #150"""
+        cfg = Configuration(
+            source_list=SourceList([EnvSource(prefix='mytool')]),
+            config_class=RootConfigSchema,
+        )
+
+        t.assertEqual('', cfg._path)
+        t.assertEqual(cfg.value, 'MYTOOL root config value')
+
+        # Several top-level schemas hang under one root configuration,
+        # each mounted under its own field name
+        t.assertEqual(cfg.l1a._path, 'l1a')
+        t.assertEqual(cfg.l1a.value, 'MYTOOL level 1 config A value')
+        t.assertEqual(cfg.l1b.value, 'MYTOOL level 1 config B value')
+
+    @patch.dict(
+        'batconf.sources.env.os.environ',
+        {
             'MYTOOL_ROOT_VALUE': 'MYTOOL root config value',
             'MYTOOL_ROOT_L1A_VALUE': 'MYTOOL level 1 config A value',
         },

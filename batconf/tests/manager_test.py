@@ -1,12 +1,11 @@
 from unittest import TestCase
-from unittest.mock import Mock, patch
+from unittest.mock import create_autospec
 
 from dataclasses import dataclass
 
 from ..manager import (
     Configuration,
     _configuration_repr,
-    _MODULE_PATH_DEPRECATION,
     SourceList,
 )
 
@@ -215,50 +214,56 @@ class ConfigurationTests(TestCase):
             repr_str_list,
         )
 
-    def test__module(t):
-        """the _module attribute is the __module__ of the config_class"""
-        t.assertEqual(t.conf._module, t.GlobalConfig.__module__)
 
-
-class ModulePathDeprecationTests(TestCase):
-    """An undeclared path falls back to the schema module name."""
-
-    warnings: Mock
+class RootMountTests(TestCase):
+    """A Configuration with no path mounts its schema at the root."""
 
     def setUp(t) -> None:
-        patcher = patch(f'{SRC}.warnings', autospec=True)
-        t.warnings = patcher.start()
-        t.addCleanup(patcher.stop)
+        @dataclass
+        class SubSchema:
+            arg_1: str = 'sub default'
 
         @dataclass
-        class ConfigSchema:
-            arg_1: str = 'a default'
+        class RootSchema:
+            sub: SubSchema
+            no_default: str
+            arg_1: str = 'root default'
 
-        t.ConfigSchema = ConfigSchema
-        t.conf = Configuration(SourceList([]), ConfigSchema)  # path undeclared
+        t.RootSchema = RootSchema
+        t.sl = create_autospec(SourceList, instance=True)
+        t.conf = Configuration(t.sl, RootSchema)  # path undeclared
+        t.mod = f'{__name__}.RootMountTests.setUp.<locals>'
 
-    def test__path(t):
-        with t.subTest('falls back to the schema module, and warns'):
-            t.assertEqual(__name__, t.conf._path)
-            t.warnings.warn.assert_called_once_with(
-                _MODULE_PATH_DEPRECATION,
-                DeprecationWarning,
-                stacklevel=4,
+    def test__path(t) -> None:
+        with t.subTest('an absent path is the root'):
+            t.assertEqual('', t.conf._path)
+
+        with t.subTest('an empty path is the root'):
+            empty = Configuration(t.sl, t.RootSchema, path='')
+            t.assertEqual('', empty._path)
+
+        with t.subTest('a sub-config mounts under its field name alone'):
+            t.assertEqual('sub', t.conf.sub._path)
+
+    def test__get_config_opt(t) -> None:
+        with t.subTest('the root path reaches the sources'):
+            t.sl.get.return_value = 'a root value'
+            t.assertEqual('a root value', t.conf.arg_1)
+            t.sl.get.assert_called_once_with('arg_1', path='')
+
+        with t.subTest('the missing-value message names an unprefixed key'):
+            t.sl.get.return_value = None
+            with t.assertRaises(AttributeError) as err:
+                t.conf.no_default
+            t.assertIn(
+                ' or add no_default to your config file',
+                str(err.exception),
             )
 
-        with t.subTest('a declared path resolves without a warning'):
-            t.warnings.reset_mock()
-            declared = Configuration(
-                SourceList([]), t.ConfigSchema, path='app'
+    def test___str__(t) -> None:
+        t.sl.get.return_value = None
+        with t.subTest('the root header carries no path'):
+            t.assertEqual(
+                f"<class '{t.mod}.RootSchema'>:",
+                str(t.conf).splitlines()[0],
             )
-            t.assertEqual('app', declared._path)
-            t.warnings.warn.assert_not_called()
-
-    def test__MODULE_PATH_DEPRECATION(t):
-        t.assertEqual(
-            'the schema module name as the default config path is '
-            'deprecated and will be removed in v0.5.0; pass path= '
-            'explicitly to keep that namespace, or omit it to mount the '
-            'schema at the root.',
-            _MODULE_PATH_DEPRECATION,
-        )
