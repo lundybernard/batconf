@@ -25,6 +25,11 @@ class ConfigParserP(Protocol):
 # === IniSource Get Methods === #
 
 
+# configparser has no unnamed section, and a path built from Python
+# identifiers never produces this name.
+_ROOT_SECTION = '/ROOT/'
+
+
 class _ConfigParserSource(Protocol):
     _config_env: str | None
     _data: ConfigParser
@@ -64,7 +69,7 @@ def _get_sections(
     try:
         section, key = key.rsplit(sep='.', maxsplit=1)
     except ValueError:
-        section = ''
+        section = _ROOT_SECTION
 
     return self._data.get(section=section, option=key, fallback=None)
 

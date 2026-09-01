@@ -39,8 +39,8 @@ class IniSourceIntegrationTests(TestCase):
             ins.get('sec0.sub0.value0'),
             'sections.config.ini :: sec0.sub0 :: value0',
         )
-        # Section files require a section be specified for every get request
-        t.assertIsNone(ins.get('a_root_value'))
+        # a key at the root of the file lives in the [/ROOT/] section
+        t.assertEqual('is a valid key', ins.get('a_root_value'))
         # getting a section returns None
         t.assertIsNone(ins.get('sec1'))
 

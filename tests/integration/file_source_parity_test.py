@@ -124,6 +124,8 @@ class FileSourceValueParityTests(TestCase):
                 t.assertIsNotNone(src.get('sec0.sub0.value0'))
                 t.assertIsNone(src.get('missing_key'))
                 t.assertIsNone(src.get('sec0'))
+                # a key at the root of the file, outside every namespace
+                t.assertEqual(src.get('a_root_value'), 'is a valid key')
 
     def test_flat_format_parity(t):
         sources = [
