@@ -260,6 +260,13 @@ class RootMountTests(TestCase):
                 str(err.exception),
             )
 
+        with t.subTest('the message defers the environment prefix'):
+            t.assertIn(
+                ' or add NO_DEFAULT to your Environment,'
+                ' after any EnvSource prefix',
+                str(err.exception),
+            )
+
     def test___str__(t) -> None:
         t.sl.get.return_value = None
         with t.subTest('the root header carries no path'):

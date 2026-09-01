@@ -94,8 +94,8 @@ class Configuration:
             ' as a commandline argument\n'
             f' or add {dotted}'
             ' to your config file\n'
-            f' or add {self._path.replace(".", "_").upper()}_{key.upper()}'
-            ' to your Environment'
+            f' or add {dotted.replace(".", "_").upper()}'
+            ' to your Environment, after any EnvSource prefix'
         )
 
     @property

@@ -222,6 +222,26 @@ class FreeFormConfigTreeTests(TestCase):
 
     @patch.dict(
         'batconf.sources.env.os.environ',
+        {'VALUE': 'an ambient process variable'},
+    )
+    def test_a_root_env_source_reads_no_ambient_variables(t) -> None:
+        """At the root, an undeclared namespace resolves nothing."""
+        cfg = Configuration(
+            source_list=SourceList([EnvSource()]),
+            config_class=RootConfigSchema,
+        )
+
+        t.assertEqual('root config value', cfg.value)
+
+        with t.subTest('raw=True opts in to bare names'):
+            raw = Configuration(
+                source_list=SourceList([EnvSource(raw=True)]),
+                config_class=RootConfigSchema,
+            )
+            t.assertEqual('an ambient process variable', raw.value)
+
+    @patch.dict(
+        'batconf.sources.env.os.environ',
         {
             'MYTOOL_VALUE': 'MYTOOL root config value',
             'MYTOOL_L1A_VALUE': 'MYTOOL level 1 config A value',
