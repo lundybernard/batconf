@@ -21,3 +21,4 @@ Statuses: `Proposed → Accepted → Deprecated / Superseded by NNNN`
 | [0001](0001-file-source-classes/)              | FileSource class refactor (4 decisions) | Accepted |
 | [0002](0002-get-path-parameter.md)             | Standardize `.get()` on `path`; deprecate `module` | Accepted |
 | [0005](0005-retire-source-interface-abc.md)     | Retire the `SourceInterface` ABC | Accepted |
+| [0007](0007-root-path-and-namespaces/)         | Root path and namespaces (5 decisions) | Proposed |
