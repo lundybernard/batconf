@@ -8,8 +8,9 @@ v0.5.0 (planned)
 ****************
 
 BatConf deprecates and documents a name in a patch release (n.n.x) and
-removes it in the next minor release (n.x). Every name in this section
-still works in v0.4.1 and emits a ``DeprecationWarning`` naming v0.5.0.
+removes it in the next minor release (n.x). Every name and default
+behaviour in this section still works in v0.4.x and emits a
+``DeprecationWarning`` naming v0.5.0.
 
 Upgrade to v0.4.1 first and run your test suite with deprecations
 promoted to errors. Each failure points at one line to change:
@@ -51,6 +52,11 @@ What is removed
    * - ``Protocol``- and ``Proto``-suffixed aliases in
        ``batconf.types``
      - the ``P``-suffixed names
+   * - The module-name default of the ``path`` parameter of
+       ``Configuration``
+     - an explicit ``path=``, or the root
+   * - The hardcoded ``BAT`` prefix of ``EnvSource``
+     - ``EnvSource(prefix=...)``
 
 ===========================
 The shared source interface
@@ -247,6 +253,92 @@ Type aliases
 The ``Protocol``- and ``Proto``-suffixed aliases in
 :mod:`batconf.types` are removed. Use the ``P``-suffixed names:
 ``ConfigP``, ``FieldP``, ``SourceInterfaceP``, ``SourceListP``.
+
+==================
+The module path
+==================
+A :class:`~batconf.manager.Configuration` built without ``path`` took
+the Python module name of its schema class as the namespace for every
+lookup. An absent or empty path now mounts the schema at the root.
+
+Pass the module name as ``path=`` to keep every lookup as it was. This
+is the smallest change, and it renames nothing in your config file or
+your environment:
+
+.. code-block:: python
+
+    # old — the namespace is 'yourproject.conf', the schema's module
+    cfg = Configuration(source_list, ProjectConfigSchema)
+
+    # new
+    cfg = Configuration(
+        source_list,
+        ProjectConfigSchema,
+        path='yourproject.conf',
+    )
+
+Choose your own namespace instead, or mount at the root. The call site
+is unchanged for the root, so the file moves rather than the code:
+
+.. code-block:: ini
+    :caption: config.ini (file_format='sections')
+
+    # old
+    [yourproject.conf.server]
+    host = localhost
+
+    # new
+    [server]
+    host = localhost
+
+A sub-configuration mounts under its field name alone, so
+``cfg.server.host`` reads ``server.host``. A key declared on the root
+schema has no section name left in an INI file, and INI has no unnamed
+section. The ``[/ROOT/]`` section holds those keys from v0.4.x, in the
+``sections`` layout and in the ``flat`` layout; see ADR 0007-03.
+
+The ``flat`` layout keeps its keys at the top of the file, with no
+section header. The loader adds its own ``root`` section before it
+parses the file, so a file that spells a ``[root]`` header fails with
+``configparser.DuplicateSectionError``. That header is an error, not a
+deprecated spelling. A flat file does not need a change.
+
+==================
+The BAT prefix
+==================
+``EnvSource`` prefixed a variable name with ``BAT`` when the path was
+empty, and prefixed nothing otherwise. The namespace now comes from
+``prefix``, and it leads every name:
+
+.. code-block:: python
+
+    # old — BAT_API_KEY, and only when no path was given
+    EnvSource().get('api_key')
+
+    # new — YOURPROJECT_API_KEY, with or without a path
+    EnvSource(prefix='yourproject').get('api_key')
+
+A :class:`~batconf.manager.Configuration` always supplied a path before
+v0.5.0, so a source behind one never reached the ``BAT`` branch. Keep
+``path=`` and declare no prefix, and every variable name stays as it
+was: path ``yourproject.conf.server`` and key ``host`` read
+``YOURPROJECT_CONF_SERVER_HOST`` in both releases.
+
+.. warning::
+
+   ``prefix='BAT'`` does not restore the old rule. The old prefix
+   applied at the root only; a declared prefix applies everywhere, so
+   path ``server`` and key ``host`` move from ``SERVER_HOST`` to
+   ``BAT_SERVER_HOST``.
+
+In v0.4.x, ``prefix=None`` reads a bare uppercase name at the root, so a
+schema field named ``path`` or ``user`` resolves against an ambient
+process variable. ADR 0007-02 proposes to refuse bare names at the root in
+v0.5.0. Declare a prefix to keep every lookup inside a namespace under
+either rule.
+
+``BATCONF_`` is reserved for BatConf's own variables. Do not choose it
+as your prefix.
 
 
 ******
