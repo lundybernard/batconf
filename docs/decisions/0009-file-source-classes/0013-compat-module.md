@@ -1,4 +1,4 @@
-# ADR 0004 — `_compat.py` shared deprecation utility
+# ADR 0013 — `_compat.py` shared deprecation utility
 
 Date: 2026-05-14
 Status: Accepted

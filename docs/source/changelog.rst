@@ -45,14 +45,14 @@ Deprecated:
   Python module name of its schema class, so a config file must name its
   top section after a module and moving that module breaks a working
   file. Pass ``path=`` to keep the namespace. From v0.5.0 an absent path
-  mounts the schema at the root. See ADR 0007-01.
+  mounts the schema at the root. See ADR 0017.
 * The hardcoded ``BAT`` environment prefix. It applies only when the path
   is empty, so it namespaces nothing below the root, and it puts a
   framework name in every user's environment. ``prefix='BAT'`` does not
   restore it: a declared prefix leads every variable name, not the root
   alone. Pass ``prefix=None`` for no prefix, or a namespace of your own;
   the :doc:`migration` guide gives the names each choice produces. See
-  ADR 0007-02.
+  ADR 0018.
 * ``EnvConfig`` and ``NamespaceConfig`` — the class definitions are
   renamed to :class:`~batconf.sources.env.EnvSource` and
   :class:`~batconf.sources.argparse.NamespaceSource`. The old names still
@@ -67,7 +67,7 @@ Deprecated:
   workaround for type-checker limitations that no longer reproduce. Custom
   sources do not need a base class; subclass
   :class:`~batconf.sources.types.SourceInterfaceP` for type-checker
-  enforcement. See ADR 0005.
+  enforcement. See ADR 0015.
 * ``CliArgsConfig`` now warns when the name is imported rather than when
   it is instantiated, matching the other deprecated sources. The old
   warning fired late and the default once-per-location filter hid it.

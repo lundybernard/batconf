@@ -1,4 +1,4 @@
-# ADR 0003 — Import-time deprecation via module `__getattr__`
+# ADR 0012 — Import-time deprecation via module `__getattr__`
 
 Date: 2026-05-14
 Status: Accepted

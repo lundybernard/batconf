@@ -1,4 +1,4 @@
-# SourceList first-wins priority
+# ADR 0001 — SourceList first-wins priority
 
 Date: 2021-06-21
 Status: Accepted

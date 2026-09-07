@@ -1,4 +1,4 @@
-# ADR 0002 — Lazy file loading via `_raw_data`
+# ADR 0011 — Lazy file loading via `_raw_data`
 
 Date: 2026-05-14
 Status: Accepted

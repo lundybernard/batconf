@@ -1,4 +1,4 @@
-# ConfigSingleton: optional global configuration
+# ADR 0008 — ConfigSingleton: optional global configuration
 
 Date: 2021-06-21
 Status: Accepted

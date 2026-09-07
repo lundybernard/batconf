@@ -1,4 +1,4 @@
-# An absent path mounts the schema at the root
+# ADR 0017 — An absent path mounts the schema at the root
 
 Date: 2026-09-01
 Status: Proposed
@@ -17,7 +17,7 @@ The module name leaks into the config file and into the environment. A file
 must name its top section after a Python module, so moving or renaming a
 module breaks a working file. The project's own test data carries the
 workaround.
-[Foundational ADR 04](../0000-foundational/04-module-path-namespace.md)
+[ADR 0004](../0000-foundational/0004-module-path-namespace.md)
 already records the module default as a compatibility retention, not the
 preferred style.
 
@@ -80,7 +80,7 @@ it. It resolves the same names either way.
 - Emptiness is unambiguous, and no source splits a string [pro]
 - Changes the frozen `get(key, path)` signature and breaks every
   third-party source [con]
-- Reopens [ADR 0002](../0002-get-path-parameter.md) for a benefit that is
+- Reopens [ADR 0014](../0014-get-path-parameter.md) for a benefit that is
   mostly internal tidiness [con]
 
 ## Rationale
@@ -108,11 +108,11 @@ no token at all, and this is a config library.
 - A configuration that relies on the module-name namespace must set `path=`
   explicitly. It warns from 0.4.1 and fails to resolve from 0.5.0.
 - Root-level environment lookups lose their prefix. See
-  [the environment prefix](02-env-source-prefix.md).
+  [the environment prefix](0018-env-source-prefix.md).
 - INI cannot represent an unnamed section. See
-  [the INI root section](03-ini-root-section.md).
+  [the INI root section](0019-ini-root-section.md).
 - The root belongs to no project. See
-  [the format and environment contract](05-format-environment-contract.md)
+  [the format and environment contract](0021-format-environment-contract.md)
   for what a project in a shared file must declare.
 - At the root there is no path to print. The tree header and the
   missing-value message need a display label that is not a lookup prefix.

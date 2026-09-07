@@ -22,7 +22,7 @@ up front:
 
 `SourceInterfaceP` (Protocol, `batconf/sources/types.py`) is the canonical
 source interface, and the only one — use it for all new code.
-`SourceInterface` (ABC) is deprecated and removed in v0.5.0; see ADR 0005.
+`SourceInterface` (ABC) is deprecated and removed in v0.5.0; see ADR 0015.
 Classes already scheduled for removal in v0.5.0 hold it through the private
 `_SourceInterface` alias, which keeps their import silent.
 

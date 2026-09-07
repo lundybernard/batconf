@@ -10,10 +10,11 @@ ADRs.
 - `docs/decisions/0000-foundational/` — pre-ADR decisions, reconstructed after
   the fact. Explains the core philosophy and why the library is shaped the way
   it is. **Read this first** to understand the design.
-- `docs/decisions/NNNN-title.md` — a standalone decision, globally numbered.
+- `docs/decisions/NNNN-title.md` — a standalone decision.
 - `docs/decisions/NNNN-topic/` — a group of decisions made for one feature or
-  migration. Each group has a `README.md` index and often a `REQUIREMENTS.md`.
-  Files inside are numbered locally (`NN-title.md`, starting at `01`).
+  migration. The directory number names the umbrella decision, and the member
+  ADRs take the numbers that follow. Each group has a `README.md` index and
+  often a `REQUIREMENTS.md`.
 
 ## When to read
 
@@ -29,18 +30,29 @@ conventions.
 
 ### Naming
 
-- **Standalone decision:** `docs/decisions/NNNN-title.md` — globally numbered.
-  Continue numbering from the next available number (check the index).
-- **Inside a grouped directory:** `docs/decisions/NNNN-topic/NN-title.md` —
-  numbering is **local to the group**, starting at `01`. No global number in the
-  filename.
-- Two-/four-digit prefix + descriptive kebab-case name (`01-foo.md`,
-  `0002-bar.md`).
+One global four-digit sequence covers the whole tree. Standalone ADRs, group
+directories, and group members draw from it, and no number repeats. Take the
+next free numbers from the index in `docs/decisions/README.md`.
+
+- **Standalone decision:** `docs/decisions/NNNN-title.md`.
+- **Group directory:** `docs/decisions/NNNN-topic/`. The directory number
+  names the umbrella decision, and its members continue the sequence: a
+  `0020-topic/` group of three decisions numbers them `0021`–`0023`.
+- **Support files** — `README.md`, `REQUIREMENTS.md`, `PLAN.md`, `DESIGN.md` —
+  carry no number.
+- Four-digit prefix + descriptive kebab-case name (`0021-root-section.md`).
+- Cite another ADR as `ADR NNNN` with a relative link:
+  `[ADR 0019](0016-root-path-and-namespaces/0019-ini-root-section.md)`.
+
+A number on an unmerged branch is a placeholder. The number is final when the
+ADR merges to the main branch, because another branch may claim it first. On a
+rebase, take the next free numbers on the base branch and update every
+reference to them.
 
 ### File format
 
 ```markdown
-# Title
+# ADR NNNN — Title
 
 Date: YYYY-MM-DD
 Status: Proposed | Accepted | Deprecated | Superseded by NNNN
@@ -88,6 +100,6 @@ option with `(chosen)` in its heading.
 
 ### Update the index
 
-Add a row to `docs/decisions/README.md`. For a grouped directory, also ensure
-the top-level index links the group, and add the new ADR to the group's own
-`README.md`.
+Add a row to `docs/decisions/README.md`. A group row links the directory and
+names its member range: `Root path and namespaces (components 0017–0021)`. Add
+a new member ADR to the group's own `README.md` as well.

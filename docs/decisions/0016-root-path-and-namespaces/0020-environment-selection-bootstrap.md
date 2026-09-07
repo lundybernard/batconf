@@ -1,4 +1,4 @@
-# Environment selection layers above the sources
+# ADR 0020 — Environment selection layers above the sources
 
 Date: 2026-09-01
 Status: Proposed
@@ -7,7 +7,7 @@ Status: Proposed
 
 A file source resolves the active environment from the `config_env`
 argument, and otherwise from the `default_env` key in the file.
-[Foundational ADR 05](../0000-foundational/05-multi-environment-file-format.md)
+[ADR 0005](../0000-foundational/0005-multi-environment-file-format.md)
 records the environment override as something the caller reads and passes
 as `config_env`.
 
@@ -45,7 +45,7 @@ use of the reserved namespace. From 0.5.0, a bootstrap that also needs a
 genuinely ambient value, such as `$HOME`, adds a second
 `EnvSource(raw=True)`. In 0.4.1, `EnvSource(prefix=None)` does that job. The
 two are separate sources because a prefix applies to every lookup its source
-serves. See [the environment prefix](02-env-source-prefix.md).
+serves. See [the environment prefix](0018-env-source-prefix.md).
 
 ## Options considered
 
@@ -122,4 +122,4 @@ bootstrap schema, rather than search behaviour baked into every source.
   not change it. Config-directory defaults belong on the bootstrap schema.
 - The environment layer applies to files. Environment variables carry no
   environment. See
-  [the format and environment contract](05-format-environment-contract.md).
+  [the format and environment contract](0021-format-environment-contract.md).

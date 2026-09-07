@@ -1,6 +1,6 @@
 """The ``module`` keyword argument to ``Source.get()`` is deprecated.
 
-``path`` replaces it (ADR 0002, issue #3). Until removal in v0.5.0, passing
+``path`` replaces it (ADR 0014, issue #3). Until removal in v0.5.0, passing
 ``module=`` must still resolve the same value as ``path=`` but emit a
 ``DeprecationWarning``. This is the highest-level, outside-in specification:
 it exercises the deprecation through the public source classes exactly as a

@@ -1,4 +1,4 @@
-# Zero mandatory external dependencies
+# ADR 0003 — Zero mandatory external dependencies
 
 Date: 2022-01-01
 Status: Accepted

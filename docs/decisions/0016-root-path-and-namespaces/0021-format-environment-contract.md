@@ -1,4 +1,4 @@
-# What a format and the process environment can express
+# ADR 0021 — What a format and the process environment can express
 
 Date: 2026-09-01
 Status: Proposed
@@ -16,7 +16,7 @@ cannot both declare `host`. Environment variables have no environment layer
 at all: a variable exported while working in dev keeps overriding the file in
 stage and in test until the user unsets it.
 
-Once [an absent path is the root](01-absent-path-mounts-at-root.md), the
+Once [an absent path is the root](0017-absent-path-mounts-at-root.md), the
 root of a file and the root of the process environment belong to no
 project. Today the module name separates two projects implicitly. After the
 change, sharing is explicit, and batconf must state the rules for it.
@@ -89,7 +89,7 @@ the environment prefix separately. Matching the environment namespace to the
 file namespace is the recommendation and the canonical setup. `prefix=`
 exists for a package rename whose deployments still export the old prefix,
 and for several packages that share one prefix in one deployment. See
-[the environment prefix](02-env-source-prefix.md).
+[the environment prefix](0018-env-source-prefix.md).
 
 ## Consequences
 
@@ -100,7 +100,7 @@ and for several packages that share one prefix in one deployment. See
   `environments` file read as `sections` returns nothing.
 - One file holds one `default_env`, and the file owns it. A project that
   wants a different environment passes `config_env=`. See
-  [environment selection](04-environment-selection-bootstrap.md).
+  [environment selection](0020-environment-selection-bootstrap.md).
 - An exported variable outlives every edit to the file and keeps overriding
   until the user unsets it. This is the sharpest hazard in the shared case,
   and the guide must state it.

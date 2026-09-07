@@ -1,4 +1,4 @@
-# String-only config values
+# ADR 0006 — String-only config values
 
 Date: 2021-06-21
 Status: Accepted

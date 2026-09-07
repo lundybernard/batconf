@@ -1,4 +1,4 @@
-# Source interface: Protocol over ABC
+# ADR 0007 — Source interface: Protocol over ABC
 
 Date: 2021-06-21
 Status: Accepted

@@ -1,4 +1,4 @@
-# Module path as default namespace
+# ADR 0004 — Module path as default namespace
 
 Date: 2021-06-21
 Status: Accepted

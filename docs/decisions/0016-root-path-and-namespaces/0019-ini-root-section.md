@@ -1,4 +1,4 @@
-# The INI root section
+# ADR 0019 — The INI root section
 
 Date: 2026-09-01
 Status: Proposed
@@ -12,7 +12,7 @@ limit.
 
 Child namespaces already resolve in INI, so only keys declared directly on
 the root schema lack a home. Once
-[an absent path is the root](01-absent-path-mounts-at-root.md), the empty
+[an absent path is the root](0017-absent-path-mounts-at-root.md), the empty
 path is the ordinary case, and one file format would fail to express a
 schema that the other two express. The format would then constrain the
 schema.
@@ -90,7 +90,7 @@ A per-source name for the same namespace was the alternative worth taking
 seriously, and it fails on duplication. `path=` is the project-wide mount
 point already, and it reaches every source through the frozen
 `get(key, path)` parameter that
-[ADR 0002](../0002-get-path-parameter.md) settled. A second spelling of the
+[ADR 0014](../0014-get-path-parameter.md) settled. A second spelling of the
 same namespace, per source and per format, adds a name that the project must
 keep in step with the first, and adds no capability.
 
@@ -115,6 +115,6 @@ one spelling of the root across the layouts changes no flat file.
   with a dedicated INI file to mount under its own name instead.
 - In a shared file, `[/ROOT/]` belongs to no project, exactly as the file
   root does. See
-  [the format and environment contract](05-format-environment-contract.md).
+  [the format and environment contract](0021-format-environment-contract.md).
 - No file source gains a namespace argument. `path=` stays the one mount
   point.
