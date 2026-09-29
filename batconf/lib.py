@@ -1,4 +1,4 @@
-from typing import Callable, Protocol
+from typing import Any, Callable, Protocol
 from functools import cached_property
 
 from .manager import Configuration
@@ -45,7 +45,7 @@ class ConfigSingleton:
     def _reset(self) -> None:
         self._cfg = self._get_cfg()
 
-    def __getattr__(self, name: str):
+    def __getattr__(self, name: str) -> Any:
         return getattr(self._cfg, name)
 
     def __str__(self) -> str:

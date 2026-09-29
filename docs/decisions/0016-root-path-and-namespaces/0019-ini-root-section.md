@@ -1,7 +1,7 @@
 # ADR 0019 — The INI root section
 
 Date: 2026-09-01
-Status: Proposed
+Status: Accepted
 
 ## Context
 

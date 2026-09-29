@@ -1,27 +1,22 @@
 from functools import cached_property
-from typing import Any
+from typing import Any, cast
 from logging import getLogger
 
 from pathlib import Path
-from enum import Enum, auto
 
 from .file import (
-    _MissingFileOption,
+    check_missing_file,
     missing_file_handlers as _missing_file_handlers,
     file_config_repr,
 )
-from .types import ConfigFileFormats, FileSourceP
-from ._compat import make_deprecated_getattr
+from ..errors import ConfigEnvironmentNotFound, SourceDependencyNotFound
+from .types import ConfigFileFormats, FileSourceP, MissingFileOption
 
 
 _OptStr = str | None
 TomlDictT = dict[str, Any]
 
 log = getLogger(__name__)
-
-
-class _DEFAULTS(Enum):
-    environment = auto()
 
 
 class TomlSource(FileSourceP):
@@ -47,17 +42,23 @@ class TomlSource(FileSourceP):
     >>> src = TomlSource(file_path='config.toml', config_env='dev')
     """
 
+    __config_env: str | None
+
     def __init__(
         self,
         file_path: str,
         file_format: ConfigFileFormats = 'environments',
         config_env: _OptStr = None,
-        missing_file_option: _MissingFileOption = 'warn',
+        missing_file_option: MissingFileOption = 'warn',
     ):
         self._config_file_path = Path(file_path)
         self._file_format = file_format
         self._config_env = config_env
         self._missing_file_option = missing_file_option
+        check_missing_file(
+            file_path=self._config_file_path,
+            when_missing=missing_file_option,
+        )
 
     def get(self, key: str, path: _OptStr = None) -> _OptStr:
         parts = path.split('.') + key.split('.') if path else key.split('.')
@@ -66,7 +67,6 @@ class TomlSource(FileSourceP):
             for k in parts:
                 conf = conf.get(k)
         except AttributeError:
-            log.warning(f'Config path {".".join(parts)} does not exist')
             return None
         return None if isinstance(conf, dict) else conf
 
@@ -87,18 +87,18 @@ class TomlSource(FileSourceP):
 
         if self._file_format == 'environments':
             try:
-                return self._raw_data[self._config_env]
+                # the property returns None only for other formats
+                return self._raw_data[cast(str, self._config_env)]
             except KeyError as err:
-                raise ValueError(
+                raise ConfigEnvironmentNotFound(
                     f'Config Environment "{self._config_env}" '
                     f'not found in {self._config_file_path}'
                 ) from err
 
         return self._raw_data
 
-    # TODO: Fix type-hints when the next version of MyPy is released
     @property
-    def _config_env(self):  # -> str | None:
+    def _config_env(self) -> str | None:
         if self._file_format != 'environments':
             return None
         if self.__config_env is None:
@@ -107,9 +107,9 @@ class TomlSource(FileSourceP):
         return self.__config_env
 
     @_config_env.setter
-    def _config_env(self, env):  # _EnvOpts):
+    def _config_env(self, env: str | None) -> None:
         if not self._file_format == 'environments':
-            self.__config_env = None  # type: ignore[assignment]
+            self.__config_env = None
             return
         else:
             self.__config_env = env
@@ -128,7 +128,7 @@ EmptyConfigDict: dict[None, None] = dict()
 
 def _load_toml(
     file_path: Path,
-    when_missing: _MissingFileOption = 'warn',
+    when_missing: MissingFileOption = 'warn',
 ) -> TomlDictT:
     return _missing_file_handlers[when_missing](
         loader_fn=_load_toml_file,
@@ -156,7 +156,7 @@ def _import_toml_load_function():
         try:
             from toml import loads  # type: ignore[assignment]
         except ImportError as e:
-            raise ImportError(_TOML_IMPORT_ERROR_MSG) from e
+            raise SourceDependencyNotFound(_TOML_IMPORT_ERROR_MSG) from e
 
     return loads
 
@@ -165,21 +165,4 @@ _TOML_IMPORT_ERROR_MSG = (
     'Failed to import toml.load,'
     ' for python < 3.11, the toml package is required.'
     ' Install the optional extra batconf[toml]'
-)
-
-# === TomlConfig (deprecated) === #
-
-
-class TomlConfig(TomlSource):
-    """Deprecated. Use TomlSource instead."""
-
-
-_TomlConfig = TomlConfig
-del TomlConfig
-
-__getattr__ = make_deprecated_getattr(
-    deprecated={'TomlConfig': 'TomlSource'},
-    module_globals=globals(),
-    module_name=__name__,
-    targets={'TomlConfig': '_TomlConfig'},
 )

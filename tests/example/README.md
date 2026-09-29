@@ -23,7 +23,7 @@ In [2]: cfg = get_config()
 
 In [3]: cfg.submodule.client
 Out[3]: Configuration(source_list=SourceList(sources=[<batconf.sources.env.
-    EnvConfig object at 0x7b45d1b6fed0>, <batconf.sources.ini.IniConfig
+    EnvSource object at 0x7b45d1b6fed0>, <batconf.sources.ini.IniSource
     object at 0x7b45d057b290>]), config_class=<class
     'project.submodule.client.MyClient.Config'>)
 
@@ -32,8 +32,8 @@ project.submodule.client <class 'project.submodule.client.MyClient.Config'>:
     |- key1: "Config.ini: test.project.submodule.client.key1"
     |- key2: "DEFAULT VALUE"
 SourceList=[
-    <batconf.sources.env.EnvConfig object at 0x7b45d1b6fed0>,
-    <batconf.sources.ini.IniConfig object at 0x7b45d057b290>,
+    <batconf.sources.env.EnvSource object at 0x7b45d1b6fed0>,
+    <batconf.sources.ini.IniSource object at 0x7b45d057b290>,
 ]
 
 In [5]: cfg.submodule.client.key1

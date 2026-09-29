@@ -16,6 +16,25 @@ Install with ``pip``:
 
     pip install batconf
 
+BatConf itself requires nothing beyond the standard library. Two
+optional extras cover the file formats the standard library does not
+read:
+
+.. code-block:: bash
+
+    pip install 'batconf[yaml]'
+    pip install 'batconf[toml]'
+
+* ``[yaml]`` installs PyYAML, which
+  :class:`~batconf.sources.yaml.YamlSource` requires on every Python
+  version.
+* ``[toml]`` is needed only on **Python 3.10**.
+  :class:`~batconf.sources.toml.TomlSource` reads ``tomllib`` from the
+  standard library on Python 3.11 and later.
+
+The quotes matter in ``zsh``, which otherwise reads the brackets as a
+glob pattern.
+
 
 Project Setup
 -------------
@@ -76,6 +95,34 @@ and providing a structured configuration tree.
         option: str = "default value"
 
 
+.. _string_only_defaults:
+
+Defaults must be strings
+^^^^^^^^^^^^^^^^^^^^^^^^
+:class:`~batconf.manager.Configuration` keeps the ``str`` defaults
+declared on the schema and drops every other type. A default of another
+type is not an error and not a fallback — it simply is not there, and
+reading the option raises
+:class:`~batconf.errors.ConfigValueNotFound`:
+
+.. code-block:: python
+
+    @dataclass
+    class ServerConfig:
+        port: int = 5000        # dropped: reading cfg.port raises
+        timeout: str = '30'     # kept
+
+Declare the default as a string and convert it where you use it
+(``int(cfg.server.timeout)``). The rule matches the sources: a config
+file, an environment variable and a CLI argument all deliver strings,
+so a typed default would be the only value in the lookup chain with a
+different type.
+
+An empty string is a special case of the same rule. It is stored, but
+BatConf treats any falsey value as "not found", so ``option: str = ''``
+also reads as a missing value.
+
+
 .. _get_config:
 
 get_config function
@@ -107,7 +154,7 @@ Most projects can copy this example with minimal modification.
         opt: str = 'default opt'
 
     def get_config(
-        config_class: ConfigP = ConfigSchema,  # type: ignore
+        config_class: ConfigP = ConfigSchema,
         cfg_path: str = 'yourmodule',
         cli_args: Namespace | None = None,
         config_file: SourceInterfaceP | None = None,
@@ -275,8 +322,8 @@ controlled by the ``file_format`` parameter (default: ``'environments'``):
 * ``'environments'`` *(default)* — sections are prefixed with an
   environment name (e.g. ``[dev.yourproject.example.client]``).
   A ``[batconf]`` section can declare the default environment via
-  ``default_env``. Intermediate parent sections must be present even
-  if empty (e.g. ``[dev]``, ``[dev.yourproject]``).
+  ``default_env``. The environment section itself must be present even
+  if empty (e.g. ``[dev]``); deeper sections stand on their own.
 * ``'sections'`` — sections use the dotted config path directly
   (e.g. ``[yourproject.example.client]``), with no environment prefix.
 * ``'flat'`` — a single flat key/value file with no sections.
@@ -305,6 +352,15 @@ controlled by the ``file_format`` parameter (default: ``'environments'``):
 
 Toml
 ^^^^
+
+.. note::
+
+   On Python 3.10, ``TomlSource`` needs the ``[toml]`` extra
+   (``pip install 'batconf[toml]'``). Python 3.11 and later read TOML
+   with the standard library, and the extra installs nothing. Without
+   it, constructing a source is still fine — the first read raises
+   :class:`~batconf.errors.SourceDependencyNotFound`, which names the
+   extra to install.
 
 :class:`~batconf.sources.toml.TomlSource` supports the same three file
 formats as :class:`~batconf.sources.ini.IniSource`, controlled by the
@@ -395,6 +451,84 @@ parameter that controls what happens when the config file is not found:
 .. code-block:: python
 
     IniSource('config.ini', missing_file_option='error')
+
+
+Flat configurations
+-------------------
+
+The examples above are nested: a schema of sub-configs mirrors a nested
+config file. A small application rarely needs that. A flat
+configuration is one schema with no sub-configs, read from a config
+file of plain key/value pairs.
+
+Start with a single dataclass:
+
+.. code-block:: python
+    :caption: yourproject/conf.py
+
+    from dataclasses import dataclass
+
+    @dataclass
+    class ConfigSchema:
+        host: str = 'localhost'
+        port: str = '5000'
+        log_level: str = 'INFO'
+
+The config file holds the same names at its root, with no sections:
+
+.. code-block:: ini
+    :caption: app.ini
+
+    host = 0.0.0.0
+    port = 8080
+
+Build the source list with ``file_format='flat'``:
+
+.. code-block:: python
+    :caption: yourproject/conf.py
+
+    from batconf import (
+        Configuration, SourceList, IniSource, EnvSource, NamespaceSource,
+    )
+
+    def get_config(cli_args=None):
+        return Configuration(
+            source_list=SourceList([
+                NamespaceSource(cli_args) if cli_args else None,
+                EnvSource(),
+                IniSource('app.ini', file_format='flat'),
+            ]),
+            config_class=ConfigSchema,
+            path='yourproject',
+        )
+
+Options are read straight off the configuration, with the same priority
+order as a nested setup:
+
+.. code-block:: python
+
+    >>> cfg = get_config()
+    >>> cfg.host          # from app.ini
+    '0.0.0.0'
+    >>> cfg.log_level     # nothing supplies it; the schema default stands
+    'INFO'
+
+Two things do not flatten with the file:
+
+* **Environment variables keep the path prefix.** The configuration's
+  ``path`` is still part of the name, so ``host`` is read from
+  ``YOURPROJECT_HOST``.
+* **CLI arguments keep the dotted** ``dest``. ``NamespaceSource`` reads
+  one attribute named for the full path::
+
+      parser.add_argument('--host', dest='yourproject.host')
+
+.. note::
+
+   Use :class:`~batconf.sources.ini.IniSource` for a flat file behind a
+   :class:`~batconf.manager.Configuration`. A flat TOML or YAML file
+   resolves only when the source is queried directly — see
+   :doc:`guide`.
 
 
 Testing

@@ -82,7 +82,7 @@ def get_config(
     :param config_file:
     :param config_file_name:
     :param config_env: Environment id string, ex: 'dev', 'staging', 'yourname'
-    used by some sources such as :class:`YamlConfig` to
+    used by some sources such as :class:`YamlSource` to
     :return: A batconf :class:`Configuration` instance, used to access config
     values from the :class:`SourceList` using the config_class tree
     or module namespace (these should™ match).

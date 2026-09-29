@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from os import path
 
 from batconf.manager import Configuration, SourceList
-from batconf.sources.ini import _IniConfig
+from batconf.sources.ini import IniSource
 from batconf.sources.env import EnvSource
 
 
@@ -83,7 +83,7 @@ class FreeFormConfigTreeTests(TestCase):
     def test_environments_config(t) -> None:
         config_file_name = path.join(t.this_dir, 'data', 'envs.config.ini')
 
-        config_source = _IniConfig(
+        config_source = IniSource(
             file_path=config_file_name, file_format='environments'
         )
         t.assertEqual(config_source.get('doc'), 'our testing environment')
@@ -148,7 +148,7 @@ class FreeFormConfigTreeTests(TestCase):
 
     def test_sections_config(t) -> None:
         config_file_name = path.join(t.this_dir, 'data', 'sections.config.ini')
-        config_source = _IniConfig(
+        config_source = IniSource(
             file_path=config_file_name, file_format='sections'
         )
         source_list = SourceList([config_source])
@@ -195,7 +195,7 @@ class FreeFormConfigTreeTests(TestCase):
         example_dir = path.dirname(path.realpath(__file__))
         config_file_name = path.join(example_dir, 'data', 'flat.config.ini')
 
-        config_source = _IniConfig(
+        config_source = IniSource(
             file_path=config_file_name, file_format='flat'
         )
         source_list = SourceList([config_source])
@@ -219,6 +219,50 @@ class FreeFormConfigTreeTests(TestCase):
             t.assertEqual(cfg.opt2, 'sir not appearing in this film')
         # the schema may provide default values
         t.assertEqual(cfg.opt3, 'opt3 default')
+
+    @patch.dict(
+        'batconf.sources.env.os.environ',
+        {'VALUE': 'an ambient process variable'},
+    )
+    def test_a_root_env_source_reads_no_ambient_variables(t) -> None:
+        """At the root, an undeclared namespace resolves nothing."""
+        cfg = Configuration(
+            source_list=SourceList([EnvSource()]),
+            config_class=RootConfigSchema,
+        )
+
+        t.assertEqual('root config value', cfg.value)
+
+        with t.subTest('raw=True opts in to bare names'):
+            raw = Configuration(
+                source_list=SourceList([EnvSource(raw=True)]),
+                config_class=RootConfigSchema,
+            )
+            t.assertEqual('an ambient process variable', raw.value)
+
+    @patch.dict(
+        'batconf.sources.env.os.environ',
+        {
+            'MYTOOL_VALUE': 'MYTOOL root config value',
+            'MYTOOL_L1A_VALUE': 'MYTOOL level 1 config A value',
+            'MYTOOL_L1B_VALUE': 'MYTOOL level 1 config B value',
+        },
+    )
+    def test_an_absent_path_mounts_the_schema_at_the_root(t) -> None:
+        """REF: github #152, #150"""
+        cfg = Configuration(
+            source_list=SourceList([EnvSource(prefix='mytool')]),
+            config_class=RootConfigSchema,
+        )
+
+        t.assertEqual('', cfg._path)
+        t.assertEqual(cfg.value, 'MYTOOL root config value')
+
+        # Several top-level schemas hang under one root configuration,
+        # each mounted under its own field name
+        t.assertEqual(cfg.l1a._path, 'l1a')
+        t.assertEqual(cfg.l1a.value, 'MYTOOL level 1 config A value')
+        t.assertEqual(cfg.l1b.value, 'MYTOOL level 1 config B value')
 
     @patch.dict(
         'batconf.sources.env.os.environ',

@@ -1,7 +1,7 @@
 # ADR 0018 — A caller-declared environment-variable prefix
 
 Date: 2026-09-01
-Status: Proposed
+Status: Accepted
 
 ## Context
 

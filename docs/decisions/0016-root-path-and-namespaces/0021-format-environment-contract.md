@@ -1,7 +1,7 @@
 # ADR 0021 — What a format and the process environment can express
 
 Date: 2026-09-01
-Status: Proposed
+Status: Accepted
 
 ## Context
 

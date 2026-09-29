@@ -1,19 +1,20 @@
-import warnings
-
 from unittest import TestCase
 from unittest.mock import Mock, patch, mock_open, create_autospec, PropertyMock
 
 from ..ini import (
     # Under Test
-    _IniConfig,
     IniSource,
+    ConfigEnvironmentNotFound,
     ConfigFileFormats,
+    ConfigFileNotFound,
+    InvalidFileFormat,
     _load_ini_file,
     _load_ini_file_flat,
     _load_ini,
     _getter_methods,
     _get_envs,
     _get_sections,
+    _ROOT_SECTION,
     _get_flat,
     _get_empty,
     _file_type_loaders,
@@ -86,25 +87,14 @@ CONFIG_PARSER_ENVS = ConfigParser()
 CONFIG_PARSER_ENVS.read_string(INI_ENV_STR)
 
 
-class IniConfigTests(TestCase):
-    def test_is_IniSource_subclass(t):
-        t.assertTrue(issubclass(_IniConfig, IniSource))
-
-    def test___init__(t):
-        ic = _IniConfig(file_path='test.ini')
-        t.assertIsInstance(ic, IniSource)
-
-    def test___init___with_config_env(t):
-        ic = _IniConfig(file_path='test.ini', config_env='production')
-        t.assertEqual(ic._IniSource__config_env, 'production')
-
-
 class IniSourceTests(TestCase):
     _load_ini: Mock
+    check_missing_file: Mock
 
     def setUp(t):
         patches = [
             '_load_ini',
+            'check_missing_file',
         ]
         for target in patches:
             patcher = patch(f'{SRC}.{target}', autospec=True)
@@ -133,6 +123,10 @@ class IniSourceTests(TestCase):
         t.assertEqual(ins._missing_file_option, 'warn')
         t.assertEqual(ins._config_file_path, Path(t.config_file_str))
         t._load_ini.assert_not_called()  # lazy: file not read on construction
+        t.check_missing_file.assert_called_with(
+            file_path=Path(t.config_file_str),
+            when_missing='warn',
+        )
 
         # Accessing _config_env triggers lazy load
         t.assertEqual(ins._config_env, 'development')
@@ -143,7 +137,7 @@ class IniSourceTests(TestCase):
         )
 
     def test___init__catches_invalid_file_format(t):
-        with t.assertRaises(ValueError):
+        with t.assertRaises(InvalidFileFormat):
             _ = IniSource(file_path=t.config_file_str, file_format='invalid')
 
     def test__file_format(t):
@@ -152,22 +146,9 @@ class IniSourceTests(TestCase):
                 t.ins._file_format = fmt
                 t.assertEqual(t.ins._file_format, fmt)
 
-        with t.subTest('invalid format raises ValueError'):
-            with t.assertRaises(ValueError):
+        with t.subTest('invalid format raises InvalidFileFormat'):
+            with t.assertRaises(InvalidFileFormat):
                 t.ins._file_format = 'invalid'
-
-    def test__loader(t):
-        with t.subTest('environments'):
-            t.ins._file_format = 'environments'
-            t.assertIs(t.ins._loader, _load_ini_file)
-
-        with t.subTest('sections'):
-            t.ins._file_format = 'sections'
-            t.assertIs(t.ins._loader, _load_ini_file)
-
-        with t.subTest('flat'):
-            t.ins._file_format = 'flat'
-            t.assertIs(t.ins._loader, _load_ini_file_flat)
 
     def test__config_env(t):
         with t.subTest('environments format: stores value'):
@@ -212,12 +193,12 @@ class IniSourceTests(TestCase):
             t.assertIs(ins._data, CONFIG_PARSER_ENVS)
             t.assertEqual(ins._config_env, 'development')
 
-        with t.subTest('environments: raises ValueError for missing section'):
+        with t.subTest('environments: missing section is not found'):
             ins = IniSource(
                 file_path=t.config_file_str,
                 config_env='nonexistent_env',
             )
-            with t.assertRaises(ValueError) as err:
+            with t.assertRaises(ConfigEnvironmentNotFound) as err:
                 _ = ins._data
             t.assertEqual(
                 str(err.exception),
@@ -309,7 +290,7 @@ class IniSourceTests(TestCase):
 
 class GetConfigFunctionsTests(TestCase):
     def setUp(t):
-        t.ic = Mock(_IniConfig, autospec=True)
+        t.ic = Mock(IniSource, autospec=True)
         t.ic._config_env = 'testing'
         t.key = 'key'
 
@@ -357,14 +338,22 @@ class GetConfigFunctionsTests(TestCase):
         This is for the standard .ini file format.
         """
         with t.subTest('single key'):
-            # Section files require a section be specified
+            # a key that names no section is read from the root section
             ret = _get_sections(self=t.ic, key=t.key)
             t.ic._data.get.assert_called_with(
                 option=t.key,
-                section='',  # this should fail and fallback to None
+                section=_ROOT_SECTION,
                 fallback=None,
             )
-            # but returning None is handled by the _data.get method
+            t.assertIs(ret, t.ic._data.get.return_value)
+
+        with t.subTest('an empty path reaches the root section'):
+            ret = _get_sections(self=t.ic, key=t.key, path='')
+            t.ic._data.get.assert_called_with(
+                option=t.key,
+                section=_ROOT_SECTION,
+                fallback=None,
+            )
             t.assertIs(ret, t.ic._data.get.return_value)
 
         with t.subTest('section.key'):
@@ -443,7 +432,7 @@ class _load_ini_file_Tests(TestCase):
         config_parser_instance = ConfigParser.return_value
         config_parser_instance.read.return_value = []
 
-        with t.assertRaises(FileNotFoundError):
+        with t.assertRaises(ConfigFileNotFound):
             _ = _load_ini_file(file_path=t.file_path)
 
 

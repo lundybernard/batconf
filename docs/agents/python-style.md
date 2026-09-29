@@ -56,8 +56,8 @@ Principles:
 - **`conf.py` / batconf**: `get_config(...)` composes a prioritized source
   list (CLI > env > config file > dataclass defaults) into a `Configuration`.
   High-level functions that need config take it as a parameter
-  (`fn(conf, ...)`); they build their collaborators from it. Use the current
-  `NamespaceSource` (exported from `batconf`), not deprecated `CliArgsConfig`.
+  (`fn(conf, ...)`); they build their collaborators from it. Build the CLI
+  source with `NamespaceSource` (exported from `batconf`).
   `GlobalConfig` must use real-class field annotations (no
   `from __future__ import annotations`) — batconf inspects live types.
 

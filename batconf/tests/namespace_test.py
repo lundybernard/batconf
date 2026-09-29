@@ -21,6 +21,14 @@ class BatconfNamespaceTests(TestCase):
         t.assertTrue(hasattr(batconf, 'TomlSource'))
         t.assertTrue(hasattr(batconf, 'YamlSource'))
 
+    def test_errors(t):
+        t.assertTrue(hasattr(batconf, 'BatconfError'))
+        t.assertTrue(hasattr(batconf, 'ConfigEnvironmentNotFound'))
+        t.assertTrue(hasattr(batconf, 'ConfigFileNotFound'))
+        t.assertTrue(hasattr(batconf, 'ConfigValueNotFound'))
+        t.assertTrue(hasattr(batconf, 'InvalidFileFormat'))
+        t.assertTrue(hasattr(batconf, 'SourceDependencyNotFound'))
+
     def test_all_is_complete(t):
         """Every symbol in __all__ must be importable from batconf."""
         for name in batconf.__all__:

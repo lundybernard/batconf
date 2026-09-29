@@ -1,5 +1,4 @@
 """Verify the public batconf.types namespace."""
-import warnings
 from unittest import TestCase
 
 import batconf.types as types
@@ -13,40 +12,6 @@ class BatconfTypesTests(TestCase):
         t.assertTrue(hasattr(types, 'FieldP'))
         t.assertTrue(hasattr(types, 'SourceInterfaceP'))
         t.assertTrue(hasattr(types, 'SourceListP'))
-
-    def test_deprecated_names(t):
-        """Old Protocol/Proto-suffixed names emit DeprecationWarning but still resolve."""
-        deprecated = {
-            'ConfigProtocol': (
-                types.ConfigP,
-                "'ConfigProtocol' is deprecated and will be removed in "
-                "v0.5.0; use 'ConfigP' instead.",
-            ),
-            'FieldProtocol': (
-                types.FieldP,
-                "'FieldProtocol' is deprecated and will be removed in "
-                "v0.5.0; use 'FieldP' instead.",
-            ),
-            'SourceInterfaceProto': (
-                types.SourceInterfaceP,
-                "'SourceInterfaceProto' is deprecated and will be removed "
-                "in v0.5.0; use 'SourceInterfaceP' instead.",
-            ),
-            'SourceListProto': (
-                types.SourceListP,
-                "'SourceListProto' is deprecated and will be removed in "
-                "v0.5.0; use 'SourceListP' instead.",
-            ),
-        }
-        for old_name, (expected, message) in deprecated.items():
-            with t.subTest(old_name):
-                with warnings.catch_warnings(record=True) as w:
-                    warnings.simplefilter('always')
-                    alias = getattr(types, old_name)
-                t.assertIs(alias, expected)
-                t.assertEqual(len(w), 1)
-                t.assertEqual(message, str(w[0].message))
-                t.assertIs(w[0].category, DeprecationWarning)
 
     def test_type_aliases(t):
         t.assertTrue(hasattr(types, 'ConfigFileFormats'))

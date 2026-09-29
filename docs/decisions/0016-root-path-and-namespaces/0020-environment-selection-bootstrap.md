@@ -1,7 +1,7 @@
 # ADR 0020 — Environment selection layers above the sources
 
 Date: 2026-09-01
-Status: Proposed
+Status: Accepted
 
 ## Context
 

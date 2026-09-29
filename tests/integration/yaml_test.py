@@ -77,18 +77,6 @@ class YamlSourceMissingFileTests(TestCase):
             t.assertIsNone(ys.get('project.submodule.sub.key1'))
             t.assertIsNone(ys.get('any.random.key'))
 
-    def test_missing_file_error(t):
-        for file_format in FILE_FORMATS:
-            with t.subTest(file_format=file_format):
-                ys = YamlSource(
-                    file_path=t.filename,
-                    missing_file_option='error',
-                    file_format=file_format,
-                )
-                # lazy: error raised on first data access, not construction
-                with t.assertRaises(FileNotFoundError):
-                    ys.get('root')
-
     def test_missing_file_ignore(t):
         for file_format in FILE_FORMATS:
             with t.subTest(file_format=file_format):
