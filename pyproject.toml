@@ -96,6 +96,7 @@ docs = [
     'sphinxext-opengraph',
     'sphinx_design',
     'sphinx-rtd-theme',
+    'ipython-pygments-lexers', # the ipythonconsole lexer
     'matplotlib', # for social preview cards
     'diagrams',
 ]
@@ -228,7 +229,7 @@ graphviz = "*"
 # conf.py imports diagram_config_comp from the source dir, so build with the
 # module runner from docs/source (cwd lands on sys.path, matching ReadTheDocs).
 [tool.pixi.feature.docs.tasks]
-docs = { cmd = "python -m sphinx -b html . ../build/html", cwd = "docs/source" }
+docs = { cmd = "python -m sphinx --fail-on-warning --builder html . ../build/html", cwd = "docs/source" }
 
 [tool.pixi.feature.test.tasks]
 test = "pytest batconf && pytest --no-cov tests"

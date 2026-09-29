@@ -201,7 +201,7 @@ Usage
 
 Access config option values using python's attribute (``.``) notation.
 
-.. code-block:: python
+.. code-block:: ipythonconsole
 
     In [1]: cfg = get_config()
 
@@ -225,13 +225,14 @@ Subscript Access
 notation, which is equivalent to attribute access. This is useful when the
 key is a runtime variable.
 
-.. code-block:: python
+.. code-block:: ipythonconsole
 
     In [4]: cfg['server']['host']
     Out[4]: '0.0.0.0'
 
-    # Practical use case: select a sub-config by a runtime variable
-    In [5]: client_id = 'clientB'
+    In [5]: # Practical use case: select a sub-config by a runtime variable
+       ...: client_id = 'clientB'
+
     In [6]: cfg.clients[client_id].host
     Out[6]: '192.168.1.2'
 

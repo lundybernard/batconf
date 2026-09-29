@@ -1,4 +1,4 @@
-# Multi-environment config file format
+# ADR 0005 — Multi-environment config file format
 
 Date: 2021-06-21
 Status: Accepted
@@ -12,7 +12,7 @@ default environment so that the file works out of the box with no extra
 arguments.
 
 Config keys are already namespaced by dotted module path (see
-[module-path-namespace](04-module-path-namespace.md)), so the section
+[module-path-namespace](0004-module-path-namespace.md)), so the section
 naming convention must compose with that path.
 
 ## Decision

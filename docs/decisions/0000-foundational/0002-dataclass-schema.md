@@ -1,4 +1,4 @@
-# Dataclass as config schema
+# ADR 0002 — Dataclass as config schema
 
 Date: 2021-06-21
 Status: Accepted

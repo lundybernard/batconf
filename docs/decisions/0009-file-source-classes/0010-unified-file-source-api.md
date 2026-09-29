@@ -1,7 +1,7 @@
-# ADR 0001 — Unified FileSource API
+# ADR 0010 — Unified FileSource API
 
 Date: 2026-05-14
-Status: Proposed
+Status: Accepted
 Branch: feature/file-sources
 Issue: #193
 
@@ -81,4 +81,5 @@ A Protocol captures the public contract without constraining the internals.
 - `FileSourceP` is the stable structural type for type annotations.
 - `file_format='environments'` replaces the `enable_config_environments=True`
   boolean; `'sections'` replaces `enable_config_environments=False`.
-- Old `*Config` classes are deprecated but remain usable; see ADR 0003.
+- Old `*Config` classes are deprecated but remain usable; see
+  [ADR 0012](0012-import-time-deprecation.md).

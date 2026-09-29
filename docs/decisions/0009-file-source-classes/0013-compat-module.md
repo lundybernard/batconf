@@ -1,7 +1,7 @@
-# ADR 0004 — `_compat.py` shared deprecation utility
+# ADR 0013 — `_compat.py` shared deprecation utility
 
 Date: 2026-05-14
-Status: Proposed
+Status: Accepted
 Branch: feature/file-sources
 Issue: #193
 
@@ -29,14 +29,9 @@ Add `batconf/sources/_compat.py` with a single public function
 `make_deprecated_getattr`. The function is internal (module prefixed with `_`)
 and not part of the public API.
 
-```python
-def make_deprecated_getattr(
-    deprecated: dict[str, str],  # {old_name: display_new_name}
-    module_globals: dict,
-    module_name: str,
-    targets: dict[str, str] | None = None  # {old_name: globals_key_to_return}
-):
-```
+`make_deprecated_getattr` takes the mapping of deprecated names to their
+replacements, the calling module's `globals()` and `__name__`, and the
+optional `targets` and `advice` overrides.
 
 `deprecated` drives the warning message: `"'old_name' is deprecated, use
 'display_new_name' instead."`. `targets`, when provided, overrides which key
@@ -73,3 +68,13 @@ is looked up in `module_globals` to find the object to return. When omitted,
   `make_deprecated_getattr` call; no logic needs to be duplicated.
 - The `targets` parameter allows the warning message to say `"use 'IniSource'"
   while still returning the legacy `_IniConfig` wrapper class.
+
+Amended 2026-08-29. Two changes follow the adopted deprecation policy
+(deprecate in a patch release, remove in the next minor):
+
+- The default message names the removal version: `"'X' is deprecated and
+  will be removed in v0.5.0; use 'Y' instead."`
+- An `advice` parameter replaces the closing sentence of the message for a
+  name with no drop-in replacement, such as `DataclassConfig`, whose advice
+  is to delete the source-list entry rather than to use a successor. The
+  shared opening clause keeps the removal version.

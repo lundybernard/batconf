@@ -11,6 +11,103 @@ All previous releases should still be available
 BatConf 0.x
 ==============
 
+.. _v0.4.1:
+
+------------------
+0.4.1 - TBD
+------------------
+
+A deprecation-completeness release. This release removes nothing, and
+nothing supported breaks. Every name v0.5.0 removes now warns, names
+v0.5.0, and has a :doc:`migration` entry.
+
+Two default behaviours are deprecated alongside the names: the module-name
+config path and the ``BAT`` environment prefix. Each derives a namespace
+the caller never chose. A namespace the caller declares replaces both.
+Both are removed in v0.5.0.
+
+BatConf deprecates and documents a name in a patch release (n.n.x) and
+removes it in the next minor release (n.x).
+
+Added:
+
+* :class:`~batconf.sources.env.EnvSource` takes ``prefix``. The prefix
+  leads every variable name, so a project namespaces its whole tree:
+  ``EnvSource(prefix='mytool')`` reads ``MYTOOL_SERVER_HOST`` for key
+  ``host`` at path ``server``. ``prefix=None`` declares no namespace. The
+  ``BATCONF_`` namespace is reserved for BatConf's own variables; do not
+  choose it.
+
+Deprecated:
+
+* The module-name config path. A
+  :class:`~batconf.manager.Configuration` built without ``path`` takes the
+  Python module name of its schema class, so a config file must name its
+  top section after a module and moving that module breaks a working
+  file. Pass ``path=`` to keep the namespace. From v0.5.0 an absent path
+  mounts the schema at the root. See ADR 0017.
+* The hardcoded ``BAT`` environment prefix. It applies only when the path
+  is empty, so it namespaces nothing below the root, and it puts a
+  framework name in every user's environment. ``prefix='BAT'`` does not
+  restore it: a declared prefix leads every variable name, not the root
+  alone. Pass ``prefix=None`` for no prefix, or a namespace of your own;
+  the :doc:`migration` guide gives the names each choice produces. See
+  ADR 0018.
+* ``EnvConfig`` and ``NamespaceConfig`` — the class definitions are
+  renamed to :class:`~batconf.sources.env.EnvSource` and
+  :class:`~batconf.sources.argparse.NamespaceSource`. The old names still
+  import, now through a warning shim. Previously they were the real class
+  names, aliased silently, so ``repr`` reported the old name and the
+  submodule imports warned nowhere.
+* :class:`~batconf.sources.dataclass.DataclassConfig` — obsolete since
+  v0.2.0, when :class:`~batconf.manager.Configuration` began reading
+  schema defaults itself. There is no replacement: delete the entry from
+  your source list.
+* ``batconf.source.SourceInterface`` — the abstract base class was a
+  workaround for type-checker limitations that no longer reproduce. Custom
+  sources do not need a base class; subclass
+  :class:`~batconf.sources.types.SourceInterfaceP` for type-checker
+  enforcement. See ADR 0015.
+* ``CliArgsConfig`` now warns when the name is imported rather than when
+  it is instantiated, matching the other deprecated sources. The old
+  warning fired late and the default once-per-location filter hid it.
+* The ``module`` keyword argument to ``EnvSource.env_name()``. ``.get()``
+  deprecated it in v0.4.0 and ``env_name()`` took it without a warning.
+  Use ``path``; both are removed in v0.5.0.
+
+Changed:
+
+* Every deprecation warning names v0.5.0 as its removal version. This
+  covers the ``IniConfig``, ``TomlConfig`` and ``YamlConfig`` shims and
+  the ``Protocol``- and ``Proto``-suffixed aliases in
+  :mod:`batconf.types`, none of which named one before.
+* ``CliArgsConfig`` pointed users at ``NamespaceConfig from
+  batconf.sources.argparse``, contradicting the README and the migration
+  guide. The replacement is ``NamespaceSource``, exported from
+  ``batconf``.
+* The test suite fails on any ``DeprecationWarning``, so a deprecation
+  cannot regress to the wrong warning category unnoticed.
+
+Fixed:
+
+* :class:`~batconf.sources.types.SourceInterfaceP` and
+  :class:`~batconf.sources.types.FileSourceP` are ``runtime_checkable``,
+  so ``isinstance`` and ``issubclass`` accept them instead of raising
+  ``TypeError``. Sources migrating off the deprecated ``SourceInterface``
+  ABC need this, since the ABC answered ``isinstance``.
+* The PyYAML import error ran two sentences together and named the
+  deprecated ``YamlConfig``; the missing-YAML-file error ran two
+  sentences together; the TOML import error broke a sentence mid-way.
+
+Documentation:
+
+* :doc:`migration` covers the full 0.4 to 0.5 upgrade, one entry per
+  removed name. ``IniSource``, ``YamlSource`` and ``NamespaceSource`` are
+  not drop-in replacements and get worked examples.
+* The user guide and introduction teach ``SourceInterfaceP`` as the
+  extension point.
+
+
 .. _v0.4.0:
 
 ------------------

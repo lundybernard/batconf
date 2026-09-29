@@ -106,8 +106,17 @@ def run_apidoc(app):
     )  # Reference within "source"
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
+    # sphinx-apidoc skips a file that already exists, and keeps a file it
+    # no longer generates. The flags hold the reference tree to the package.
     subprocess.check_call(
-        ['sphinx-apidoc', '--output-dir', output_dir, package_dir]
+        [
+            'sphinx-apidoc',
+            '--force',
+            '--remove-old',
+            '--output-dir',
+            output_dir,
+            package_dir,
+        ]
     )
 
 

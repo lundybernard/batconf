@@ -4,7 +4,7 @@ import batconf.source as source_module
 
 
 class SourceInterfaceImportTests(TestCase):
-    """The import statement itself is what warns, per ADR 0003."""
+    """The import statement itself is what warns, per ADR 0012."""
 
     def test_import_warns_and_binds_the_abc(t):
         with t.assertWarns(DeprecationWarning) as cm:

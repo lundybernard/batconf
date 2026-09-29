@@ -1,4 +1,4 @@
-# ADR 0005 — Retire the `SourceInterface` ABC
+# ADR 0015 — Retire the `SourceInterface` ABC
 
 Date: 2026-08-29
 Status: Accepted
@@ -10,11 +10,12 @@ batconf names one source contract twice:
 - `SourceInterfaceP`, a `Protocol` in `batconf.sources.types`
 - `SourceInterface`, an abstract base class in `batconf.source`
 
-Foundational ADR 07 made the Protocol canonical and kept the ABC as a
-workaround for mypy false positives, to go once the type checker caught
-up. It set no date. The duality spread: the file sources declared the
-Protocol, the environment and namespace sources subclassed the ABC, and
-the user guide taught the ABC as the extension point.
+[ADR 0007](0000-foundational/0007-source-interface-protocol-over-abc.md) made
+the Protocol canonical and kept the ABC as a workaround for mypy false
+positives, to go once the type checker caught up. It set no date. The duality
+spread: the file sources declared the Protocol, the environment and namespace
+sources subclassed the ABC, and the user guide taught the ABC as the
+extension point.
 
 The mypy limitation no longer reproduces. The ABC is public API, so a
 workaround that survives the 1.0 freeze becomes a permanent promise.
@@ -36,7 +37,7 @@ users cannot fix.
 
 - One documented extension point before the 1.0 freeze [pro]
 - Custom sources need no batconf base class [pro]
-- Completes the direction ADR 07 set [pro]
+- Completes the direction ADR 0007 set [pro]
 - Subclasses of the ABC must change before v0.5.0 [con]
 
 ### Keep both
@@ -49,7 +50,7 @@ users cannot fix.
 
 - No ambiguity for type checkers [pro]
 - Every third-party source must inherit from batconf [con]
-- Reverses ADR 07 and rewrites every file source [con]
+- Reverses ADR 0007 and rewrites every file source [con]
 
 ## Rationale
 
