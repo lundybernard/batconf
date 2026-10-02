@@ -49,8 +49,6 @@ class IniConfigIntegrationTests(TestCase):
             ic.get('sec0.sub0.value0'),
             'sections.config.ini :: sec0.sub0 :: value0',
         )
-        # Section files require a section be specified for every get request
-        t.assertIsNone(ic.get('a_root_value'))
         # getting a section returns None
         t.assertIsNone(ic.get('sec1'))
 
@@ -157,10 +155,19 @@ class IniSourceIntegrationTests(TestCase):
             ins.get('sec0.sub0.value0'),
             'sections.config.ini :: sec0.sub0 :: value0',
         )
-        # Section files require a section be specified for every get request
-        t.assertIsNone(ins.get('a_root_value'))
         # getting a section returns None
         t.assertIsNone(ins.get('sec1'))
+
+    def test_root_section(t):
+        """A key outside every namespace reads from the [/ROOT/] section."""
+        ins = IniSource(
+            file_path=path.join(t.this_dir, 'data/sections.config.ini'),
+            file_format='sections',
+        )
+        for root_path in (None, ''):
+            with t.subTest(path=root_path):
+                ret = ins.get('a_root_value', path=root_path)
+                t.assertEqual('is a valid key', ret)
 
     def test_flat_file(t):
         t.config_file_path = path.join(t.this_dir, 'data/flat.config.ini')

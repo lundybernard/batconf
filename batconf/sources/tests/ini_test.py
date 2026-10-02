@@ -357,14 +357,23 @@ class GetConfigFunctionsTests(TestCase):
         This is for the standard .ini file format.
         """
         with t.subTest('single key'):
-            # Section files require a section be specified
             ret = _get_sections(self=t.ic, key=t.key)
+
             t.ic._data.get.assert_called_with(
                 option=t.key,
-                section='',  # this should fail and fallback to None
+                section='/ROOT/',
                 fallback=None,
             )
-            # but returning None is handled by the _data.get method
+            t.assertIs(ret, t.ic._data.get.return_value)
+
+        with t.subTest('empty path'):
+            ret = _get_sections(self=t.ic, key=t.key, path='')
+
+            t.ic._data.get.assert_called_with(
+                option=t.key,
+                section='/ROOT/',
+                fallback=None,
+            )
             t.assertIs(ret, t.ic._data.get.return_value)
 
         with t.subTest('section.key'):
