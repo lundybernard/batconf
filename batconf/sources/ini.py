@@ -38,6 +38,11 @@ class ConfigParserP(Protocol):
 # === IniConfig Get Methods === #
 
 
+# The sections layout names every section, so a key of the root schema
+# needs a named home. See ADR 0019.
+_ROOT_SECTION = '/ROOT/'
+
+
 class _ConfigParserSource(Protocol):
     _config_env: _EnvOpts
     _data: ConfigParser
@@ -77,7 +82,7 @@ def _get_sections(
     try:
         section, key = key.rsplit(sep='.', maxsplit=1)
     except ValueError:
-        section = ''
+        section = _ROOT_SECTION
 
     return self._data.get(section=section, option=key, fallback=None)
 
@@ -119,7 +124,8 @@ class IniSource(FileSourceP):
         Path to the INI configuration file.
     file_format : {'environments', 'sections', 'flat'}, default='environments'
         INI file layout. ``'environments'`` expects top-level sections named
-        after environments; ``'sections'`` uses sections as config namespaces;
+        after environments; ``'sections'`` uses sections as config namespaces
+        and reads an empty path from the ``[/ROOT/]`` section;
         ``'flat'`` reads all keys from a single ``[root]`` section.
     config_env : str or None, default=read from file
         Active configuration environment. When not provided, the value of
