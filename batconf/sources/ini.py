@@ -1,5 +1,5 @@
 from functools import cached_property
-from typing import Literal, Protocol, Callable
+from typing import Any, Literal, Protocol, Callable
 from logging import getLogger
 
 from configparser import ConfigParser
@@ -93,6 +93,10 @@ def _get_flat(
     path: str | None = None,
 ) -> str | None:
     return self._data.get(section='UNNAMED_SECTION', option=key, fallback=None)
+
+
+def _flat_section() -> Any:
+    raise NotImplementedError
 
 
 def _get_empty(
