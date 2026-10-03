@@ -396,7 +396,7 @@ class GetConfigFunctionsTests(TestCase):
 
     def test__get_flat(t):
         """Flat files contain no sections
-        * a default 'root' section is injected into the ConfigParser
+        * every key sits in the section the flat loader reads into
         So only single-key lookups are valid...
         however keys can be delimited with '.'
 
@@ -409,7 +409,7 @@ class GetConfigFunctionsTests(TestCase):
             ret = _get_flat(self=t.ic, key=t.key)
             t.ic._data.get.assert_called_with(
                 option=t.key,
-                section='root',
+                section='UNNAMED_SECTION',
                 fallback=None,
             )
             t.assertIs(ret, t.ic._data.get.return_value)
@@ -419,7 +419,7 @@ class GetConfigFunctionsTests(TestCase):
             t.ic._data.get.assert_called_with(
                 # the key is not split, it is taken literally
                 option='this.is.a.valid.key',
-                section='root',  # Uses the injected root section value
+                section='UNNAMED_SECTION',
                 fallback=None,
             )
             t.assertIs(ret, t.ic._data.get.return_value)
@@ -481,7 +481,7 @@ class _load_ini_file_flat_Tests(TestCase):
 
         t.assertIs(t.config_parser, ret)
         t.config_parser.read_string.assert_called_with(
-            f'[root]\n{EXAMPLE_FLAT_STR}'
+            f'[UNNAMED_SECTION]\n{EXAMPLE_FLAT_STR}'
         )
 
     def test_file_not_found(t):

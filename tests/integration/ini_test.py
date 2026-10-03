@@ -199,9 +199,12 @@ class IniSourceIntegrationTests(TestCase):
     def test_flat_file_sections(t):
         """A flat file reads the keys above its first section header."""
         later_header = 'host = localhost\n[server]\nport = 8080\n'
+        root_header = 'host = localhost\n[root]\nport = 8080\n'
         cases = {
             'a key above a header': (later_header, 'host', 'localhost'),
             'a key under a header': (later_header, 'port', None),
+            'a key above [root]': (root_header, 'host', 'localhost'),
+            'a key under [root]': (root_header, 'port', None),
             'a [DEFAULT] key': (
                 'host = localhost\n[DEFAULT]\nuser = admin\n',
                 'user',
