@@ -92,11 +92,24 @@ def _get_flat(
     key: str,
     path: str | None = None,
 ) -> str | None:
-    return self._data.get(section='UNNAMED_SECTION', option=key, fallback=None)
+    return self._data.get(section=_flat_section(), option=key, fallback=None)
 
 
 def _flat_section() -> Any:
-    raise NotImplementedError
+    """Return the section that holds the keys of a flat file.
+
+    The section is ``configparser.UNNAMED_SECTION`` from Python 3.13, and
+    the name ``'UNNAMED_SECTION'`` before it.
+    """
+    try:
+        from configparser import UNNAMED_SECTION  # type: ignore[attr-defined]
+    except ImportError:
+        # Python 3.12 and older have no unnamed section, so the flat loader
+        # adds an [UNNAMED_SECTION] header. A flat file that spells
+        # [UNNAMED_SECTION] then fails with DuplicateSectionError. Remove
+        # this branch when Python 3.12 reaches end of life, October 2028.
+        return 'UNNAMED_SECTION'
+    return UNNAMED_SECTION
 
 
 def _get_empty(
@@ -292,9 +305,18 @@ def _load_ini_file(file_path: Path) -> ConfigParser:
 
 
 def _load_ini_file_flat(file_path: Path) -> ConfigParser:
-    config = ConfigParser()
+    section = _flat_section()
     with open(file_path) as cfg_file:
-        config.read_string(f'[UNNAMED_SECTION]\n{cfg_file.read()}')
+        # A named section needs its header in front of the file; the
+        # unnamed section needs the parser option.
+        if isinstance(section, str):
+            config = ConfigParser()
+            config.read_string(f'[{section}]\n{cfg_file.read()}')
+        else:
+            config = ConfigParser(  # type: ignore[call-overload]
+                allow_unnamed_section=True
+            )
+            config.read_file(cfg_file)
 
     return config
 
