@@ -92,7 +92,7 @@ def _get_flat(
     key: str,
     path: str | None = None,
 ) -> str | None:
-    return self._data.get(section='root', option=key, fallback=None)
+    return self._data.get(section='UNNAMED_SECTION', option=key, fallback=None)
 
 
 def _get_empty(
@@ -290,7 +290,7 @@ def _load_ini_file(file_path: Path) -> ConfigParser:
 def _load_ini_file_flat(file_path: Path) -> ConfigParser:
     config = ConfigParser()
     with open(file_path) as cfg_file:
-        config.read_string(f'[root]\n{cfg_file.read()}')
+        config.read_string(f'[UNNAMED_SECTION]\n{cfg_file.read()}')
 
     return config
 
