@@ -18,6 +18,12 @@ path is the ordinary case, and one file format would fail to express a
 schema that the other two express. The format would then constrain the
 schema.
 
+Before Python 3.13, `configparser` has no unnamed section: a key above the
+first header raises `MissingSectionHeaderError`. Python 3.13 adds
+`allow_unnamed_section=True`, which reads those keys into
+`configparser.UNNAMED_SECTION`. The `flat` layout keeps its keys above any
+header, so it relies on that support or on a workaround.
+
 ## Decision
 
 `/ROOT/` is the INI root section of the `sections` layout. It holds the
@@ -32,10 +38,11 @@ host = localhost
 ```
 
 The `flat` layout reads the keys above the first section header and ignores
-every section. From Python 3.13 those keys sit in the unnamed section of
-`configparser`. Before 3.13 the loader adds an internal
-`[UNNAMED_SECTION]` header instead, so a flat file that spells
-`[UNNAMED_SECTION]` fails there with `DuplicateSectionError`.
+every section. From Python 3.13 it reads them through the unnamed section of
+`configparser`. On Python 3.12 and older the loader injects an
+`[UNNAMED_SECTION]` header instead, so a flat file that spells that header
+fails there with `DuplicateSectionError`. The injection goes when Python
+3.12 reaches end of life, in October 2028.
 
 The `environments` layout reserves no name. An empty path resolves to the
 section of the active environment.
