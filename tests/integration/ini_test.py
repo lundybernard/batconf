@@ -1,3 +1,6 @@
+from collections.abc import Iterator
+from contextlib import contextmanager
+from tempfile import TemporaryDirectory
 from unittest import TestCase
 from unittest.mock import patch, Mock
 
@@ -5,6 +8,16 @@ from os import path
 
 from batconf.sources.ini import _IniConfig, IniSource
 from batconf.types import FILE_FORMATS
+
+
+@contextmanager
+def _ini_file(text: str) -> Iterator[str]:
+    """Yield the path of a temporary INI file that holds the text."""
+    with TemporaryDirectory() as tmp_dir:
+        file_path = path.join(tmp_dir, 'config.ini')
+        with open(file_path, 'w') as cfg_file:
+            cfg_file.write(text)
+        yield file_path
 
 
 class IniConfigIntegrationTests(TestCase):
@@ -182,6 +195,24 @@ class IniSourceIntegrationTests(TestCase):
         t.assertEqual('still a root value', ins.get('not.really.nested'))
         # root is a valid key, in spite of the default section name
         t.assertEqual('is a valid key', ins.get('root'))
+
+    def test_flat_file_sections(t):
+        """A flat file reads the keys above its first section header."""
+        later_header = 'host = localhost\n[server]\nport = 8080\n'
+        cases = {
+            'a key above a header': (later_header, 'host', 'localhost'),
+            'a key under a header': (later_header, 'port', None),
+            'a [DEFAULT] key': (
+                'host = localhost\n[DEFAULT]\nuser = admin\n',
+                'user',
+                'admin',
+            ),
+        }
+        for name, (text, key, expected) in cases.items():
+            with t.subTest(name), _ini_file(text) as file_path:
+                ins = IniSource(file_path=file_path, file_format='flat')
+                ret = ins.get(key)
+                t.assertEqual(expected, ret)
 
 
 class IniSourceMissingFileTests(TestCase):
