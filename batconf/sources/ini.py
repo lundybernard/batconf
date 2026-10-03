@@ -143,12 +143,20 @@ class IniSource(FileSourceP):
         INI file layout. ``'environments'`` expects top-level sections named
         after environments; ``'sections'`` uses sections as config namespaces
         and reads an empty path from the ``[/ROOT/]`` section;
-        ``'flat'`` reads all keys from a single ``[root]`` section.
+        ``'flat'`` reads the keys above the first section header and ignores
+        every section.
     config_env : str or None, default=read from file
         Active configuration environment. When not provided, the value of
         ``batconf.default_env`` in the INI file is used.
     missing_file_option : {'warn', 'ignore', 'error'}, default='warn'
         Behaviour when the specified file is missing.
+
+    Warnings
+    --------
+    On Python 3.12 and older the loader adds an ``[UNNAMED_SECTION]``
+    header to a ``'flat'`` file, so a file that spells that header raises
+    ``configparser.DuplicateSectionError``. Remove the header to load the
+    file.
 
     Examples
     --------

@@ -5,7 +5,8 @@ Status: Proposed
 
 ## Context
 
-`configparser` has no unnamed section, and `[]` is not a legal header. TOML
+The INI `sections` layout names every section, and `[]` is not a legal
+header, so a key declared on the root schema needs a named home. TOML
 and YAML hold root keys natively: with an empty path, both resolve a key
 declared on the root schema. INI does not, and the guide documents the
 limit.
@@ -19,8 +20,8 @@ schema.
 
 ## Decision
 
-`/ROOT/` is the INI root section. In the `sections` layout it holds the
-keys of an empty path. In the `flat` layout it holds the whole file.
+`/ROOT/` is the INI root section of the `sections` layout. It holds the
+keys of an empty path.
 
 ```ini
 [/ROOT/]
@@ -30,9 +31,11 @@ name = demo
 host = localhost
 ```
 
-The `flat` layout named that section `root`. The name is internal. The loader
-adds the `[root]` header itself, and a flat file that also spells it fails
-with `DuplicateSectionError`.
+The `flat` layout reads the keys above the first section header and ignores
+every section. From Python 3.13 those keys sit in the unnamed section of
+`configparser`. Before 3.13 the loader adds an internal
+`[UNNAMED_SECTION]` header instead, so a flat file that spells
+`[UNNAMED_SECTION]` fails there with `DuplicateSectionError`.
 
 The `environments` layout reserves no name. An empty path resolves to the
 section of the active environment.
@@ -99,8 +102,8 @@ may legitimately want for a namespace, and `configparser` offers no escape
 from the collision. `[DEFAULT]` is worse than a collision: it is a channel
 between sections.
 
-The `flat` layout already reserves a section name. That name is internal, so
-one spelling of the root across the layouts changes no flat file.
+The `flat` layout does not need a root section, because the keys above the
+first header are the root. `/ROOT/` changes no flat file.
 
 ## Consequences
 

@@ -293,15 +293,15 @@ is unchanged for the root, so the file moves rather than the code:
 
 A sub-configuration mounts under its field name alone, so
 ``cfg.server.host`` reads ``server.host``. A key declared on the root
-schema has no section name left in an INI file, and INI has no unnamed
-section. The ``[/ROOT/]`` section holds those keys from v0.4.x, in the
-``sections`` layout and in the ``flat`` layout; see ADR 0019.
+schema has no section name left, and the ``sections`` layout names every
+section. The ``[/ROOT/]`` section holds those keys from v0.4.x; see
+ADR 0019.
 
-The ``flat`` layout keeps its keys at the top of the file, with no
-section header. The loader adds its own ``root`` section before it
-parses the file, so a file that spells a ``[root]`` header fails with
-``configparser.DuplicateSectionError``. That header is an error, not a
-deprecated spelling. A flat file does not need a change.
+The ``flat`` layout reads the keys above the first section header and
+ignores every section. A key under ``[DEFAULT]`` reads as a fallback,
+and ``get`` ignores ``path``. A flat file does not need a change, except
+that on Python 3.12 and older a file that spells an ``[UNNAMED_SECTION]``
+header raises ``configparser.DuplicateSectionError``: remove that header.
 
 ==================
 The BAT prefix
