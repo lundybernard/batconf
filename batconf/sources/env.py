@@ -91,8 +91,10 @@ class EnvSource(SourceInterfaceP):
     def __str__(self):
         return f'Environment Variables: {repr(self)}'
 
-    def __repr__(self):
-        return f'{self.__class__.__name__}()'
+    def __repr__(self) -> str:
+        if isinstance(self._prefix, _UnsetPrefix):
+            return f'{self.__class__.__name__}()'
+        return f'{self.__class__.__name__}(prefix={repr(self._prefix)})'
 
 
 __getattr__ = make_deprecated_getattr(
