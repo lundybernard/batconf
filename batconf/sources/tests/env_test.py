@@ -7,7 +7,7 @@ from ..env import _BAT_PREFIX_DEPRECATION, EnvSource
 SRC = 'batconf.sources.env'
 
 
-class TestEnvSource(TestCase):
+class EnvSourceTests(TestCase):
     def setUp(t) -> None:
         t.es = EnvSource(prefix='mytool')
 
