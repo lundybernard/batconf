@@ -5,6 +5,31 @@ from batconf import EnvSource
 import batconf.sources.env as env_module
 
 
+class EnvSourceTests(TestCase):
+    """Integration tests for batconf.sources.env.EnvSource."""
+
+    def test___repr__(t) -> None:
+        with t.subTest('an undeclared prefix prints no argument, no warning'):
+            es = EnvSource()
+
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter('always')
+                ret = repr(es)
+
+            t.assertEqual('EnvSource()', ret)
+            t.assertEqual([], caught)
+
+        with t.subTest('a declared prefix prints quoted'):
+            es = EnvSource(prefix='mytool')
+            ret = repr(es)
+            t.assertEqual("EnvSource(prefix='mytool')", ret)
+
+        with t.subTest('prefix=None prints None'):
+            es = EnvSource(prefix=None)
+            ret = repr(es)
+            t.assertEqual('EnvSource(prefix=None)', ret)
+
+
 class EnvConfigDeprecationTests(TestCase):
     """EnvConfig is the pre-0.4 name for EnvSource."""
 

@@ -1,7 +1,7 @@
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from ..env import _BAT_PREFIX_DEPRECATION, EnvSource
+from ..env import _BAT_PREFIX_DEPRECATION, _UNSET, EnvSource
 
 
 SRC = 'batconf.sources.env'
@@ -68,8 +68,20 @@ class EnvSourceTests(TestCase):
         t.assertEqual(f'Environment Variables: {repr(t.es)}', ret)
 
     def test___repr__(t) -> None:
-        ret = repr(t.es)
-        t.assertEqual('EnvSource()', ret)
+        with t.subTest('an undeclared prefix prints no argument'):
+            t.es._prefix = _UNSET
+            ret = repr(t.es)
+            t.assertEqual('EnvSource()', ret)
+
+        with t.subTest('a declared prefix prints quoted'):
+            t.es._prefix = 'mytool'
+            ret = repr(t.es)
+            t.assertEqual("EnvSource(prefix='mytool')", ret)
+
+        with t.subTest('prefix=None prints None'):
+            t.es._prefix = None
+            ret = repr(t.es)
+            t.assertEqual('EnvSource(prefix=None)', ret)
 
 
 class BatPrefixDeprecationTests(TestCase):
