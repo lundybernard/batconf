@@ -1,7 +1,8 @@
 from unittest import TestCase
-from os import path
+from os import path, remove
+from tempfile import TemporaryDirectory
 
-from batconf import IniSource, TomlSource, YamlSource
+from batconf import ConfigFileNotFound, IniSource, TomlSource, YamlSource
 from batconf.types import FILE_FORMATS
 
 
@@ -84,6 +85,46 @@ class FileSourceSignatureParityTests(TestCase):
                     t.assertIsNone(src.get('key', path='missing.path'))
 
 
+class FileSourceMissingFileParityTests(TestCase):
+    """Every file source reports a missing file the same way."""
+
+    def setUp(t) -> None:
+        t.missing = 'sir.not.appearing.in.this.film'
+
+    def test_error_option_raises_at_construction(t) -> None:
+        for file_format in FILE_FORMATS:
+            for source_class in _ALL_SOURCES:
+                with t.subTest(
+                    source=source_class.__name__,
+                    file_format=file_format,
+                ):
+                    with t.assertRaises(ConfigFileNotFound):
+                        source_class(
+                            file_path=t.missing,
+                            file_format=file_format,
+                            missing_file_option='error',
+                        )
+
+    def test_error_option_raises_when_the_file_goes(t) -> None:
+        """A file lost after construction still fails with a batconf type."""
+        for source_class in _ALL_SOURCES:
+            with t.subTest(source=source_class.__name__):
+                with TemporaryDirectory() as tmp_dir:
+                    file_path = path.join(
+                        tmp_dir, f'conf.{_SOURCE_EXT[source_class]}'
+                    )
+                    open(file_path, 'w').close()
+                    src = source_class(
+                        file_path=file_path,
+                        file_format='flat',
+                        missing_file_option='error',
+                    )
+                    remove(file_path)
+
+                    with t.assertRaises(ConfigFileNotFound):
+                        src.get('any_key')
+
+
 class FileSourceValueParityTests(TestCase):
     """All file sources return equivalent values for the same logical key."""
 
@@ -124,6 +165,8 @@ class FileSourceValueParityTests(TestCase):
                 t.assertIsNotNone(src.get('sec0.sub0.value0'))
                 t.assertIsNone(src.get('missing_key'))
                 t.assertIsNone(src.get('sec0'))
+                # a key at the root of the file, outside every namespace
+                t.assertEqual(src.get('a_root_value'), 'is a valid key')
 
     def test_flat_format_parity(t):
         sources = [
@@ -138,10 +181,10 @@ class FileSourceValueParityTests(TestCase):
                 t.assertIsNone(src.get('missing_key'))
 
     def test_path_past_terminal_string_returns_None(t):
-        """Traversing past a leaf string value returns None, not an error.
+        """Traversing past a leaf string value returns None, silently.
 
-        Dict-traversal sources (TOML, YAML) also emit a WARNING.
-        IniSource handles this natively via ConfigParser fallback — no warning.
+        A key miss is ordinary: a later source in the list may hold the
+        value. Only a missing config file warns.
         """
         cases = [
             ('environments', t.env_sources),
@@ -155,13 +198,5 @@ class FileSourceValueParityTests(TestCase):
             key, path = keys[fmt]
             for src in sources:
                 with t.subTest(fmt=fmt, source=type(src).__name__):
-                    if isinstance(src, IniSource):
+                    with t.assertNoLogs(type(src).__module__, 'WARNING'):
                         t.assertIsNone(src.get(key, path=path))
-                    else:
-                        with t.assertLogs(type(src).__module__, level='WARNING') as cm:
-                            result = src.get(key, path=path)
-                        t.assertIsNone(result)
-                        t.assertEqual(
-                            cm.records[0].getMessage(),
-                            f'Config path {path}.{key} does not exist',
-                        )

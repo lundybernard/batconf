@@ -1,3 +1,4 @@
+a_root_value: 'is a valid key'
 sec0:
   sub0:
     value0: 'sections.config.yaml :: sec0.sub0 :: value0'

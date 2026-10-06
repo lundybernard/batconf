@@ -3,10 +3,8 @@ from logging import getLogger
 
 from pathlib import Path
 
+from ..errors import ConfigFileNotFound
 from .types import MissingFileOption
-
-# backwards-compatible internal alias
-_MissingFileOption = MissingFileOption
 
 
 log = getLogger(__name__)
@@ -19,10 +17,6 @@ class FileLoaderP(Protocol):
     def __call__(self, file_path: Path) -> Any: ...
 
 
-EmptyConfigurationSentinel = object()
-
-
-# EmptyConfiguration = {'default': 'none', 'none': {}}
 class MissingFileHandlerP(Protocol):
     def __call__(
         self,
@@ -64,7 +58,36 @@ def load_file_error_when_missing(
     file_path: Path,
     empty_fallback: Any = ...,
 ):
-    return loader_fn(file_path)
+    """Load the file, and report a missing one as a batconf error.
+
+    Raises
+    ------
+    ConfigFileNotFound
+        The loader could not read ``file_path``.
+    """
+    try:
+        return loader_fn(file_path)
+    except FileNotFoundError as err:
+        raise ConfigFileNotFound(
+            f'Failed to load config file: {file_path}'
+        ) from err
+
+
+def check_missing_file(
+    file_path: Path,
+    when_missing: MissingFileOption,
+) -> None:
+    """Report a missing config file before anything reads it.
+
+    Raises
+    ------
+    ConfigFileNotFound
+        ``when_missing`` is ``'error'`` and ``file_path`` does not exist.
+    """
+    if when_missing != 'error':
+        return
+    if not file_path.exists():
+        raise ConfigFileNotFound(f'Config file not found: {file_path}')
 
 
 missing_file_handlers: dict[str, MissingFileHandlerP] = {

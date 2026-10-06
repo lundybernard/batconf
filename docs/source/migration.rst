@@ -3,9 +3,9 @@ Migration Guide
 ###############
 
 
-****************
-v0.5.0 (planned)
-****************
+******
+v0.5.0
+******
 
 BatConf deprecates and documents a name in a patch release (n.n.x) and
 removes it in the next minor release (n.x). Every name and default
@@ -42,15 +42,16 @@ What is removed
    * - ``batconf.sources.args.CliArgsConfig``, and the whole
        ``batconf.sources.args`` module
      - ``NamespaceSource`` — different lookup rule
-   * - ``batconf.sources.dataclass.DataclassConfig``
+   * - ``batconf.sources.dataclass.DataclassConfig``, and the whole
+       ``batconf.sources.dataclass`` module
      - none; delete the source-list entry
    * - ``batconf.source.SourceInterface``
      - ``SourceInterfaceP``, or no base class at all
    * - The ``module=`` keyword of ``.get()`` on every
        ``SourceInterfaceP`` source, and of ``EnvSource.env_name()``
      - ``path=``
-   * - ``Protocol``- and ``Proto``-suffixed aliases in
-       ``batconf.types``
+   * - ``Protocol``- and ``Proto``-suffixed aliases in ``batconf.types``
+       and ``batconf.sources.types``
      - the ``P``-suffixed names
    * - The module-name default of the ``path`` parameter of
        ``Configuration``
@@ -251,8 +252,9 @@ v0.4.x and removed in v0.5.0. Its second parameter is ``path``:
 Type aliases
 ==================
 The ``Protocol``- and ``Proto``-suffixed aliases in
-:mod:`batconf.types` are removed. Use the ``P``-suffixed names:
-``ConfigP``, ``FieldP``, ``SourceInterfaceP``, ``SourceListP``.
+:mod:`batconf.types` and :mod:`batconf.sources.types` are removed. Use
+the ``P``-suffixed names: ``ConfigP``, ``FieldP``, ``SourceInterfaceP``,
+``SourceListP``.
 
 ==================
 The module path
@@ -331,11 +333,15 @@ was: path ``yourproject.conf.server`` and key ``host`` read
    path ``server`` and key ``host`` move from ``SERVER_HOST`` to
    ``BAT_SERVER_HOST``.
 
-In v0.4.x, ``prefix=None`` reads a bare uppercase name at the root, so a
-schema field named ``path`` or ``user`` resolves against an ambient
-process variable. ADR 0018 proposes to refuse bare names at the root in
-v0.5.0. Declare a prefix to keep every lookup inside a namespace under
-either rule.
+Without a prefix, a lookup at the root returns ``None`` rather than
+reading a bare uppercase name, so a schema field named ``path`` or
+``user`` cannot resolve against an ambient process variable.
+``raw=True`` opts back in:
+
+.. code-block:: python
+
+    EnvSource().get('path')          # None
+    EnvSource(raw=True).get('path')  # reads $PATH
 
 ``BATCONF_`` is reserved for BatConf's own variables. Do not choose it
 as your prefix.

@@ -1,7 +1,5 @@
 from typing import Literal, Protocol, runtime_checkable
 
-from ._compat import make_deprecated_getattr
-
 ConfigFileFormats = Literal['flat', 'sections', 'environments']
 FILE_FORMATS: list[ConfigFileFormats] = ['flat', 'sections', 'environments']
 MissingFileOption = Literal['ignore', 'warn', 'error']
@@ -50,14 +48,3 @@ __all__ = [
     'MissingFileOption',
     'SourceInterfaceP',
 ]
-
-
-_deprecated: dict[str, str] = {
-    'SourceInterfaceProto': 'SourceInterfaceP',
-}
-
-__getattr__ = make_deprecated_getattr(
-    deprecated=_deprecated,
-    module_globals=globals(),
-    module_name=__name__,
-)

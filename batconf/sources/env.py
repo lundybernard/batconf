@@ -1,22 +1,6 @@
 import os
-import warnings
 
 from .types import SourceInterfaceP
-from ._compat import deprecated_module, make_deprecated_getattr
-
-
-_BAT_PREFIX_DEPRECATION = (
-    "the implicit 'BAT' environment prefix is deprecated and will be "
-    "removed in v0.5.0; pass prefix='BAT' to keep it, or prefix=None for "
-    'no prefix.'
-)
-
-
-class _UnsetPrefix:
-    """Sentinel type: the caller declared no prefix."""
-
-
-_UNSET = _UnsetPrefix()
 
 
 class EnvSource(SourceInterfaceP):
@@ -28,11 +12,15 @@ class EnvSource(SourceInterfaceP):
 
     Parameters
     ----------
-    prefix : str or None, default=deprecated ``BAT``
-        Environment namespace for every lookup. ``None`` declares no
-        namespace. Leaving it undeclared keeps the pre-0.5.0 behaviour:
-        the ``BAT`` prefix on a lookup with no path, and a
-        ``DeprecationWarning``. The ``BATCONF`` namespace is reserved.
+    prefix : str or None, default=None
+        Environment namespace for every lookup. Declare one: without a
+        prefix a root-level key would resolve to a bare name such as
+        ``PATH`` or ``USER``. The ``BATCONF`` namespace is reserved for
+        BatConf's own variables.
+    raw : bool, default=False
+        Read bare names at the root. Schema-declared fields then resolve
+        against ambient process variables, and the collision is the
+        caller's chosen trade.
 
     Examples
     --------
@@ -43,60 +31,31 @@ class EnvSource(SourceInterfaceP):
     'localhost'
     """
 
-    def __init__(self, prefix: str | None | _UnsetPrefix = _UNSET) -> None:
+    def __init__(self, prefix: str | None = None, raw: bool = False) -> None:
         self._prefix = prefix
+        self._raw = raw
 
-    def get(
-        self,
-        key: str,
-        path: str | None = None,
-        module: str | None = None,
-    ) -> str | None:
-        path = deprecated_module(path, module)
+    def get(self, key: str, path: str | None = None) -> str | None:
+        if not (path or self._resolves_bare_names):
+            return None
         return os.getenv(self.env_name(key, path=path))
 
-    def env_name(
-        self,
-        key: str,
-        path: str | None = None,
-        module: str | None = None,
-    ) -> str:
-        """Return the environment variable name for ``key`` under ``path``.
+    @property
+    def _resolves_bare_names(self) -> bool:
+        """A bare name is read under a prefix, or by explicit opt-in."""
+        return bool(self._prefix) or self._raw
 
-        The ``module`` keyword is deprecated. It maps onto ``path`` and is
-        removed in v0.5.0.
-        """
-        path = deprecated_module(path, module, method='env_name')
+    def env_name(self, key: str, path: str | None = None) -> str:
+        """Return the environment variable name for ``key`` under ``path``."""
         parts = (
-            self._prefix_parts(path)
+            ([self._prefix] if self._prefix else [])
             + (path.split('.') if path else [])
             + key.split('.')
         )
         return '_'.join(parts).upper()
-
-    def _prefix_parts(self, path: str | None) -> list[str]:
-        if not isinstance(self._prefix, _UnsetPrefix):
-            return [self._prefix] if self._prefix else []
-        if path:
-            return []
-        # stacklevel 4 reaches the caller of get():
-        # get -> env_name -> _prefix_parts -> warn
-        warnings.warn(
-            _BAT_PREFIX_DEPRECATION,
-            DeprecationWarning,
-            stacklevel=4,
-        )
-        return ['BAT']
 
     def __str__(self):
         return f'Environment Variables: {repr(self)}'
 
     def __repr__(self):
         return f'{self.__class__.__name__}()'
-
-
-__getattr__ = make_deprecated_getattr(
-    deprecated={'EnvConfig': 'EnvSource'},
-    module_globals=globals(),
-    module_name=__name__,
-)

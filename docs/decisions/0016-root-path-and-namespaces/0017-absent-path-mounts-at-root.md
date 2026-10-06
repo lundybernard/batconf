@@ -1,7 +1,7 @@
 # ADR 0017 — An absent path mounts the schema at the root
 
 Date: 2026-09-01
-Status: Proposed
+Status: Accepted
 
 ## Context
 

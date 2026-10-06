@@ -1,45 +1,33 @@
 from functools import cached_property
-from typing import Literal, Protocol, Callable
-from logging import getLogger
+from typing import Protocol
 
 from configparser import ConfigParser
 from pathlib import Path
-from enum import Enum, auto
 
-from .types import ConfigFileFormats, FileSourceP
+from ..errors import (
+    ConfigEnvironmentNotFound,
+    ConfigFileNotFound,
+    InvalidFileFormat,
+)
+from .types import ConfigFileFormats, FileSourceP, MissingFileOption
 from .file import (
-    _MissingFileOption,
+    check_missing_file,
     FileLoaderP,
     missing_file_handlers as _missing_file_handlers,
     file_config_repr,
 )
-from ._compat import make_deprecated_getattr
 
 
-log = getLogger(__name__)
+# === IniSource Get Methods === #
 
 
-class _DEFAULTS(Enum):
-    environment = auto()
-
-
-_EnvOpts = str | Literal[_DEFAULTS.environment] | None
-
-
-class ConfigParserP(Protocol):
-    def get(
-        self,
-        section: str,
-        option: str,
-        fallback: str | None = None,
-    ) -> str | None: ...
-
-
-# === IniConfig Get Methods === #
+# configparser has no unnamed section, and a path built from Python
+# identifiers never produces this name.
+_ROOT_SECTION = '/ROOT/'
 
 
 class _ConfigParserSource(Protocol):
-    _config_env: _EnvOpts
+    _config_env: str | None
     _data: ConfigParser
 
 
@@ -54,7 +42,8 @@ def _get_envs(
     try:
         section, key = key.rsplit(sep='.', maxsplit=1)
     except ValueError:
-        # Type checking should be fixed in the next MyPy release
+        # a bare key is read from the environment section itself, which
+        # the environments format always resolves
         section = self._config_env  # type: ignore[assignment]
     else:
         section = f'{self._config_env}.{section}'
@@ -77,7 +66,7 @@ def _get_sections(
     try:
         section, key = key.rsplit(sep='.', maxsplit=1)
     except ValueError:
-        section = ''
+        section = _ROOT_SECTION
 
     return self._data.get(section=section, option=key, fallback=None)
 
@@ -132,17 +121,23 @@ class IniSource(FileSourceP):
     >>> src = IniSource(file_path='config.ini', config_env='dev')
     """
 
+    __config_env: str | None
+
     def __init__(
         self,
         file_path: str,
         file_format: ConfigFileFormats = 'environments',
         config_env: str | None = None,
-        missing_file_option: _MissingFileOption = 'warn',
+        missing_file_option: MissingFileOption = 'warn',
     ):
         self._missing_file_option = missing_file_option
         self._file_format = file_format  # validated by setter
         self._config_file_path = Path(file_path)
-        self._config_env = config_env  # type: ignore[assignment]
+        self._config_env = config_env
+        check_missing_file(
+            file_path=self._config_file_path,
+            when_missing=missing_file_option,
+        )
 
     def get(self, key: str, path: str | None = None) -> str | None:
         return self._get_impl(self, key=key, path=path)
@@ -154,12 +149,8 @@ class IniSource(FileSourceP):
     @_file_format.setter
     def _file_format(self, fmt: str) -> None:
         if fmt not in _file_type_loaders:
-            raise ValueError(f'Invalid file_format: {fmt}')
+            raise InvalidFileFormat(f'Invalid file_format: {fmt}')
         self.__file_format = fmt
-
-    @property
-    def _loader(self):
-        return _file_type_loaders[self._file_format]
 
     @property
     def _get_impl(self):
@@ -181,15 +172,14 @@ class IniSource(FileSourceP):
             return self._raw_data
         if self._file_format == 'environments':
             if not self._raw_data.has_section(self._config_env):
-                raise ValueError(
+                raise ConfigEnvironmentNotFound(
                     f'Config Environment "{self._config_env}" '
                     f'not found in {self._config_file_path}'
                 )
         return self._raw_data
 
-    # TODO: Fix type-hints when the next version of MyPy is released
     @property
-    def _config_env(self):  # -> str | None:
+    def _config_env(self) -> str | None:
         if self._file_format != 'environments':
             return None
         if self.__config_env is None:
@@ -199,9 +189,9 @@ class IniSource(FileSourceP):
         return self.__config_env
 
     @_config_env.setter
-    def _config_env(self, env):  # str | None
+    def _config_env(self, env: str | None) -> None:
         if not self._file_format == 'environments':
-            self.__config_env = None  # type: ignore[assignment]
+            self.__config_env = None
             return
         self.__config_env = env
 
@@ -211,59 +201,13 @@ class IniSource(FileSourceP):
     __repr__ = file_config_repr
 
 
-# === IniConfig (deprecated) === #
-
-
-class IniConfig(IniSource):
-    """Deprecated. Use IniSource instead.
-
-    Parameters
-    ----------
-    file_path : str
-        Path to the INI configuration file.
-    config_env : str or None, default=read from file
-        Active configuration environment. When not provided, the value of
-        ``batconf.default_env`` in the INI file is used.
-    missing_file_option : {'warn', 'ignore', 'error'}, default='warn'
-        Behaviour when the specified file is missing.
-    file_format : {'environments', 'sections', 'flat'}, default='environments'
-        INI file layout.
-    """
-
-    def __init__(
-        self,
-        file_path: str,
-        config_env: _EnvOpts = _DEFAULTS.environment,
-        missing_file_option: _MissingFileOption = 'warn',
-        file_format: ConfigFileFormats = 'environments',
-    ):
-        env = None if config_env is _DEFAULTS.environment else config_env
-        super().__init__(
-            file_path=file_path,
-            file_format=file_format,
-            config_env=env,
-            missing_file_option=missing_file_option,
-        )
-
-
-_IniConfig = IniConfig
-del IniConfig
-
-__getattr__ = make_deprecated_getattr(
-    deprecated={'IniConfig': 'IniSource'},
-    module_globals=globals(),
-    module_name=__name__,
-    targets={'IniConfig': '_IniConfig'},
-)
-
-
 # === INI File Loader Functions === #
 
 
 def _load_ini(
     file_path: Path,
     file_format: ConfigFileFormats,
-    when_missing: _MissingFileOption = 'warn',
+    when_missing: MissingFileOption = 'warn',
 ) -> ConfigParser | EmptyConfigParser:
     loader_fn = _file_type_loaders[file_format]
     return _missing_file_handlers[when_missing](
@@ -276,7 +220,7 @@ def _load_ini(
 def _load_ini_file(file_path: Path) -> ConfigParser:
     config = ConfigParser()
     if not config.read(file_path):
-        raise FileNotFoundError(f'Failed to load config file: {file_path}')
+        raise ConfigFileNotFound(f'Failed to load config file: {file_path}')
 
     return config
 
@@ -295,9 +239,3 @@ _file_type_loaders: dict[str, FileLoaderP] = {
     'flat': _load_ini_file_flat,
 }
 
-
-_file_loader_map = {
-    (ini_format, when_missing): (loader_fn, handler_fn)
-    for ini_format, loader_fn in _file_type_loaders.items()
-    for when_missing, handler_fn in _missing_file_handlers.items()
-}

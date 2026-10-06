@@ -129,21 +129,6 @@ class TomlSourceMissingFileTests(TestCase):
             t.assertIsNone(ts.get('project.submodule.sub.key1'))
             t.assertIsNone(ts.get('any.random.key'))
 
-    def test_missing_file_error(t):
-        """when missing_file_option='error'
-        attempting to load a missing file will raise a FileNotFoundError
-        """
-        for file_format in FILE_FORMATS:
-            with t.subTest(file_format=file_format):
-                ts = TomlSource(
-                    file_path=t.filename,
-                    missing_file_option='error',
-                    file_format=file_format,
-                )
-                # lazy: error raised on first data access, not construction
-                with t.assertRaises(FileNotFoundError):
-                    ts.get('root')
-
     def test_missing_file_ignore(t):
         """when missing_file_option='ignore'
         attempting to load a missing file will not raise an error
@@ -160,21 +145,3 @@ class TomlSourceMissingFileTests(TestCase):
                 t.assertIsNone(ts.get('doc'))
                 t.assertIsNone(ts.get('project.submodule.sub.key1'))
                 t.assertIsNone(ts.get('any.random.key'))
-
-
-class DeprecationTests(TestCase):
-    def test_TomlConfig_fires_warning_on_access(t):
-        import batconf.sources.toml as toml_module
-        with t.assertWarns(DeprecationWarning) as cm:
-            TomlConfig = toml_module.__getattr__('TomlConfig')
-        t.assertEqual(
-            "'TomlConfig' is deprecated and will be removed in v0.5.0; "
-            "use 'TomlSource' instead.",
-            str(cm.warning),
-        )
-
-    def test_TomlConfig_is_TomlSource_subclass(t):
-        import batconf.sources.toml as toml_module
-        with t.assertWarns(DeprecationWarning):
-            TomlConfig = toml_module.__getattr__('TomlConfig')
-        t.assertTrue(issubclass(TomlConfig, TomlSource))

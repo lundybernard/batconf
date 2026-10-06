@@ -3,7 +3,10 @@ from unittest.mock import patch, create_autospec, Mock, sentinel
 
 from ..file import (
     # missing file handlers
+    check_missing_file,
+    ConfigFileNotFound,
     MissingFileHandlerP,
+    MissingFileOption,
     load_file_warn_when_missing,
     load_file_ignore_when_missing,
     load_file_error_when_missing,
@@ -105,11 +108,51 @@ class FileLoaderFunctionTests(TestCase):
         with t.subTest('file_path does not exist'):
             t.loader_fn.side_effect = FileNotFoundError
 
-            with t.assertRaises(FileNotFoundError):
+            with t.assertRaises(ConfigFileNotFound) as err:
                 _ = load_file_error_when_missing(
                     loader_fn=t.loader_fn,
                     file_path=t.file_path,
                 )
+            t.assertEqual(
+                str(err.exception),
+                f'Failed to load config file: {t.file_name}',
+            )
+
+
+class CheckMissingFileTests(TestCase):
+    def setUp(t) -> None:
+        t.file_path = create_autospec(Path, instance=True)
+
+    def test_check_missing_file(t) -> None:
+        with t.subTest('error option, file is missing'):
+            t.file_path.exists.return_value = False
+
+            with t.assertRaises(ConfigFileNotFound) as err:
+                check_missing_file(
+                    file_path=t.file_path,
+                    when_missing='error',
+                )
+            t.assertEqual(
+                str(err.exception),
+                f'Config file not found: {t.file_path}',
+            )
+
+        with t.subTest('error option, file exists'):
+            t.file_path.exists.return_value = True
+
+            check_missing_file(file_path=t.file_path, when_missing='error')
+
+        quiet: tuple[MissingFileOption, ...] = ('warn', 'ignore')
+        for option in quiet:
+            with t.subTest(f'{option} option: the file is not checked'):
+                t.file_path.exists.reset_mock()
+                t.file_path.exists.return_value = False
+
+                check_missing_file(
+                    file_path=t.file_path,
+                    when_missing=option,
+                )
+                t.file_path.exists.assert_not_called()
 
 
 class MissingFileHandlersTests(TestCase):

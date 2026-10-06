@@ -10,7 +10,8 @@ Examples
 ...     ...
 """
 
-from typing import Protocol, Type, runtime_checkable
+from collections.abc import Mapping
+from typing import Protocol, runtime_checkable
 
 from .sources.types import (
     ConfigFileFormats,
@@ -28,14 +29,18 @@ class SourceListP(SourceInterfaceP, Protocol):
 
 
 class FieldP(Protocol):
-    type: 'ConfigP | Type[str]'
+    # a live class, or its annotation string
+    type: type | str
     name: str
-    default: str
+    default: object
 
 
 @runtime_checkable
 class ConfigP(Protocol):
-    __dataclass_fields__: dict[str, FieldP]
+    # read-only: a dict member would be invariant, and no dataclass
+    # would satisfy the protocol
+    @property
+    def __dataclass_fields__(self) -> Mapping[str, FieldP]: ...
 
 
 __all__ = [
@@ -48,24 +53,3 @@ __all__ = [
     'SourceInterfaceP',
     'SourceListP',
 ]
-
-_deprecated: dict[str, str] = {
-    'ConfigProtocol': 'ConfigP',
-    'FieldProtocol': 'FieldP',
-    'SourceInterfaceProto': 'SourceInterfaceP',
-    'SourceListProto': 'SourceListP',
-}
-
-
-def __getattr__(name: str):
-    if name in _deprecated:
-        import warnings
-        new = _deprecated[name]
-        warnings.warn(
-            f'{name!r} is deprecated and will be removed in v0.5.0; '
-            f'use {new!r} instead.',
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return globals()[new]
-    raise AttributeError(f'module {__name__!r} has no attribute {name!r}')
