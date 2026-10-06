@@ -34,3 +34,19 @@ Classes already scheduled for removal in v0.5.0 hold it through the private
 - Mutation coverage, before a PR goes to review: `pixi run mutation`.
   Report the caught and survived counts in the PR. Survivors measure test
   strength; fixing every one is not required.
+
+## Commit attribution
+
+A commit that an AI tool helped write carries an `Assisted-by` trailer that
+names the tool and the model. A commit never credits an AI tool with
+`Co-Authored-By`: an agent whose tool adds that trailer by default replaces it
+with `Assisted-by`.
+
+```text
+Assisted-by: <tool>:<model>
+```
+
+- `<model>` is the model ID alone, without a context-window or variant suffix.
+- One line per distinct `<tool>:<model>` that contributed.
+- The trailer goes in the block that closes the message, below any issue
+  references.
