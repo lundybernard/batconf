@@ -17,6 +17,9 @@ up front:
   files: test idioms, project layout, typing, and formatting.
 - **[Architecture Decision Records](docs/agents/adr.md)** — read before
   proposing changes to core behaviour, or when recording a new decision.
+- **[PR crafting](docs/agents/pr-crafting.md)** — read before you create a
+  branch, rewrite its commits, open a PR, or answer a review. Commit order,
+  fixups, and merge preparation.
 
 ## Source interface
 
