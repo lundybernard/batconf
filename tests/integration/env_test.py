@@ -1,5 +1,6 @@
 import warnings
 from unittest import TestCase
+from unittest.mock import patch
 
 from batconf import EnvSource
 import batconf.sources.env as env_module
@@ -49,3 +50,23 @@ class EnvNameModuleDeprecationTests(TestCase):
                 via_path = t.es.env_name('key', path='server')
             t.assertEqual('MYTOOL_SERVER_KEY', via_path)
             t.assertEqual([], caught)
+
+
+class BatPrefixDeprecationTests(TestCase):
+    """An undeclared prefix reads the BAT name at the root, and warns."""
+
+    def setUp(t) -> None:
+        t.es = EnvSource()  # prefix undeclared: pre-0.5.0 behaviour
+
+    @patch.dict('batconf.sources.env.os.environ', {'BAT_KEY': 'value'})
+    def test_get(t):
+        with t.assertWarns(DeprecationWarning) as cm:
+            ret = t.es.get('key')
+
+        t.assertEqual('value', ret)
+        t.assertEqual(
+            "the implicit 'BAT' environment prefix is deprecated and will "
+            'be removed in v0.5.0; pass prefix=None for no prefix, or a '
+            'namespace of your own.',
+            str(cm.warning),
+        )

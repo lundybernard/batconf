@@ -94,8 +94,8 @@ class BatPrefixDeprecationTests(TestCase):
     def test__BAT_PREFIX_DEPRECATION(t):
         t.assertEqual(
             "the implicit 'BAT' environment prefix is deprecated and will "
-            "be removed in v0.5.0; pass prefix='BAT' to keep it, or "
-            'prefix=None for no prefix.',
+            'be removed in v0.5.0; pass prefix=None for no prefix, or a '
+            'namespace of your own.',
             _BAT_PREFIX_DEPRECATION,
         )
 

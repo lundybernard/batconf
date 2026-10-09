@@ -7,8 +7,8 @@ from ._compat import deprecated_module, make_deprecated_getattr
 
 _BAT_PREFIX_DEPRECATION = (
     "the implicit 'BAT' environment prefix is deprecated and will be "
-    "removed in v0.5.0; pass prefix='BAT' to keep it, or prefix=None for "
-    'no prefix.'
+    'removed in v0.5.0; pass prefix=None for no prefix, or a namespace of '
+    'your own.'
 )
 
 
