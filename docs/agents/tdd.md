@@ -80,6 +80,33 @@ constraint surfaces the next component to build.
 
 ---
 
+## Red commits
+
+A red commit holds new failing tests and not the code that passes them.
+Commit the red step on its own when the split leaves each commit smaller and
+more focused than one commit that carries both the tests and the code. The
+strongest case is a reproduction: the test that reproduces a bug lands red, and
+the fix lands green in the next commit. The history then shows the failure and
+proves the fix. A red commit survives the merge, because that record is an
+important part of the history.
+
+The header is `test(RED): <Summary>`.
+
+A red commit meets these conditions:
+
+- Each new test fails for the right reason, on its own line. A runner-level
+  import error is not a red. Add the new symbol as a stub that raises
+  `NotImplementedError`, in the red commit or before it, so each red test
+  fails on the stub. The implement commit replaces the stub bodies.
+- A test that patches a collaborator the stub does not bind yet can fail at
+  setup on the patch target. That is an acceptable red.
+- Every pre-existing test still passes. The only failures are the ones the
+  commit adds.
+- The branch ends green. A red commit is a step inside the sequence, never the
+  tip of a branch at merge.
+
+---
+
 ## Refactor discipline
 
 - Refactor only when green.

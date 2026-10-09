@@ -6,8 +6,9 @@ other agents can point their tool at this file directly.
 
 ## Conventions (read when relevant)
 
-This project follows a strict test-driven workflow and a specific Python style.
-The detailed guides are vendored under `docs/agents/` and are **lazy** — read
+This project follows a strict test-driven workflow, a specific Python style,
+recorded design decisions, and rules for the commit history of a PR. The
+detailed guides are vendored under `docs/agents/` and are **lazy** — read
 the one that applies to the change you are making, rather than loading them all
 up front:
 
@@ -17,6 +18,9 @@ up front:
   files: test idioms, project layout, typing, and formatting.
 - **[Architecture Decision Records](docs/agents/adr.md)** — read before
   proposing changes to core behaviour, or when recording a new decision.
+- **[PR crafting](docs/agents/pr-crafting.md)** — read before you create a
+  branch, rewrite its commits, open a PR, or answer a review. Commit order,
+  fixups, and merge preparation.
 
 ## Source interface
 
