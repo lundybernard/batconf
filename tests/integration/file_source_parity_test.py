@@ -125,6 +125,17 @@ class FileSourceValueParityTests(TestCase):
                 t.assertIsNone(src.get('missing_key'))
                 t.assertIsNone(src.get('sec0'))
 
+        # A root key runs once per spelling of the root path.
+        for src in sources:
+            for root_path in (None, ''):
+                with t.subTest(
+                    'a key at the root',
+                    source=type(src).__name__,
+                    path=root_path,
+                ):
+                    ret = src.get('a_root_value', path=root_path)
+                    t.assertEqual(ret, 'is a valid key')
+
     def test_flat_format_parity(t):
         sources = [
             t._load(cls, 'flat')  # nofmt

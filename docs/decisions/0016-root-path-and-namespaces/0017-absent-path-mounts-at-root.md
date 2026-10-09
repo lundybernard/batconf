@@ -109,8 +109,9 @@ no token at all, and this is a config library.
   explicitly. It warns from 0.4.1 and fails to resolve from 0.5.0.
 - Root-level environment lookups lose their prefix. See
   [the environment prefix](0018-env-source-prefix.md).
-- INI cannot represent an unnamed section. See
-  [the INI root section](0019-ini-root-section.md).
+- The INI `sections` layout names every section, so root keys need a named
+  one. `configparser` reads keys above the first header only from Python
+  3.13. See [the INI root section](0019-ini-root-section.md).
 - The root belongs to no project. See
   [the format and environment contract](0021-format-environment-contract.md)
   for what a project in a shared file must declare.

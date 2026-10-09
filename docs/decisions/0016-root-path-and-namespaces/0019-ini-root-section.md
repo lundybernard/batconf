@@ -5,7 +5,8 @@ Status: Proposed
 
 ## Context
 
-`configparser` has no unnamed section, and `[]` is not a legal header. TOML
+The INI `sections` layout names every section, and `[]` is not a legal
+header, so a key declared on the root schema needs a named home. TOML
 and YAML hold root keys natively: with an empty path, both resolve a key
 declared on the root schema. INI does not, and the guide documents the
 limit.
@@ -17,10 +18,16 @@ path is the ordinary case, and one file format would fail to express a
 schema that the other two express. The format would then constrain the
 schema.
 
+Before Python 3.13, `configparser` has no unnamed section: a key above the
+first header raises `MissingSectionHeaderError`. Python 3.13 adds
+`allow_unnamed_section=True`, which reads those keys into
+`configparser.UNNAMED_SECTION`. The `flat` layout keeps its keys above any
+header, so it relies on that support or on a workaround.
+
 ## Decision
 
-`/ROOT/` is the INI root section. In the `sections` layout it holds the
-keys of an empty path. In the `flat` layout it holds the whole file.
+`/ROOT/` is the INI root section of the `sections` layout. It holds the
+keys of an empty path.
 
 ```ini
 [/ROOT/]
@@ -30,9 +37,12 @@ name = demo
 host = localhost
 ```
 
-The `flat` layout named that section `root`. The name is internal. The loader
-adds the `[root]` header itself, and a flat file that also spells it fails
-with `DuplicateSectionError`.
+The `flat` layout reads the keys above the first section header and ignores
+every section. From Python 3.13 it reads them through the unnamed section of
+`configparser`. On Python 3.12 and older the loader injects an
+`[UNNAMED_SECTION]` header instead, so a flat file that spells that header
+fails there with `DuplicateSectionError`. The injection goes when Python
+3.12 reaches end of life, in October 2028.
 
 The `environments` layout reserves no name. An empty path resolves to the
 section of the active environment.
@@ -99,8 +109,8 @@ may legitimately want for a namespace, and `configparser` offers no escape
 from the collision. `[DEFAULT]` is worse than a collision: it is a channel
 between sections.
 
-The `flat` layout already reserves a section name. That name is internal, so
-one spelling of the root across the layouts changes no flat file.
+The `flat` layout does not need a root section, because the keys above the
+first header are the root. `/ROOT/` changes no flat file.
 
 ## Consequences
 

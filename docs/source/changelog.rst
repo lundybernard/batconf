@@ -37,6 +37,9 @@ Added:
   ``host`` at path ``server``. ``prefix=None`` declares no namespace. The
   ``BATCONF_`` namespace is reserved for BatConf's own variables; do not
   choose it.
+* :class:`~batconf.sources.ini.IniSource` reads a key of the root schema
+  from the ``[/ROOT/]`` section in the ``sections`` layout. An INI file
+  then holds a root-level key, as TOML and YAML do natively. See ADR 0019.
 
 Deprecated:
 
@@ -98,6 +101,12 @@ Fixed:
 * The PyYAML import error ran two sentences together and named the
   deprecated ``YamlConfig``; the missing-YAML-file error ran two
   sentences together; the TOML import error broke a sentence mid-way.
+* A ``[root]`` header in an INI ``flat`` file raised
+  ``configparser.DuplicateSectionError``, because the loader added a
+  ``[root]`` header of its own. A ``[root]`` header is now one more
+  ignored section. On Python 3.12 and older the loader's header is
+  ``[UNNAMED_SECTION]``, and a flat file that spells it raises
+  ``configparser.DuplicateSectionError``.
 
 Documentation:
 

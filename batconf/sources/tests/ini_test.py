@@ -1,7 +1,14 @@
 import warnings
 
 from unittest import TestCase
-from unittest.mock import Mock, patch, mock_open, create_autospec, PropertyMock
+from unittest.mock import (
+    Mock,
+    patch,
+    mock_open,
+    create_autospec,
+    PropertyMock,
+    sentinel,
+)
 
 from ..ini import (
     # Under Test
@@ -15,6 +22,7 @@ from ..ini import (
     _get_envs,
     _get_sections,
     _get_flat,
+    _flat_section,
     _get_empty,
     _file_type_loaders,
     _missing_file_handlers,
@@ -357,14 +365,23 @@ class GetConfigFunctionsTests(TestCase):
         This is for the standard .ini file format.
         """
         with t.subTest('single key'):
-            # Section files require a section be specified
             ret = _get_sections(self=t.ic, key=t.key)
+
             t.ic._data.get.assert_called_with(
                 option=t.key,
-                section='',  # this should fail and fallback to None
+                section='/ROOT/',
                 fallback=None,
             )
-            # but returning None is handled by the _data.get method
+            t.assertIs(ret, t.ic._data.get.return_value)
+
+        with t.subTest('empty path'):
+            ret = _get_sections(self=t.ic, key=t.key, path='')
+
+            t.ic._data.get.assert_called_with(
+                option=t.key,
+                section='/ROOT/',
+                fallback=None,
+            )
             t.assertIs(ret, t.ic._data.get.return_value)
 
         with t.subTest('section.key'):
@@ -385,9 +402,10 @@ class GetConfigFunctionsTests(TestCase):
             )
             t.assertIs(ret, t.ic._data.get.return_value)
 
-    def test__get_flat(t):
+    @patch(f'{SRC}._flat_section', autospec=True)
+    def test__get_flat(t, _flat_section: Mock):
         """Flat files contain no sections
-        * a default 'root' section is injected into the ConfigParser
+        * every key sits in the section the flat loader reads into
         So only single-key lookups are valid...
         however keys can be delimited with '.'
 
@@ -400,7 +418,7 @@ class GetConfigFunctionsTests(TestCase):
             ret = _get_flat(self=t.ic, key=t.key)
             t.ic._data.get.assert_called_with(
                 option=t.key,
-                section='root',
+                section=_flat_section.return_value,
                 fallback=None,
             )
             t.assertIs(ret, t.ic._data.get.return_value)
@@ -410,7 +428,7 @@ class GetConfigFunctionsTests(TestCase):
             t.ic._data.get.assert_called_with(
                 # the key is not split, it is taken literally
                 option='this.is.a.valid.key',
-                section='root',  # Uses the injected root section value
+                section=_flat_section.return_value,
                 fallback=None,
             )
             t.assertIs(ret, t.ic._data.get.return_value)
@@ -448,14 +466,27 @@ class _load_ini_file_Tests(TestCase):
 
 
 class _load_ini_file_flat_Tests(TestCase):
+    """Unit tests for batconf.sources.ini._load_ini_file_flat."""
+
+    _flat_section: Mock
     ConfigParser: Mock
 
     def setUp(t):
-        patches = ['ConfigParser']
+        patches = ['_flat_section']
         for target in patches:
             patcher = patch(f'{SRC}.{target}', autospec=True)
             setattr(t, target, patcher.start())
             t.addCleanup(patcher.stop)
+
+        # The class mock carries no signature. ConfigParser on Python 3.12
+        # and older has no allow_unnamed_section, so an autospec rejects the
+        # call and a class spec fails to match it.
+        parser_patcher = patch(f'{SRC}.ConfigParser', spec=['__call__'])
+        t.ConfigParser = parser_patcher.start()
+        t.addCleanup(parser_patcher.stop)
+        t.ConfigParser.return_value = create_autospec(
+            ConfigParser, instance=True
+        )
 
         # Patch out the `with open` statement, so it returns the mock_open obj
         t.m_open = mock_open(read_data=EXAMPLE_FLAT_STR)
@@ -467,19 +498,55 @@ class _load_ini_file_flat_Tests(TestCase):
         t.file_path = Path(t.file_str)
         t.config_parser = t.ConfigParser.return_value
 
-    def test__load_ini_file(t):
+    def test_named_section(t):
+        t._flat_section.return_value = 'named'
+
         ret = _load_ini_file_flat(file_path=t.file_path)
 
-        t.assertIs(t.config_parser, ret)
-        t.config_parser.read_string.assert_called_with(
-            f'[root]\n{EXAMPLE_FLAT_STR}'
+        t.ConfigParser.assert_called_once_with()
+        t.config_parser.read_string.assert_called_once_with(
+            f'[named]\n{EXAMPLE_FLAT_STR}'
         )
+        t.assertIs(t.config_parser, ret)
+
+    def test_unnamed_section(t):
+        t._flat_section.return_value = sentinel.unnamed_section
+
+        ret = _load_ini_file_flat(file_path=t.file_path)
+
+        t.ConfigParser.assert_called_once_with(allow_unnamed_section=True)
+        t.config_parser.read_file.assert_called_once_with(
+            t.m_open.return_value
+        )
+        t.assertIs(t.config_parser, ret)
 
     def test_file_not_found(t):
         t.m_open.side_effect = FileNotFoundError
 
         with t.assertRaises(FileNotFoundError):
             _ = _load_ini_file_flat(file_path=t.file_path)
+
+
+class _flat_section_Tests(TestCase):
+    """Unit tests for batconf.sources.ini._flat_section."""
+
+    @patch.dict(
+        'sys.modules',
+        {
+            'configparser': Mock(
+                spec=['UNNAMED_SECTION'],
+                UNNAMED_SECTION=sentinel.unnamed_section,
+            ),
+        },
+    )
+    def test_unnamed_section(t):
+        ret = _flat_section()
+        t.assertIs(sentinel.unnamed_section, ret)
+
+    @patch.dict('sys.modules', {'configparser': Mock(spec=['ConfigParser'])})
+    def test_injected_section(t):
+        ret = _flat_section()
+        t.assertEqual('UNNAMED_SECTION', ret)
 
 
 class _load_ini_Tests(TestCase):

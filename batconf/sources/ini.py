@@ -1,5 +1,5 @@
 from functools import cached_property
-from typing import Literal, Protocol, Callable
+from typing import Any, Literal, Protocol, Callable
 from logging import getLogger
 
 from configparser import ConfigParser
@@ -36,6 +36,11 @@ class ConfigParserP(Protocol):
 
 
 # === IniConfig Get Methods === #
+
+
+# The sections layout names every section, so a key of the root schema
+# needs a named home. See ADR 0019.
+_ROOT_SECTION = '/ROOT/'
 
 
 class _ConfigParserSource(Protocol):
@@ -77,7 +82,7 @@ def _get_sections(
     try:
         section, key = key.rsplit(sep='.', maxsplit=1)
     except ValueError:
-        section = ''
+        section = _ROOT_SECTION
 
     return self._data.get(section=section, option=key, fallback=None)
 
@@ -87,7 +92,24 @@ def _get_flat(
     key: str,
     path: str | None = None,
 ) -> str | None:
-    return self._data.get(section='root', option=key, fallback=None)
+    return self._data.get(section=_flat_section(), option=key, fallback=None)
+
+
+def _flat_section() -> Any:
+    """Return the section that holds the keys of a flat file.
+
+    The section is ``configparser.UNNAMED_SECTION`` from Python 3.13, and
+    the name ``'UNNAMED_SECTION'`` before it.
+    """
+    try:
+        from configparser import UNNAMED_SECTION  # type: ignore[attr-defined]
+    except ImportError:
+        # Python 3.12 and older have no unnamed section, so the flat loader
+        # adds an [UNNAMED_SECTION] header. A flat file that spells
+        # [UNNAMED_SECTION] then fails with DuplicateSectionError. Remove
+        # this branch when Python 3.12 reaches end of life, October 2028.
+        return 'UNNAMED_SECTION'
+    return UNNAMED_SECTION
 
 
 def _get_empty(
@@ -119,13 +141,22 @@ class IniSource(FileSourceP):
         Path to the INI configuration file.
     file_format : {'environments', 'sections', 'flat'}, default='environments'
         INI file layout. ``'environments'`` expects top-level sections named
-        after environments; ``'sections'`` uses sections as config namespaces;
-        ``'flat'`` reads all keys from a single ``[root]`` section.
+        after environments; ``'sections'`` uses sections as config namespaces
+        and reads an empty path from the ``[/ROOT/]`` section;
+        ``'flat'`` reads the keys above the first section header and ignores
+        every section.
     config_env : str or None, default=read from file
         Active configuration environment. When not provided, the value of
         ``batconf.default_env`` in the INI file is used.
     missing_file_option : {'warn', 'ignore', 'error'}, default='warn'
         Behaviour when the specified file is missing.
+
+    Warnings
+    --------
+    On Python 3.12 and older the loader adds an ``[UNNAMED_SECTION]``
+    header to a ``'flat'`` file, so a file that spells that header raises
+    ``configparser.DuplicateSectionError``. Remove the header to load the
+    file.
 
     Examples
     --------
@@ -282,9 +313,18 @@ def _load_ini_file(file_path: Path) -> ConfigParser:
 
 
 def _load_ini_file_flat(file_path: Path) -> ConfigParser:
-    config = ConfigParser()
+    section = _flat_section()
     with open(file_path) as cfg_file:
-        config.read_string(f'[root]\n{cfg_file.read()}')
+        # A named section needs its header in front of the file; the
+        # unnamed section needs the parser option.
+        if isinstance(section, str):
+            config = ConfigParser()
+            config.read_string(f'[{section}]\n{cfg_file.read()}')
+        else:
+            config = ConfigParser(  # type: ignore[call-overload]
+                allow_unnamed_section=True
+            )
+            config.read_file(cfg_file)
 
     return config
 
